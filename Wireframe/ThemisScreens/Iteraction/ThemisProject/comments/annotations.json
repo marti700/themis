@@ -1,0 +1,46 @@
+{
+  "comments": [
+    {
+      "canvasID": "s-e6d06ddb-1841-4061-afb6-e9412c66e77a",
+      "elementID": "s-e6d06ddb-1841-4061-afb6-e9412c66e77a",
+      "canvasURL": "screens/e6d06ddb-1841-4061-afb6-e9412c66e77a",
+      "author": "Teodoro Alcántara Aquino",
+      "authorID" : 0,
+      "code": 1,
+      "parentCode": null,
+      "content": "Here the user specifies the document type (if it is a sell contract or a rent contract or other kind of document) This information is needed to accuarately fill the DocumentCreationScreen (which is where the document data is captured)",
+      "timestamp": "1416430511878",
+      "date": "19-Nov-2014 16:25",
+      "fileName": "",
+      "isRead": true
+    }
+    ,{
+      "canvasID": "s-e39ed2fb-e08d-4f96-b001-7cc5d02fba30",
+      "elementID": "s-e39ed2fb-e08d-4f96-b001-7cc5d02fba30",
+      "canvasURL": "screens/e39ed2fb-e08d-4f96-b001-7cc5d02fba30",
+      "author": "Teodoro Alcántara Aquino",
+      "authorID" : 0,
+      "code": 2,
+      "parentCode": null,
+      "content": "The items under Personal info. Label and Item Description label are grouped in a groupbox (i don't know how to represet that here)",
+      "timestamp": "1416431625393",
+      "date": "19-Nov-2014 16:43",
+      "fileName": "",
+      "isRead": true
+    }
+    ,{
+      "canvasID": "s-e39ed2fb-e08d-4f96-b001-7cc5d02fba30",
+      "elementID": "s-e39ed2fb-e08d-4f96-b001-7cc5d02fba30",
+      "canvasURL": "screens/e39ed2fb-e08d-4f96-b001-7cc5d02fba30",
+      "author": "Teodoro Alcántara Aquino",
+      "authorID" : 0,
+      "code": 3,
+      "parentCode": null,
+      "content": "The items under Item Description label should be a set of labels and input fields that go to variate depending of the Document Type",
+      "timestamp": "1416431881807",
+      "date": "19-Nov-2014 16:48",
+      "fileName": "",
+      "isRead": true
+    }
+  ]
+}
