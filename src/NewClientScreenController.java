@@ -7,7 +7,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import screensframework.*;
 
-public class MainScreenController implements Initializable, ControlledScreen{
+public class NewClientScreenController implements Initializable, ControlledScreen{
     
     ScreensController controller;
 
@@ -20,8 +20,8 @@ public class MainScreenController implements Initializable, ControlledScreen{
         controller = screenParent;
     }
 
-    @FXML
+    /*@FXML
     private void showNewClientScreen(ActionEvent event){
-        controller.setScreen(Themis.newClientScreen);
-    }
+        controller.setScreen(ScreensFramework.NewClientScreen);
+    }*/
 }

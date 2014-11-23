@@ -10,21 +10,22 @@ import screensframework.*;
 
 public class Themis extends Application{
     
-    public static String screen1ID = "MainScreen";
-    public static String screenFile = "../FXMLFiles/MainScreen.fxml";
-    public static String screen2ID = "MainScreen1";
-    public static String screenFile2 = "MainScreen.fxml";
+    public static String mainScreen = "MainScreen";
+    public static String mainScreenFile = "../FXMLFiles/MainScreen.fxml";
+    public static String newClientScreen = "NewClientScreen";
+    public static String newClientScreenFile = "../FXMLFiles/NewClientScreen.fxml";
     
     @Override
     public void start(Stage primaryStage){
         ScreensController mainContainer = new ScreensController();
 
-        mainContainer.loadScreen(Themis.screen1ID, Themis.screenFile);
-        mainContainer.setScreen(Themis.screen1ID);
+        mainContainer.loadScreen(Themis.mainScreen, Themis.mainScreenFile);
+        mainContainer.setScreen(Themis.mainScreen);
         
-        //mainContainer.loadScreen(Themis.screen2ID, Themis.screenFile2);
-        //mainContainer.setScreen(Themis.screen2ID);
-
+        mainContainer.loadScreen(Themis.newClientScreen, Themis.newClientScreenFile);
+        mainContainer.setScreen(Themis.newClientScreen);
+        
+        mainContainer.setScreen(Themis.mainScreen);
 
         Group root = new Group();
         root.getChildren().addAll(mainContainer);
