@@ -20,8 +20,8 @@ public class NewClientScreenController implements Initializable, ControlledScree
         controller = screenParent;
     }
 
-    /*@FXML
-    private void showNewClientScreen(ActionEvent event){
-        controller.setScreen(ScreensFramework.NewClientScreen);
-    }*/
+    @FXML
+    private void showMainScreen(ActionEvent event){
+        controller.setScreen(Themis.mainScreen);
+    }
 }

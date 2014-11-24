@@ -6,7 +6,6 @@
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-
 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="themis.NewClientScreenController">
    <top>
       <HBox prefHeight="80.0" prefWidth="600.0" BorderPane.alignment="CENTER">
@@ -36,7 +35,7 @@
                   <Insets left="390.0" top="15.0" />
                </HBox.margin>
             </Button>
-            <Button mnemonicParsing="false" text="Cacelar">
+            <Button mnemonicParsing="false" onAction="#showMainScreen" text="Cacelar">
                <HBox.margin>
                   <Insets top="15.0" />
                </HBox.margin>
