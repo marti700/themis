@@ -6,10 +6,14 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import screensframework.*;
+import javafx.scene.control.Label;
 
-public class MainScreenController implements Initializable, ControlledScreen{
+public class NewEditClientScreenController implements Initializable, ControlledScreen{
     
     ScreensController controller;
+    
+    @FXML
+    public Label titleHeader;
 
     @Override
     public void initialize(URL url, ResourceBundle rb){
@@ -20,9 +24,14 @@ public class MainScreenController implements Initializable, ControlledScreen{
         controller = screenParent;
     }
 
+    //setters 
+    public  void setTitleHeader(String title){
+        titleHeader.setText(title);
+    }
+    //event handlers
     @FXML
-    private void showNewClientScreen(ActionEvent event){
-        controller.setScreen(Themis.newClientScreen);
-        
+    private void showMainScreen(ActionEvent event){
+        //controller.setScreen(Themis.mainScreen);
+        titleHeader.setText("Me diste");
     }
 }
