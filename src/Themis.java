@@ -12,8 +12,8 @@ public class Themis extends Application{
     
     public static String mainScreen = "MainScreen";
     public static String mainScreenFile = "../FXMLFiles/MainScreen.fxml";
-    public static String newClientScreen = "NewEditClientScreen";
-    public static String newClientScreenFile = "../FXMLFiles/NewEditClientScreen.fxml";
+    public static String newEditClientScreen = "NewEditClientScreen";
+    public static String newEditClientScreenFile = "../FXMLFiles/NewEditClientScreen.fxml";
     
     @Override
     public void start(Stage primaryStage){
@@ -22,8 +22,8 @@ public class Themis extends Application{
         mainContainer.loadScreen(Themis.mainScreen, Themis.mainScreenFile);
         mainContainer.setScreen(Themis.mainScreen);
         
-        mainContainer.loadScreen(Themis.newClientScreen, Themis.newClientScreenFile);
-        mainContainer.setScreen(Themis.newClientScreen);
+        mainContainer.loadScreen(Themis.newEditClientScreen, Themis.newEditClientScreenFile);
+        mainContainer.setScreen(Themis.newEditClientScreen);
         
         mainContainer.setScreen(Themis.mainScreen);
 

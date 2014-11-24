@@ -31,7 +31,6 @@ public class NewEditClientScreenController implements Initializable, ControlledS
     //event handlers
     @FXML
     private void showMainScreen(ActionEvent event){
-        //controller.setScreen(Themis.mainScreen);
-        titleHeader.setText("Me diste");
+        controller.setScreen(Themis.mainScreen);
     }
 }

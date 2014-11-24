@@ -23,7 +23,7 @@
                   <Insets left="35.0" top="13.0" />
                </HBox.margin>
             </Button>
-            <Button mnemonicParsing="false" prefHeight="25.0" prefWidth="67.0" text="Editar">
+            <Button mnemonicParsing="false" onAction="#showEditClientScreen" prefHeight="25.0" prefWidth="67.0" text="Editar">
                <HBox.margin>
                   <Insets top="13.0" />
                </HBox.margin>
