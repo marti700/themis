@@ -17,6 +17,9 @@ public class Themis extends Application{
     
     @Override
     public void start(Stage primaryStage){
+        
+        DatabaseConnector.connectToDatabase();
+
         ScreensController mainContainer = new ScreensController();
 
         mainContainer.loadScreen(Themis.mainScreen, Themis.mainScreenFile);

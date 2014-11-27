@@ -47,12 +47,6 @@
       </HBox>
    </top>
    <center>
-      <TableView prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
-        <columns>
-          <TableColumn prefWidth="218.0" text="Nombre" />
-          <TableColumn prefWidth="213.0" text="Desde" />
-            <TableColumn minWidth="0.0" prefWidth="164.0" text="Ultima Visita" />
-        </columns>
-      </TableView>
+      <TableView fx:id="clientsTable" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER" />
    </center>
 </BorderPane>

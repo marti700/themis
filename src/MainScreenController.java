@@ -6,16 +6,44 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;  
+import javafx.scene.control.cell.PropertyValueFactory;
 import screensframework.*;
 
 public class MainScreenController implements Initializable, ControlledScreen{
     
     ScreensController controller;
-    
+    private Client clients = new Client();
+
+    @FXML
+    private TableView<Client> clientsTable;    
     
     @Override
-    public void initialize(URL url, ResourceBundle rb){
+    public void initialize(URL url, ResourceBundle rb) {
         //TODO
+
+        clientsTable.setItems(clients.getAllClients());
+        
+        try{
+            for (int i=0; i<clients.getClientDatabaseTableResultSet().getMetaData().getColumnCount();++i){
+                //give a column it header name
+                TableColumn<Client,String> column = new TableColumn<Client,String>(clients.getClientDatabaseTableResultSet().getMetaData().getColumnName(i+1));
+                
+                //add data to the columns
+                //clients.getClientDatabaseTableResultSet().getMetaData().getColumnName(i+1) will call the method getColumnNameProperty of the client object 
+                //where columnName is the name of a javax.beans property for more info about this see:
+                //https://docs.oracle.com/javase/8/javafx/api/javafx/scene/control/cell/PropertyValueFactory.html 
+
+                column.setCellValueFactory(new PropertyValueFactory<Client,String>(clients.getClientDatabaseTableResultSet().getMetaData().getColumnName(i+1)));
+
+                //add the column to the tableview
+                clientsTable.getColumns().add(column);
+            }
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
     }
 
     public void setScreenParent(ScreensController screenParent){
