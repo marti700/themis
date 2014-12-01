@@ -8,11 +8,9 @@ import java.sql.*;
 
 public class Client{
 
-	private StringProperty name;
-	private StringProperty secondName;
-	private StringProperty firstLastname;
-	private StringProperty secondLastName;
-	private StringProperty civilState;
+	private StringProperty names;
+	private StringProperty lastNames;
+	private StringProperty maritalStatus;
 	private StringProperty idPassport;
 	private StringProperty address;
 	private StringProperty nationality;
@@ -24,20 +22,16 @@ public class Client{
 	private Statement stm;
 	private	ResultSet rs;
 
-	
+	//default constructor
 	public Client(){
-		this.name = null;
-		this.secondLastName = null;
-
+		//this.names = null;
 	}
-	public Client(String name, String secondName, String firstLastname, String secondLastName, String civilState, 
-					String idPassport, String address, String nationality, String job /*, String firstVisit, String lastVisit*/){
+
+	public Client(String names, String lastNames, String maritalStatus, String idPassport, String address, String nationality, String job /*, String firstVisit, String lastVisit*/){
 		
-		this.name = new SimpleStringProperty(name);
-		this.secondName = new SimpleStringProperty(secondName);
-		this.firstLastname = new SimpleStringProperty(firstLastname);
-		this.secondLastName = new SimpleStringProperty(secondLastName);
-		this.civilState = new SimpleStringProperty(civilState);
+		this.names = new SimpleStringProperty(names);
+		this.lastNames = new SimpleStringProperty(lastNames);
+		this.maritalStatus = new SimpleStringProperty(maritalStatus);
 		this.idPassport = new SimpleStringProperty(idPassport);
 		this.nationality = new SimpleStringProperty(nationality);
 		this.job = new SimpleStringProperty(job);
@@ -46,53 +40,49 @@ public class Client{
 		//this.lastVisit = new SimpleStringProperty(lastVisit);
 	}
 
-	public String getName(){
-		return name.get();
+	public String getNames(){
+		return names.get();
 	}
 
-	public String getSecondName(){
-		return secondName.get();
+	public String getLastnames(){
+		return lastNames.get();
 	} 
-	public String getFirstLastname(){ return firstLastname.get();} 
-	public String getsecondastName(){return secondLastName.get();} 
-	public String getCivilState(){return civilState.get();} 
-	public String getIdPassport() {return idPassport.get();} 
+	public String getMaritalstatus(){return maritalStatus.get();} 
+	public String getIdpassport() {return idPassport.get();} 
 	public String getNationality(){return nationality.get();} 
 	public String getJob() {return job.get();} 
 	public String getAddress(){return address.get();}
 	//public String getFirstVisit() {firstVisit.get();} 
 	//public String getLastVisit(){return lastVisit.get();}
 
-	public StringProperty getNameProperty(){
-		return name;
+	public StringProperty getNamesProperty(){
+		return names;
 	}
 
-	public StringProperty getSecondNameProperty(){
-		return secondName;
+	public StringProperty getLastnamesProperty(){
+		return lastNames;
 	} 
 	
 	
-	public StringProperty getfirst_last_nameProperty(){return  firstLastname;} 
-	public StringProperty getsecond_last_nameProperty(){return secondLastName;} 
-	public StringProperty getCivil_stateProperty(){return civilState;} 
-	public StringProperty getCedula_pasaporteProperty(){return idPassport;} 
-	public StringProperty getNacionalidadProperty() {return nationality;} 
-	public StringProperty getJobProperty(){return job;} 
+	/*public StringProperty getMaritalstatusProperty(){return maritalStatus;} 
+	public StringProperty getIdpassportProperty(){return idPassport;} 
+	public StringProperty getNationalityProperty() {return nationality;} 
+	//public StringProperty getJobProperty(){return job;} 
 	public StringProperty getAddressProperty() {return address;}
 	//public StringProperty getFirstVisitProperty() {return firstVisit;} 
 	//public StringProperty getLastVisitProperty() {return lastVisit;}
-
+*/
 	
 	//returns all clients
 	public ObservableList<Client> getAllClients(){
-		
+	/* Returns an obserbable list which contains all clients*/
 		try{
 			ResultSet queryResult = getClientDatabaseTableResultSet();
-
+			
+			// add data to observablelist 
 			while (queryResult.next()){
-				allClients.add(new Client(queryResult.getString("Name"), queryResult.getString("second_name"), queryResult.getString("first_last_name"), 
-											queryResult.getString("second_last_name"), queryResult.getString("civil_state"), queryResult.getString("cedula_pasaporte"), 
-											queryResult.getString("address"), queryResult.getString("nacionalidad"), queryResult.getString("job")));
+				allClients.add(new Client(queryResult.getString("names"), queryResult.getString("lastnames"), queryResult.getString("maritalstatus"), 
+										  queryResult.getString("idpassport"), queryResult.getString("address"), queryResult.getString("nationality"), queryResult.getString("job")));
 			}
 		}
 		catch (Exception e){
@@ -103,14 +93,16 @@ public class Client{
 	}
 
 	public ResultSet getClientDatabaseTableResultSet() throws Exception{
+		/* Returns a resultset of a SQL select executed against the Clientes database table */
+
 		try{
-			this.stm = DatabaseConnector.connection.createStatement();
-			this.rs = stm.executeQuery("SELECT name, second_name, first_last_name, second_last_name, nacionalidad, civil_state, job, cedula_pasaporte, address FROM clients;");
+			stm = DatabaseConnector.connection.createStatement();
+			rs = stm.executeQuery("SELECT names, lastnames, nationality, maritalstatus, job, idpassport, address FROM Clientes;");
 		}
 
 		catch(Exception e){
 			e.printStackTrace();
 		}
-		return this.rs;
+		return rs;
 	}
 }

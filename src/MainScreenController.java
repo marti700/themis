@@ -14,7 +14,7 @@ import screensframework.*;
 public class MainScreenController implements Initializable, ControlledScreen{
     
     ScreensController controller;
-    private Client clients = new Client();
+    private Client clients;
 
     @FXML
     private TableView<Client> clientsTable;    
@@ -34,7 +34,6 @@ public class MainScreenController implements Initializable, ControlledScreen{
                 //clients.getClientDatabaseTableResultSet().getMetaData().getColumnName(i+1) will call the method getColumnNameProperty of the client object 
                 //where columnName is the name of a javax.beans property for more info about this see:
                 //https://docs.oracle.com/javase/8/javafx/api/javafx/scene/control/cell/PropertyValueFactory.html 
-
                 column.setCellValueFactory(new PropertyValueFactory<Client,String>(clients.getClientDatabaseTableResultSet().getMetaData().getColumnName(i+1)));
 
                 //add the column to the tableview
