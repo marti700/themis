@@ -4,6 +4,8 @@ import javafx.beans.property.StringProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import java.util.*;
+import java.text.SimpleDateFormat;
 import java.sql.*;
 
 public class Client{
@@ -15,8 +17,8 @@ public class Client{
 	private StringProperty address;
 	private StringProperty nationality;
 	private StringProperty job;
-	//private StringProperty firstVisit;
-	//private StringProperty lastVisit;
+	private StringProperty firstVisit;
+	private StringProperty lastVisit;
 
 	private ObservableList<Client> allClients = FXCollections.observableArrayList();
 	private Statement stm;
@@ -27,8 +29,12 @@ public class Client{
 		//this.names = null;
 	}
 
-	public Client(String names, String lastNames, String maritalStatus, String idPassport, String address, String nationality, String job /*, String firstVisit, String lastVisit*/){
+	public Client(String names, String lastNames, String maritalStatus, String idPassport, String address, String nationality, String job){
 		
+		Calendar currentDate = Calendar.getInstance(); // get the current date
+		SimpleDateFormat formatDate = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss"); // to format the current date
+
+		//initialize properties
 		this.names = new SimpleStringProperty(names);
 		this.lastNames = new SimpleStringProperty(lastNames);
 		this.maritalStatus = new SimpleStringProperty(maritalStatus);
@@ -36,8 +42,8 @@ public class Client{
 		this.nationality = new SimpleStringProperty(nationality);
 		this.job = new SimpleStringProperty(job);
 		this.address = new SimpleStringProperty(address);
-		//this.firstVisit = new SimpleStringProperty(firstVisit);
-		//this.lastVisit = new SimpleStringProperty(lastVisit);
+		this.firstVisit = new SimpleStringProperty(formatDate.format(currentDate.getTime()));
+		this.lastVisit = new SimpleStringProperty(formatDate.format(currentDate.getTime()));
 	}
 
 	public String getNames(){
@@ -52,8 +58,8 @@ public class Client{
 	public String getNationality(){return nationality.get();} 
 	public String getJob() {return job.get();} 
 	public String getAddress(){return address.get();}
-	//public String getFirstVisit() {firstVisit.get();} 
-	//public String getLastVisit(){return lastVisit.get();}
+	public String getFirstVisit() {return firstVisit.get();} 
+	public String getLastVisit(){return lastVisit.get();}
 
 	public StringProperty getNamesProperty(){
 		return names;
@@ -62,6 +68,34 @@ public class Client{
 	public StringProperty getLastnamesProperty(){
 		return lastNames;
 	} 
+
+	public void insertClient(String names, String lastNames, String nationality, String maritalStatus, String job, String idPassport, String address){
+		
+		try {
+			Calendar currentDate = Calendar.getInstance(); // get the current date
+			SimpleDateFormat formatDate = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss"); // to format the current date
+
+			//prepare de call to stored procedure 
+			CallableStatement stm = DatabaseConnector.connection.prepareCall ("{call insertclient(?,?,?,?,?,?,?,TO_TIMESTAMP(?, 'DD-MM-YYYY HH24:MI:SS'),TO_TIMESTAMP(?, 'DD-MM-YYYY HH24:MI:SS'))}");
+
+			//set values
+			stm.setString(1,names);
+			stm.setString(2,lastNames);
+			stm.setString(3,nationality);
+			stm.setString(4,maritalStatus);
+			stm.setString(5,job);
+			stm.setString(6,idPassport);
+			stm.setString(7,address);
+			stm.setString(8, formatDate.format(currentDate.getTime()));
+			stm.setString(9,formatDate.format(currentDate.getTime()));
+			
+			//execute query
+			stm.execute();
+		}
+		catch (Exception e){
+			e.printStackTrace();
+		}
+	}
 	
 	
 	/*public StringProperty getMaritalstatusProperty(){return maritalStatus;} 

@@ -4,7 +4,7 @@ import java.sql.*;
 
 public class DatabaseConnector{
 	
-	static Connection connection;
+	public static Connection connection;
 	
 	public static void connectToDatabase(){
 		
@@ -14,5 +14,9 @@ public class DatabaseConnector{
 		catch (Exception e){
 			e.printStackTrace();
 		}
+	}
+
+	public static Connection getDatabaseConnection(){
+		return connection;
 	}
 }

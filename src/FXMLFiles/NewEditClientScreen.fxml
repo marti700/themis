@@ -30,7 +30,7 @@
    <bottom>
       <HBox prefHeight="50.0" prefWidth="600.0" spacing="20.0" BorderPane.alignment="CENTER">
          <children>
-            <Button mnemonicParsing="false" text="Añadir Cliente">
+            <Button fx:id="addClientButton" mnemonicParsing="false" onAction="#addClient" text="Añadir Cliente">
                <HBox.margin>
                   <Insets left="390.0" top="15.0" />
                </HBox.margin>
@@ -58,66 +58,78 @@
             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
         </rowConstraints>
          <children>
-            <Label text="Nombre">
+            <Label text="Nombres">
                <GridPane.margin>
                   <Insets left="10.0" />
                </GridPane.margin>
             </Label>
             <Label text="Estado Civil" GridPane.columnIndex="1" />
-            <Label text="Nacionalidad" GridPane.rowIndex="2">
+            <Label text="Nacionalidad" GridPane.rowIndex="4">
                <GridPane.margin>
                   <Insets left="10.0" />
                </GridPane.margin>
             </Label>
             <Label text="Profesion" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-            <Label text="Cedula/Pasaporte" GridPane.rowIndex="4">
+            <Label text="Cedula/Pasaporte" GridPane.rowIndex="6">
                <GridPane.margin>
                   <Insets left="10.0" />
                </GridPane.margin>
             </Label>
             <Label text="Domicilio" GridPane.columnIndex="1" GridPane.rowIndex="4" />
-            <Label text="Genero" GridPane.rowIndex="6">
+            <Label text="Genero" GridPane.rowIndex="8">
                <GridPane.margin>
                   <Insets left="10.0" />
                </GridPane.margin>
             </Label>
-            <TextField prefHeight="25.0" prefWidth="49.0" GridPane.rowIndex="1">
+            <TextField fx:id="clientNamesTextField" prefHeight="25.0" prefWidth="49.0" GridPane.rowIndex="1">
                <GridPane.margin>
                   <Insets left="10.0" right="60.0" />
                </GridPane.margin>
             </TextField>
-            <TextField GridPane.columnIndex="1" GridPane.rowIndex="1">
+            <TextField fx:id="clientMaritalStatusTextField" GridPane.columnIndex="1" GridPane.rowIndex="1">
                <GridPane.margin>
                   <Insets right="60.0" />
                </GridPane.margin>
             </TextField>
-            <TextField GridPane.rowIndex="3">
+            <TextField fx:id="clientNationalityTextField" GridPane.rowIndex="5">
                <GridPane.margin>
                   <Insets left="10.0" right="60.0" />
                </GridPane.margin>
             </TextField>
-            <TextField GridPane.columnIndex="1" GridPane.rowIndex="3">
+            <TextField fx:id="clientJobTextField" GridPane.columnIndex="1" GridPane.rowIndex="3">
                <GridPane.margin>
                   <Insets right="60.0" />
                </GridPane.margin>
             </TextField>
-            <TextField GridPane.rowIndex="5">
+            <TextField fx:id="clientIdPassportTextField" GridPane.rowIndex="7">
                <GridPane.margin>
                   <Insets left="10.0" right="60.0" />
                </GridPane.margin>
             </TextField>
-            <TextArea prefHeight="74.0" prefWidth="296.0" GridPane.columnIndex="1" GridPane.rowIndex="5" GridPane.rowSpan="2">
+            <TextArea fx:id="clientAddressTextArea" prefHeight="74.0" prefWidth="296.0" GridPane.columnIndex="1" GridPane.rowIndex="5" GridPane.rowSpan="2">
                <GridPane.margin>
                   <Insets right="60.0" />
                </GridPane.margin>
             </TextArea>
-            <ComboBox prefWidth="150.0" GridPane.rowIndex="7">
+            <ComboBox prefWidth="150.0" GridPane.rowIndex="9">
                <GridPane.margin>
                   <Insets left="10.0" />
                </GridPane.margin>
             </ComboBox>
+            <Label text="Apellidos" GridPane.rowIndex="2">
+               <padding>
+                  <Insets left="10.0" />
+               </padding>
+            </Label>
+            <TextField fx:id="clientLastNamesTextField" GridPane.rowIndex="3">
+               <GridPane.margin>
+                  <Insets left="10.0" right="60.0" />
+               </GridPane.margin>
+            </TextField>
          </children>
       </GridPane>
    </center>

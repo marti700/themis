@@ -9,12 +9,16 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;  
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.collections.ObservableList;
+import javafx.collections.FXCollections;
 import screensframework.*;
 
 public class MainScreenController implements Initializable, ControlledScreen{
     
     ScreensController controller;
-    private Client clients;
+    private Client clients = new Client();
+
+    public static ObservableList<Client> allClients = FXCollections.observableArrayList();
 
     @FXML
     private TableView<Client> clientsTable;    
@@ -22,8 +26,10 @@ public class MainScreenController implements Initializable, ControlledScreen{
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         //TODO
-
-        clientsTable.setItems(clients.getAllClients());
+        
+        allClients = clients.getAllClients();
+        
+        clientsTable.setItems(allClients);
         
         try{
             for (int i=0; i<clients.getClientDatabaseTableResultSet().getMetaData().getColumnCount();++i){
