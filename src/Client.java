@@ -58,8 +58,8 @@ public class Client{
 	public String getNationality(){return nationality.get();} 
 	public String getJob() {return job.get();} 
 	public String getAddress(){return address.get();}
-	public String getFirstVisit() {return firstVisit.get();} 
-	public String getLastVisit(){return lastVisit.get();}
+	public String getFirstvisit() {return firstVisit.get();} 
+	public String getLastvisit(){return lastVisit.get();}
 
 	public StringProperty getNamesProperty(){
 		return names;
@@ -131,7 +131,7 @@ public class Client{
 
 		try{
 			stm = DatabaseConnector.connection.createStatement();
-			rs = stm.executeQuery("SELECT names, lastnames, nationality, maritalstatus, job, idpassport, address FROM Clientes;");
+			rs = stm.executeQuery("SELECT names, lastnames, nationality, maritalstatus, job, idpassport, address, firstvisit, lastvisit FROM Clientes;");
 		}
 
 		catch(Exception e){
