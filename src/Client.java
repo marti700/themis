@@ -2,6 +2,8 @@ package themis;
 
 import javafx.beans.property.StringProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import java.util.*;
@@ -10,6 +12,7 @@ import java.sql.*;
 
 public class Client{
 
+	private IntegerProperty id;
 	private StringProperty names;
 	private StringProperty lastNames;
 	private StringProperty maritalStatus;
@@ -29,12 +32,13 @@ public class Client{
 		//this.names = null;
 	}
 
-	public Client(String names, String lastNames, String maritalStatus, String idPassport, String address, String nationality, String job){
+	public Client(int id, String names, String lastNames, String nationality, String maritalStatus, String job, String idPassport, String address ){
 		
 		Calendar currentDate = Calendar.getInstance(); // get the current date
 		SimpleDateFormat formatDate = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss"); // to format the current date
 
 		//initialize properties
+		this.id = new SimpleIntegerProperty(id);
 		this.names = new SimpleStringProperty(names);
 		this.lastNames = new SimpleStringProperty(lastNames);
 		this.maritalStatus = new SimpleStringProperty(maritalStatus);
@@ -46,13 +50,10 @@ public class Client{
 		this.lastVisit = new SimpleStringProperty(formatDate.format(currentDate.getTime()));
 	}
 
-	public String getNames(){
-		return names.get();
-	}
-
-	public String getLastnames(){
-		return lastNames.get();
-	} 
+	//getters
+	public int getClientId(){return id.get();}
+	public String getNames(){return names.get();}
+	public String getLastnames(){return lastNames.get();} 
 	public String getMaritalstatus(){return maritalStatus.get();} 
 	public String getIdpassport() {return idPassport.get();} 
 	public String getNationality(){return nationality.get();} 
@@ -61,14 +62,18 @@ public class Client{
 	public String getFirstvisit() {return firstVisit.get();} 
 	public String getLastvisit(){return lastVisit.get();}
 
-	public StringProperty getNamesProperty(){
-		return names;
-	}
+	//setters
+	public void setNames(String names){this.names.set(names);}
+	public void setLastnames(String lastNames){this.lastNames.set(lastNames);} 
+	public void setMaritalstatus(String maritalStatus){this.maritalStatus.set(maritalStatus);} 
+	public void setIdpassport(String idPassport) {this.idPassport.set(idPassport);} 
+	public void setNationality(String nationality){this.nationality.set(nationality);} 
+	public void setJob(String job) {this.job.set(job);} 
+	public void setAddress(String address){this.address.set(address);}
+	//public void setFirstvisit() {firstVisit.set();} 
+	//public void setLastvisit(){lastVisit.set();}
 
-	public StringProperty getLastnamesProperty(){
-		return lastNames;
-	} 
-
+	
 	public void insertClient(String names, String lastNames, String nationality, String maritalStatus, String job, String idPassport, String address){
 		
 		try {
@@ -96,6 +101,29 @@ public class Client{
 			e.printStackTrace();
 		}
 	}
+
+	public void editClient(String names, String lastNames, String nationality, String maritalStatus, String job, String idPassport, String address, int id){
+		try{
+			//prepare call to stored procedure
+			CallableStatement editClient = DatabaseConnector.connection.prepareCall("{call editclient(?,?,?,?,?,?,?,?)}");
+
+			//set values
+			editClient.setString(1,names);
+			editClient.setString(2,lastNames);
+			editClient.setString(3,nationality);
+			editClient.setString(4,maritalStatus);
+			editClient.setString(5,job);
+			editClient.setString(6, idPassport);
+			editClient.setString(7,address);
+			editClient.setInt(8, id);
+
+			//execute statement
+			editClient.execute();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 	
 	
 	/*public StringProperty getMaritalstatusProperty(){return maritalStatus;} 
@@ -105,6 +133,9 @@ public class Client{
 	public StringProperty getAddressProperty() {return address;}
 	//public StringProperty getFirstVisitProperty() {return firstVisit;} 
 	//public StringProperty getLastVisitProperty() {return lastVisit;}
+	public StringProperty getNamesProperty(){return names;}
+	public StringProperty getLastnamesProperty(){return lastNames;} 
+
 */
 	
 	//returns all clients
@@ -115,8 +146,8 @@ public class Client{
 			
 			// add data to observablelist 
 			while (queryResult.next()){
-				allClients.add(new Client(queryResult.getString("names"), queryResult.getString("lastnames"), queryResult.getString("maritalstatus"), 
-										  queryResult.getString("idpassport"), queryResult.getString("address"), queryResult.getString("nationality"), queryResult.getString("job")));
+				allClients.add(new Client(queryResult.getInt("id"), queryResult.getString("names"), queryResult.getString("lastnames"), queryResult.getString("nationality"), 
+										queryResult.getString("maritalstatus"), queryResult.getString("job"), queryResult.getString("idpassport"), queryResult.getString("address")));
 			}
 		}
 		catch (Exception e){
@@ -131,12 +162,27 @@ public class Client{
 
 		try{
 			stm = DatabaseConnector.connection.createStatement();
-			rs = stm.executeQuery("SELECT names, lastnames, nationality, maritalstatus, job, idpassport, address, firstvisit, lastvisit FROM Clientes;");
+			rs = stm.executeQuery("SELECT id, names, lastnames, nationality, maritalstatus, job, idpassport, address, firstvisit, lastvisit FROM Clientes;");
 		}
 
 		catch(Exception e){
 			e.printStackTrace();
 		}
 		return rs;
+	}
+
+	//gets a clients id
+	public int getClientId(String idPassport){
+	
+	try{
+			stm = DatabaseConnector.connection.createStatement();
+			rs = stm.executeQuery("SELECT id FROM Clientes WHERE idpassport ="+idPassport+";");
+			return rs.getInt("id");
+		}
+
+		catch(Exception e){
+			e.printStackTrace();
+			return -1;
+		}
 	}
 }
