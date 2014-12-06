@@ -23,10 +23,10 @@ public class Themis extends Application{
         ScreensController mainContainer = new ScreensController();
 
         mainContainer.loadScreen(Themis.mainScreen, Themis.mainScreenFile);
-        mainContainer.setScreen(Themis.mainScreen);
+        //mainContainer.setScreen(Themis.mainScreen);
         
         mainContainer.loadScreen(Themis.newEditClientScreen, Themis.newEditClientScreenFile);
-        mainContainer.setScreen(Themis.newEditClientScreen);
+        //mainContainer.setScreen(Themis.newEditClientScreen);
         
         mainContainer.setScreen(Themis.mainScreen);
 
