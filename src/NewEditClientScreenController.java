@@ -84,7 +84,7 @@ public class NewEditClientScreenController implements Initializable, ControlledS
 
     @FXML 
     private void addClient (ActionEvent event){
-        System.out.println(MainScreenController.allClients.get(MainScreenController.getSelectedClientIndex() ));
+        //System.out.println(MainScreenController.allClients.get(MainScreenController.getSelectedClientIndex()));
         
         //edit button was pressed in the mainscreen
         if (editWasPressed) {
@@ -97,8 +97,8 @@ public class NewEditClientScreenController implements Initializable, ControlledS
             
             // create a client obect 
             Client editedClient = new Client(MainScreenController.allClients.get(MainScreenController.getSelectedClientIndex()).getClientId(), clientNamesTextField.getText(), 
-                                             clientLastNamesTextField.getText(), clientNationalityTextField.getText(), clientMaritalStatusTextField.getText(), clientJobTextField.getText(), 
-                                             clientIdPassportTextField.getText(), clientAddressTextArea.getText());
+                                    clientLastNamesTextField.getText(), clientNationalityTextField.getText(), clientMaritalStatusTextField.getText(), clientJobTextField.getText(), 
+                                    clientIdPassportTextField.getText(), clientAddressTextArea.getText());
             
             //refresh tableview by updating allclients observable list
             MainScreenController.allClients.set(MainScreenController.getSelectedClientIndex(),editedClient);

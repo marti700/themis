@@ -173,11 +173,20 @@ public class Client{
 
 	//gets a clients id
 	public int getClientId(String idPassport){
-	
-	try{
-			stm = DatabaseConnector.connection.createStatement();
-			rs = stm.executeQuery("SELECT id FROM Clientes WHERE idpassport ="+idPassport+";");
-			return rs.getInt("id");
+	    int id = -1;
+	    
+        try{
+			ResultSet rs = null;
+			PreparedStatement stm = DatabaseConnector.connection.prepareStatement("SELECT id FROM Clientes WHERE idpassport = ?");
+			
+            stm.setString(1,idPassport);
+
+            rs = stm.executeQuery();
+            
+            while (rs.next()){
+              id = rs.getInt("id");
+            }
+            return id;
 		}
 
 		catch(Exception e){
