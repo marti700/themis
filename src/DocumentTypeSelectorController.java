@@ -10,6 +10,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextArea;
+import javafx.collections.FXCollections;
+import javafx.scene.control.ComboBox;
+import javafx.collections.ObservableList;
 
 public class DocumentTypeSelectorController implements Initializable, ControlledScreen{
     
@@ -19,11 +22,11 @@ public class DocumentTypeSelectorController implements Initializable, Controlled
     //boolean editWasPressed = false;
 
     @FXML
-    private ComboBox documentTypeComboBox;
-    private ObservableList<String> documentTypes = new FX.Collections.ObservableListArrayList();
+    private ComboBox<String> documentTypeComboBox;
+    private ObservableList<String> documentTypes = FXCollections.observableArrayList();
 
 
-    public TextField getClientNamesTextField(){return clientNamesTextField;}
+    //public TextField getClientNamesTextField(){return clientNamesTextField;}DocumentTypeSelector
     /*public TextField getClientLastNamesTextField() {return clientLastNamesTextField;}
     public TextField getClientNationalityTextField() {return clientNationalityTextField;}
     public TextField getClientMaritalStatusTextField() {return clientMaritalStatusTextField;}
@@ -45,6 +48,7 @@ public class DocumentTypeSelectorController implements Initializable, Controlled
         //TODO 
         documentTypes.add("Acto de Venta");
         documentTypes.add("Contrato de Alquiler");
+        documentTypeComboBox.setItems(documentTypes);
     }
 
     public void setScreenParent(ScreensController screenParent){
@@ -54,7 +58,7 @@ public class DocumentTypeSelectorController implements Initializable, Controlled
    //events handlers
 
     @FXML
-    private showMainScreen(ActionEvent e){
-       controller.setScreen(Themis.MainScreen); 
+    private void showClientDetailScreen(ActionEvent e){
+       controller.setScreen(Themis.mainScreen); 
     } 
 }

@@ -11,7 +11,7 @@
    <top>
       <HBox prefHeight="74.0" prefWidth="600.0" spacing="20.0" BorderPane.alignment="CENTER">
          <children>
-            <Button mnemonicParsing="false" prefHeight="44.0" prefWidth="47.0" styleClass="backButtons" stylesheets="@../assets/CSS/styles.css">
+            <Button mnemonicParsing="false" onAction="#showMainScreen" prefHeight="44.0" prefWidth="47.0" styleClass="backButtons">
                <HBox.margin>
                   <Insets left="10.0" top="26.0" />
                </HBox.margin>
@@ -41,23 +41,31 @@
             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
         </rowConstraints>
          <children>
-            <Label text="Nacionalidad" />
-            <Label fx:id="nationalityLabel" text="Label" GridPane.rowIndex="1" />
+            <Label text="Nacionalidad">
+               <GridPane.margin>
+                  <Insets left="10.0" />
+               </GridPane.margin>
+            </Label>
+            <Label fx:id="nationalityLabel" text="Label" GridPane.rowIndex="1">
+               <GridPane.margin>
+                  <Insets left="10.0" />
+               </GridPane.margin>
+            </Label>
             <Label text="Estado Civil" GridPane.columnIndex="1" />
             <Label fx:id="maritalStatusLabel" text="Label" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-            <Label text="Oficio" GridPane.columnIndex="2">
+            <Label text="Oficio" GridPane.columnIndex="2" />
+            <Label fx:id="jobLabel" text="Label" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+            <Label text="Cedula/Pasaporte" GridPane.rowIndex="2">
                <GridPane.margin>
                   <Insets left="10.0" />
                </GridPane.margin>
             </Label>
-            <Label text="Cedula/Pasaporte" GridPane.rowIndex="2" />
             <Label text="Domicilio" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-            <Label fx:id="jobLabel" text="Label" GridPane.columnIndex="2" GridPane.rowIndex="1">
+            <Label fx:id="idPassportLabel" text="Label" GridPane.rowIndex="3">
                <GridPane.margin>
                   <Insets left="10.0" />
                </GridPane.margin>
             </Label>
-            <Label fx:id="idPassportLabel" text="Label" GridPane.rowIndex="3" />
             <Label fx:id="addressLabel" text="Label" GridPane.columnIndex="1" GridPane.rowIndex="3" />
          </children>
       </GridPane>
@@ -76,7 +84,7 @@
                <children>
                   <HBox layoutX="7.0" layoutY="-10.0" prefHeight="100.0" prefWidth="823.0" spacing="20.0">
                      <children>
-                        <Button mnemonicParsing="false" text="Agregar">
+                        <Button mnemonicParsing="false" onAction="#addDocument" text="Agregar">
                            <HBox.margin>
                               <Insets top="16.0" />
                            </HBox.margin>

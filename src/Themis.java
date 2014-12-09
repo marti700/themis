@@ -16,6 +16,8 @@ public class Themis extends Application{
     public static String newEditClientScreenFile = "../FXMLFiles/NewEditClientScreen.fxml";
     public static String clientDetailScreen = "clientDetailScreen";
     public static String clientDetailScreenFile = "../FXMLFiles/ClientDetailScreen.fxml";
+    public static String documentTypeSelector = "DocumentTypeSelector";
+    public static String documentTypeSelectorFile = "../FXMLFiles/DocumentTypeSelector.fxml";
     
     @Override
     public void start(Stage primaryStage){
@@ -35,6 +37,9 @@ public class Themis extends Application{
         mainContainer.loadScreen(Themis.clientDetailScreen, Themis.clientDetailScreenFile);
         mainContainer.setScreen(Themis.clientDetailScreen);
         
+        mainContainer.loadScreen(Themis.documentTypeSelector, Themis.documentTypeSelectorFile);
+        mainContainer.setScreen(Themis.documentTypeSelector);
+
         mainContainer.setScreen(Themis.mainScreen);
 
         //prepare the screens to show

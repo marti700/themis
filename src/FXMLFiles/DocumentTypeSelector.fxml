@@ -11,7 +11,7 @@
    <top>
       <HBox prefHeight="59.0" prefWidth="830.0" BorderPane.alignment="CENTER">
          <children>
-            <Button mnemonicParsing="false" onAction="#showMainScreen" prefHeight="47.0" prefWidth="49.0">
+            <Button mnemonicParsing="false" onAction="#showClientDetailScreen" prefHeight="47.0" prefWidth="49.0">
                <HBox.margin>
                   <Insets left="10.0" top="5.0" />
                </HBox.margin>

@@ -72,7 +72,7 @@ public class MainScreenController implements Initializable, ControlledScreen{
                     Client currentClient = allClients.get(allClients.indexOf(clientsTable.getSelectionModel().getSelectedItem()));
 
                     //set the client's detail screen label's text 
-                    clientDetailScreen.setClientNameLabelText(currentClient.getNames().concat(currentClient.getLastnames()));
+                    clientDetailScreen.setClientNameLabelText(currentClient.getNames().concat(" ").concat(currentClient.getLastnames()));
                     clientDetailScreen.setNationalityLabelText(currentClient.getNationality());
                     clientDetailScreen.setMaritalStatusLabelText(currentClient.getMaritalstatus());
                     clientDetailScreen.setJobLabelText(currentClient.getJob());

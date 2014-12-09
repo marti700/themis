@@ -14,7 +14,7 @@ import javafx.scene.control.TextArea;
 public class ClientDetailScreenController implements Initializable, ControlledScreen{
     
     ScreensController controller;
-    Client client = new Client();
+    //Client client = new Client();
 
     @FXML
     Label clientNameLabel;
@@ -52,4 +52,13 @@ public class ClientDetailScreenController implements Initializable, ControlledSc
 
     
     //event handlers
+    @FXML
+    private void showMainScreen(ActionEvent event){ 
+        controller.setScreen(Themis.mainScreen);
+    }
+
+    @FXML
+    private void addDocument(ActionEvent event){
+        controller.setScreen(Themis.documentTypeSelector);
+    }
 }
