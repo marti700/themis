@@ -7,7 +7,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="450.0" prefWidth="830.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="450.0" prefWidth="830.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="themis.ClientDetailScreenController">
    <top>
       <HBox prefHeight="74.0" prefWidth="600.0" spacing="20.0" BorderPane.alignment="CENTER">
          <children>
@@ -16,7 +16,7 @@
                   <Insets left="10.0" top="26.0" />
                </HBox.margin>
             </Button>
-            <Label text="Nombre del Cliente" textAlignment="CENTER">
+            <Label fx:id="clientNameLabel" text="Nombre del Cliente" textAlignment="CENTER">
                <HBox.margin>
                   <Insets left="50.0" top="20.0" />
                </HBox.margin>
@@ -41,34 +41,24 @@
             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
         </rowConstraints>
          <children>
-            <Label text="Nombre">
+            <Label text="Nacionalidad" />
+            <Label fx:id="nationalityLabel" text="Label" GridPane.rowIndex="1" />
+            <Label text="Estado Civil" GridPane.columnIndex="1" />
+            <Label fx:id="maritalStatusLabel" text="Label" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            <Label text="Oficio" GridPane.columnIndex="2">
                <GridPane.margin>
                   <Insets left="10.0" />
                </GridPane.margin>
             </Label>
-            <Label text="Label" GridPane.rowIndex="1">
+            <Label text="Cedula/Pasaporte" GridPane.rowIndex="2" />
+            <Label text="Domicilio" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+            <Label fx:id="jobLabel" text="Label" GridPane.columnIndex="2" GridPane.rowIndex="1">
                <GridPane.margin>
                   <Insets left="10.0" />
                </GridPane.margin>
             </Label>
-            <Label text="Nacionalidad" GridPane.columnIndex="1" />
-            <Label text="Label" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-            <Label text="Estado Civil" GridPane.columnIndex="2" />
-            <Label text="Label" GridPane.columnIndex="2" GridPane.rowIndex="1" />
-            <Label text="Oficio" GridPane.rowIndex="2">
-               <GridPane.margin>
-                  <Insets left="10.0" />
-               </GridPane.margin>
-            </Label>
-            <Label text="Cedula/Pasaporte" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-            <Label text="Domicilio" GridPane.columnIndex="2" GridPane.rowIndex="2" />
-            <Label text="Label" GridPane.rowIndex="3">
-               <GridPane.margin>
-                  <Insets left="10.0" />
-               </GridPane.margin>
-            </Label>
-            <Label text="Label" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-            <Label text="Label" GridPane.columnIndex="2" GridPane.rowIndex="3" />
+            <Label fx:id="idPassportLabel" text="Label" GridPane.rowIndex="3" />
+            <Label fx:id="addressLabel" text="Label" GridPane.columnIndex="1" GridPane.rowIndex="3" />
          </children>
       </GridPane>
    </center>

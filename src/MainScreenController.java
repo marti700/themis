@@ -58,13 +58,28 @@ public class MainScreenController implements Initializable, ControlledScreen{
         //select the first element of the table
         clientsTable.getSelectionModel().selectFirst(); 
 
+        //opens the client detail screen when a client of the clients table is double clicked
         clientsTable.setOnMousePressed(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent e){
-                if (e.isPrimaryButtonDown() && e.getClickCount() == 2)
+                if (e.isPrimaryButtonDown() && e.getClickCount() == 2){
+                    //sets the clientDetailsScreen in the screen     
+                    controller.setScreen(Themis.clientDetailScreen);
+                    //get the loader used to load the client Detail Screen
                     System.out.println(allClients.indexOf(clientsTable.getSelectionModel().getSelectedItem()));
-                else if (e.isPrimaryButtonDown() && e.getClickCount() == 1)
-                    System.out.println("Editar");
+                    ClientDetailScreenController clientDetailScreen = (ClientDetailScreenController) controller.getLoader("clientDetailScreen").getController();
+                    //takes the selected client
+                    Client currentClient = allClients.get(allClients.indexOf(clientsTable.getSelectionModel().getSelectedItem()));
+
+                    //set the client's detail screen label's text 
+                    clientDetailScreen.setClientNameLabelText(currentClient.getNames().concat(currentClient.getLastnames()));
+                    clientDetailScreen.setNationalityLabelText(currentClient.getNationality());
+                    clientDetailScreen.setMaritalStatusLabelText(currentClient.getMaritalstatus());
+                    clientDetailScreen.setJobLabelText(currentClient.getJob());
+                    clientDetailScreen.setIdPassportLabelText(currentClient.getIdpassport());
+                    clientDetailScreen.setAddressLabelText(currentClient.getAddress());
+                }
+
             }
         });
     }
