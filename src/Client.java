@@ -36,8 +36,8 @@ public class Client{
 		
 		Calendar currentDate = Calendar.getInstance(); // get the current date
 		SimpleDateFormat formatDate = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss"); // to format the current date
-
-		//initialize properties
+		
+        //initialize properties
 		this.id = new SimpleIntegerProperty(id);
 		this.names = new SimpleStringProperty(names);
 		this.lastNames = new SimpleStringProperty(lastNames);

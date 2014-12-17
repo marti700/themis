@@ -24,6 +24,7 @@ public class MainScreenController implements Initializable, ControlledScreen{
 
     private static int selectedClientIndex = 0;
     public static ObservableList<Client> allClients = FXCollections.observableArrayList();
+    private static Client currentClient;
 
     @FXML
     private TableView<Client> clientsTable;    
@@ -69,7 +70,9 @@ public class MainScreenController implements Initializable, ControlledScreen{
                     System.out.println(allClients.indexOf(clientsTable.getSelectionModel().getSelectedItem()));
                     ClientDetailScreenController clientDetailScreen = (ClientDetailScreenController) controller.getLoader("clientDetailScreen").getController();
                     //takes the selected client
-                    Client currentClient = allClients.get(allClients.indexOf(clientsTable.getSelectionModel().getSelectedItem()));
+                    currentClient = clientsTable.getSelectionModel().getSelectedItem();
+                    //
+                    //currentSelectedClient = currentClient;
 
                     //set the client's detail screen label's text 
                     clientDetailScreen.setClientNameLabelText(currentClient.getNames().concat(" ").concat(currentClient.getLastnames()));
@@ -78,11 +81,19 @@ public class MainScreenController implements Initializable, ControlledScreen{
                     clientDetailScreen.setJobLabelText(currentClient.getJob());
                     clientDetailScreen.setIdPassportLabelText(currentClient.getIdpassport());
                     clientDetailScreen.setAddressLabelText(currentClient.getAddress());
+
+                    ClientDetailScreenController.refresh();
                 }
 
             }
         });
     }
+
+    public static Client getSelectedClient(){
+        //currentSelectedClient = clientsTable.getSelectionModel().getSelectedItem();
+        return currentClient;
+    }
+
 
     public void setScreenParent(ScreensController screenParent){
         controller = screenParent;

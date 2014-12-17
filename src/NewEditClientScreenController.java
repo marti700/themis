@@ -97,8 +97,8 @@ public class NewEditClientScreenController implements Initializable, ControlledS
             
             // create a client obect 
             Client editedClient = new Client(MainScreenController.allClients.get(MainScreenController.getSelectedClientIndex()).getClientId(), clientNamesTextField.getText(), 
-                                             clientLastNamesTextField.getText(), clientNationalityTextField.getText(), clientMaritalStatusTextField.getText(), clientJobTextField.getText(), 
-                                             clientIdPassportTextField.getText(), clientAddressTextArea.getText());
+                                    clientLastNamesTextField.getText(), clientNationalityTextField.getText(), clientMaritalStatusTextField.getText(), clientJobTextField.getText(), 
+                                    clientIdPassportTextField.getText(), clientAddressTextArea.getText());
             
             //refresh tableview by updating allclients observable list
             MainScreenController.allClients.set(MainScreenController.getSelectedClientIndex(),editedClient);
@@ -111,9 +111,9 @@ public class NewEditClientScreenController implements Initializable, ControlledS
                             clientJobTextField.getText(), clientIdPassportTextField.getText(), clientAddressTextArea.getText());
 
             //add the new client to observable list, so the table view can be refreshed
-            MainScreenController.allClients.add(new Client(client.getClientId(clientIdPassportTextField.getText()), clientNamesTextField.getText(), clientLastNamesTextField.getText(), 
-                                                            clientNationalityTextField.getText(), clientMaritalStatusTextField.getText(), clientJobTextField.getText(), 
-                                                            clientIdPassportTextField.getText(), clientAddressTextArea.getText()));
+            MainScreenController.allClients.add(new Client(client.getClientId(clientIdPassportTextField.getText()),clientNamesTextField.getText(),
+                        clientLastNamesTextField.getText(), clientNationalityTextField.getText(), clientMaritalStatusTextField.getText(), clientJobTextField.getText(), 
+                        clientIdPassportTextField.getText(), clientAddressTextArea.getText()));
         } 
     }
 }

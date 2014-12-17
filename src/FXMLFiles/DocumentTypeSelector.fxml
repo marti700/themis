@@ -6,7 +6,6 @@
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-
 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="450.0" prefWidth="830.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="themis.DocumentTypeSelectorController">
    <top>
       <HBox prefHeight="59.0" prefWidth="830.0" BorderPane.alignment="CENTER">
@@ -16,14 +15,22 @@
                   <Insets left="10.0" top="5.0" />
                </HBox.margin>
             </Button>
+            <Label prefHeight="70.0" prefWidth="468.0" text="Antes de Empezar">
+               <font>
+                  <Font size="48.0" />
+               </font>
+               <HBox.margin>
+                  <Insets left="130.0" />
+               </HBox.margin>
+            </Label>
          </children>
       </HBox>
    </top>
    <center>
       <GridPane BorderPane.alignment="CENTER">
         <columnConstraints>
-          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+          <ColumnConstraints hgrow="SOMETIMES" maxWidth="478.0" minWidth="10.0" prefWidth="408.0" />
+          <ColumnConstraints hgrow="SOMETIMES" maxWidth="533.0" minWidth="10.0" prefWidth="422.0" />
         </columnConstraints>
         <rowConstraints>
           <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
@@ -31,34 +38,41 @@
           <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
         </rowConstraints>
          <children>
-            <Label text="Elija el tipo de documento" GridPane.columnSpan="2147483647" GridPane.rowIndex="1">
+            <Label text="Elija el tipo de documento" GridPane.columnSpan="2147483647">
                <font>
                   <Font size="30.0" />
                </font>
                <GridPane.margin>
-                  <Insets bottom="10.0" left="215.0" />
+                  <Insets bottom="35.0" left="215.0" />
                </GridPane.margin>
             </Label>
-            <Label prefHeight="70.0" prefWidth="468.0" text="Antes de Empezar" GridPane.columnSpan="2147483647">
-               <font>
-                  <Font size="48.0" />
-               </font>
+            <ListView fx:id="documentTypeList" prefHeight="194.0" prefWidth="443.0" GridPane.rowIndex="1" GridPane.rowSpan="2147483647">
                <GridPane.margin>
-                  <Insets left="215.0" top="100.0" />
+                  <Insets left="10.0" />
+               </GridPane.margin>
+            </ListView>
+            <ListView fx:id="documentSubTypeList" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="1" GridPane.rowSpan="2147483647">
+               <GridPane.margin>
+                  <Insets left="10.0" />
+               </GridPane.margin>
+            </ListView>
+            <Label text="Tipo de documento" GridPane.rowIndex="1">
+               <GridPane.margin>
+                  <Insets bottom="155.0" left="10.0" />
                </GridPane.margin>
             </Label>
-            <ComboBox fx:id="documentTypeComboBox" prefHeight="34.0" prefWidth="281.0" GridPane.rowIndex="2">
+            <Label text="Eligir subtipo" GridPane.columnIndex="1" GridPane.rowIndex="1">
                <GridPane.margin>
-                  <Insets bottom="100.0" left="215.0" />
+                  <Insets bottom="155.0" left="10.0" />
                </GridPane.margin>
-            </ComboBox>
+            </Label>
          </children>
       </GridPane>
    </center>
    <bottom>
       <HBox prefHeight="100.0" prefWidth="200.0" BorderPane.alignment="CENTER">
          <children>
-            <Button mnemonicParsing="false" text="Vamos!">
+            <Button mnemonicParsing="false" onAction="#createDocument" text="Vamos!">
                <HBox.margin>
                   <Insets left="700.0" top="40.0" />
                </HBox.margin>
