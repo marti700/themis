@@ -34,7 +34,7 @@
                   <Insets top="13.0" />
                </HBox.margin>
             </Button>
-            <TextField>
+            <TextField fx:id="searchTextField">
                <HBox.margin>
                   <Insets left="45.0" top="15.0" />
                </HBox.margin>

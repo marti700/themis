@@ -1,5 +1,6 @@
 package themis;
 
+import javafx.collections.transformation.FilteredList;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.event.ActionEvent;
@@ -16,6 +17,7 @@ import javafx.event.*;
 //import javafx.scene.control.SelectionModel.*;
 //import java.awt.event.MouseEvent;
 import screensframework.*;
+import javafx.scene.control.TextField;
 
 public class MainScreenController implements Initializable, ControlledScreen{
     
@@ -28,7 +30,10 @@ public class MainScreenController implements Initializable, ControlledScreen{
 
     @FXML
     private TableView<Client> clientsTable;    
-    
+
+    @FXML
+    private TextField searchTextField;
+        
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         //TODO
@@ -87,6 +92,32 @@ public class MainScreenController implements Initializable, ControlledScreen{
 
             }
         });
+        //Filter the data from the table view by names, last names and id/passport
+        FilteredList<Client> filteredData = new FilteredList<>(allClients, p -> true);
+            //Set the filter Predicate whenever the filter changes.
+            searchTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+                filteredData.setPredicate(client -> {
+                    // If filter text is empty, display all clients.
+                    if (newValue == null || newValue.isEmpty()) {
+                        return true;
+                    }
+                    // Compare first name and last name of every client with filter text.
+                    String lowerCaseFilter = newValue.toLowerCase();
+                    if (client.getNames().toLowerCase().indexOf(lowerCaseFilter) != -1) {
+                        System.out.println(client.getNames().toLowerCase().indexOf(lowerCaseFilter));
+                        return true; // Filter matches client names.
+                    } 
+                    else if (client.getLastnames().toLowerCase().indexOf(lowerCaseFilter) != -1) {
+                        return true; // Filter matches client last names.
+                    }
+                    else if (client.getIdpassport().toLowerCase().indexOf(lowerCaseFilter) != -1){
+                        return true; // Filter matches id/passport
+                    }
+                    return false; // Not a match.
+                });
+                clientsTable.setItems(filteredData);
+        });
+     /*---------------------------------------------------*/
     }
 
     public static Client getSelectedClient(){
