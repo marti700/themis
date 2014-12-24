@@ -18,7 +18,12 @@ public class Themis extends Application{
     public static String clientDetailScreenFile = "../FXMLFiles/ClientDetailScreen.fxml";
     public static String documentTypeSelector = "DocumentTypeSelector";
     public static String documentTypeSelectorFile = "../FXMLFiles/DocumentTypeSelector.fxml";
-    
+    public static String notesManagerScreen = "NotesManagerScreen";    
+    public static String notesManagerScreenFile = "../FXMLFiles/NotesManagementScreen.fxml";
+    public static String addEditNotesScreen = "AddEditScreen";
+    public static String addEditNotesScreenFile = "../FXMLFiles/AddEditNote.fxml";
+
+
     @Override
     public void start(Stage primaryStage){
         
@@ -39,6 +44,12 @@ public class Themis extends Application{
         
         mainContainer.loadScreen(Themis.documentTypeSelector, Themis.documentTypeSelectorFile);
         mainContainer.setScreen(Themis.documentTypeSelector);
+
+        mainContainer.loadScreen(Themis.notesManagerScreen, Themis.notesManagerScreenFile);
+        mainContainer.setScreen(Themis.notesManagerScreen);
+
+        mainContainer.loadScreen(Themis.addEditNotesScreen, Themis.addEditNotesScreenFile);
+        mainContainer.setScreen(Themis.addEditNotesScreen);
 
         mainContainer.setScreen(Themis.mainScreen);
 

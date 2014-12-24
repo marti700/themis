@@ -1,6 +1,4 @@
 .backButtons{
-	/*-fx-graphic:  url('../assets/images/returnButton.png');*/
-	-fx-background-color: RED;
-	-fx-background-image:  url('../assets/images/returnButton.png');
+	-fx-background-image:  url('../images/backArrow3.png');
 }
-}
+
