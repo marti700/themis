@@ -25,16 +25,16 @@ public class AddEditNoteController implements Initializable, ControlledScreen{
     public TextField getClientNationalityTextField() {return clientNationalityTextField;}
     public TextField getClientMaritalStatusTextField() {return clientMaritalStatusTextField;}
     public TextField getClientIdPassportTextField() {return clientIdPassportTextField;}
-    public TextField getClientJobTextField() {return clientJobTextField;}
-    public TextArea getClientAddressTextArea() {return clientAddressTextArea;}
+    public TextField getClientJobTextField() {return clientJobTextField;}*/
+    public TextArea getNoteTextArea() {return noteTextArea;}
 
-    public void setClientNamesTextField(String clientNames){clientNamesTextField.setText(clientNames);}
+    /*public void setClientNamesTextField(String clientNames){clientNamesTextField.setText(clientNames);}
     public void setClientLastNamesTextField(String clientLastNames) {clientLastNamesTextField.setText(clientLastNames);}
     public void setClientNationalityTextField(String clientNationality) {clientNationalityTextField.setText(clientNationality);}
     public void setClientMaritalStatusTextField(String clientMaritalStatus) {clientMaritalStatusTextField.setText(clientMaritalStatus);}
     public void setClientIdPassportTextField(String clientIdPassport) {clientIdPassportTextField.setText(clientIdPassport);}
-    public void setClientJobTextField(String clientJob) {clientJobTextField.setText(clientJob);}
-    public void setClientAddressTextArea(String clientAddress) {clientAddressTextArea.setText(clientAddress);}*/
+    public void setClientJobTextField(String clientJob) {clientJobTextField.setText(clientJob);}*/
+    public void setNoteTextAreaText(String contentText) {noteTextArea.setText(contentText);}
 
 
     @Override
@@ -53,30 +53,27 @@ public class AddEditNoteController implements Initializable, ControlledScreen{
 
     //event handlers
     @FXML
-    private void showMainScreen(ActionEvent event){
-        controller.setScreen(Themis.mainScreen);
+    private void showNotesManagementScreen(ActionEvent event){
+        controller.setScreen(Themis.notesManagerScreen);
     }
 
     @FXML 
     private void addEditNote (ActionEvent event){
         
-        //edit button was pressed in the mainscreen
+        //edit button was pressed in the note management screen
         if (editWasPressed) {
-       /*     System.out.println("Estamos Editando");
-            //edit client infomation
-            client.editClient(clientNamesTextField.getText(), clientLastNamesTextField.getText(), clientNationalityTextField.getText(), clientMaritalStatusTextField.getText(), 
-                            clientJobTextField.getText(), clientIdPassportTextField.getText(), clientAddressTextArea.getText(), MainScreenController.allClients
-                                                                                                                                .get(MainScreenController.getSelectedClientIndex())
-                                                                                                                                .getClientId());
+            System.out.println("Estamos Editando");
+            //edit note infomation
+            note.editNote(NotesManagerController.getSelectedNote().getNoteId(), noteTextArea.getText());
+            System.out.println(NotesManagerController.getSelectedNote().getOwnedby()); 
+            // create a note obect 
+            Note editedNote = new Note(note.getNoteId(NotesManagerController.getSelectedNote().getCreateddate()), noteTextArea.getText(), 
+                                        NotesManagerController.getSelectedNote().getCreateddate(), NotesManagerController.getSelectedNote().getOwnedby());
             
-            // create a client obect 
-            Client editedClient = new Client(MainScreenController.allClients.get(MainScreenController.getSelectedClientIndex()).getClientId(), clientNamesTextField.getText(), 
-                                    clientLastNamesTextField.getText(), clientNationalityTextField.getText(), clientMaritalStatusTextField.getText(), clientJobTextField.getText(), 
-                                    clientIdPassportTextField.getText(), clientAddressTextArea.getText());
-            
-            //refresh tableview by updating allclients observable list
-            MainScreenController.allClients.set(MainScreenController.getSelectedClientIndex(),editedClient);
-         */   
+            //refresh tableview by updating allNotes observable list
+            NotesManagerController.allNotes.set(NotesManagerController.getSelectedNoteIdex(),editedNote);
+
+            controller.setScreen(Themis.notesManagerScreen);
         }
         else {
             System.out.println("Estamos Nuevos");
@@ -84,8 +81,10 @@ public class AddEditNoteController implements Initializable, ControlledScreen{
             //add note to database
             note.addNote(noteTextArea.getText());
 
-            //add the new client to observable list, so the table view can be refreshed
-            NotesManagerController.allNotes.add(new Note(note.getNoteId(noteTextArea.getText()), noteTextArea.getText(), MainScreenController.getSelectedClient().getClientId()));
+            //add the new note to observable list, so the table view can be refreshed
+            NotesManagerController.allNotes.add(new Note(note.getNoteId(NotesManagerController.getSelectedNote().getCreateddate()), noteTextArea.getText(), 
+                                                MainScreenController.getSelectedClient().getClientId()));
+
             controller.setScreen(Themis.notesManagerScreen);
         } 
     }

@@ -25,6 +25,8 @@ public class NotesManagerController implements Initializable, ControlledScreen{
     ScreensController controller;
     
     public static ObservableList<Note> allNotes = FXCollections.observableArrayList();
+    private static int selectedNoteIndex = 0;
+    private static Note SelectedNote;
 
     @FXML
     private Button AddNoteButton;
@@ -71,6 +73,7 @@ public class NotesManagerController implements Initializable, ControlledScreen{
         });
     }
     
+    public static Note getSelectedNote() {return clientNotesTable.getSelectionModel().getSelectedItem();}
     public static void refresh(){
         
         Client client = new Client();
@@ -108,16 +111,39 @@ public class NotesManagerController implements Initializable, ControlledScreen{
         controller = screenParent;
     }
 
+    public static int getSelectedNoteIdex(){return selectedNoteIndex;}
     
     //event handlers
     @FXML
     private void addNote(ActionEvent event){ 
         controller.setScreen(Themis.addEditNotesScreen);
-        System.out.println("Que rayos");
+        AddEditNoteController addEditScreen = (AddEditNoteController) controller.getLoader("AddEditScreen").getController();
+
+        //tells if the new button of this scene was pressed
+        addEditScreen.editWasPressed = false;
+        addEditScreen.newWasPressed = true;
+
+        //clear the text from the addEdit note screen 
+        addEditScreen.getNoteTextArea().clear();
+        
     }
 
     @FXML
     private void editNote(ActionEvent event){
-       // controller.setScreen(Themis.documentTypeSelector);
+        selectedNoteIndex = allNotes.indexOf(clientNotesTable.getSelectionModel().getSelectedItem()); 
+    
+        controller.setScreen(Themis.addEditNotesScreen);
+        AddEditNoteController addEditScreen = (AddEditNoteController) controller.getLoader("AddEditScreen").getController();
+        
+        // tells if the edit button of this scene was pressed
+        addEditScreen.newWasPressed = false;
+        addEditScreen.editWasPressed = true;
+        
+        addEditScreen.setNoteTextAreaText(clientNotesTable.getSelectionModel().getSelectedItem().getContenttext());
+       
+    }
+    @FXML
+    private void goToClientDetailsScreen(ActionEvent event){
+        controller.setScreen(Themis.clientDetailScreen);
     }
 }

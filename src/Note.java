@@ -46,10 +46,10 @@ public class Note{
     }
     
     //getters
-    public int getDocumentId(){return id.get();}
+    public int getNoteId(){return id.get();}
     public String getContenttext(){return contentText.get();}
     public String getCreateddate(){return creationDate.get();}
-     
+    public int getOwnedby(){return ownedBy.get();}     
     public void addNote(String noteContent){
         
         try{
@@ -62,14 +62,29 @@ public class Note{
             addNote.setString(2,formatDate.format(currentDate.getTime()));
             addNote.setInt(3,MainScreenController.getSelectedClient().getClientId());
 
-            //executeQuery
+            //execute Query
             addNote.execute();
         }
         catch (Exception e){
             e.printStackTrace();
         }
     }
+    
+    public void editNote(int id, String contentText){
+        try{
+            CallableStatement editNote = DatabaseConnector.connection.prepareCall("{call editnote(?,?)}");
 
+            editNote.setInt(1, id);
+            editNote.setString(2, contentText);
+
+            //execute Query
+            editNote.execute();
+            System.out.println("Supustamente ya se edito");
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+    }
     //returns all Documents
 	public ObservableList<Note> getAllNotes(){
 	/* Returns an obserbable list which contains all documents*/
@@ -105,17 +120,13 @@ public class Note{
 		return rs;
 	}
 
-    public int getNoteId(String contentText){
+    public int getNoteId(String creationDate){
 	    int id = -1;
-	    
         try{
 			ResultSet rs = null;
-			PreparedStatement stm = DatabaseConnector.connection.prepareStatement("SELECT id FROM Notas WHERE contentText = ?");
-			
-            stm.setString(1,contentText);
-
+			PreparedStatement stm = DatabaseConnector.connection.prepareStatement("SELECT id FROM Notas WHERE createdDate = TO_TIMESTAMP(?, 'DD-MM-YYYY HH24:MI:SS')");
+            stm.setString(1, creationDate);
             rs = stm.executeQuery();
-            
             while (rs.next()){
               id = rs.getInt("id");
             }

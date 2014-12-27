@@ -74,9 +74,9 @@ public class Client{
 	//public void setLastvisit(){lastVisit.set();}
 
 	
-	public void insertClient(String names, String lastNames, String nationality, String maritalStatus, String job, String idPassport, String address){
+	public void insertClient(String names, String lastNames, String nationality, String maritalStatus, String job, String idPassport, String address) throws Exception{
 		
-		try {
+	//	try {
 			Calendar currentDate = Calendar.getInstance(); // get the current date
 			SimpleDateFormat formatDate = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss"); // to format the current date
 
@@ -96,10 +96,16 @@ public class Client{
 			
 			//execute query
 			stm.execute();
-		}
-		catch (Exception e){
-			e.printStackTrace();
-		}
+	//	}
+	//	catch (Exception e){
+			//e.printStackTrace();
+            //Dialogs.create()
+                    //.owner(stage)
+              //      .title("Error Dialog")
+                //    .masthead("NULL")
+                  //  .message("Ooops, there was an error!")
+                   // .showError();
+	//	}
 	}
 
 	public void editClient(String names, String lastNames, String nationality, String maritalStatus, String job, String idPassport, String address, int id){
@@ -194,4 +200,33 @@ public class Client{
 			return -1;
 		}
 	}
+
+    public String getClientName(String idPassport){
+        String names = "";
+        String lastNames = "";
+        String clientFullName = "";        
+        
+        try{
+            ResultSet rs = null;
+            PreparedStatement stm = DatabaseConnector.connection.prepareStatement("SELECT names, lastnames FROM Clientes WHERE idpassport = ?");
+
+            stm.setString(1, idPassport);
+
+            rs = stm.executeQuery();
+
+            while(rs.next()){
+               names = rs.getString("names");
+               lastNames = rs.getString("lastnames");
+            }
+
+            clientFullName = names + " " + lastNames;
+
+            return clientFullName;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return " ";
+    }
 }

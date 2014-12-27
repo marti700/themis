@@ -5,7 +5,6 @@
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-
 <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="450.0" prefWidth="830.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="themis.AddEditNoteController">
    <children>
       <Label text="Escriba una Nota">
@@ -25,7 +24,7 @@
                   <Insets left="610.0" top="20.0" />
                </HBox.margin>
             </Button>
-            <Button mnemonicParsing="false" text="Cancelar">
+            <Button mnemonicParsing="false" onAction="#showNotesManagementScreen" text="Cancelar">
                <HBox.margin>
                   <Insets top="20.0" />
                </HBox.margin>

@@ -10,6 +10,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextArea;
+import org.controlsfx.dialog.Dialogs;
 
 public class NewEditClientScreenController implements Initializable, ControlledScreen{
     
@@ -83,7 +84,7 @@ public class NewEditClientScreenController implements Initializable, ControlledS
     }
 
     @FXML 
-    private void addClient (ActionEvent event){
+    private void addClient (ActionEvent event) throws Exception{
         System.out.println(MainScreenController.allClients.get(MainScreenController.getSelectedClientIndex() ));
         
         //edit button was pressed in the mainscreen
@@ -105,15 +106,37 @@ public class NewEditClientScreenController implements Initializable, ControlledS
             
         }
         else {
-            System.out.println("Estamos Nuevos");
-            //insert client in database
-            client.insertClient(clientNamesTextField.getText(), clientLastNamesTextField.getText(), clientNationalityTextField.getText(), clientMaritalStatusTextField.getText(), 
-                            clientJobTextField.getText(), clientIdPassportTextField.getText(), clientAddressTextArea.getText());
+            try{
+                System.out.println("Estamos Nuevos");
+                //insert client in database
+                client.insertClient(clientNamesTextField.getText(), clientLastNamesTextField.getText(), clientNationalityTextField.getText(), 
+                        clientMaritalStatusTextField.getText(), clientJobTextField.getText(), clientIdPassportTextField.getText(), clientAddressTextArea.getText());
+            
+                //create a client object that represents the new created client
+                Client newCreatedClient = new Client(client.getClientId(clientIdPassportTextField.getText()),clientNamesTextField.getText(), clientLastNamesTextField.getText(), 
+                    clientNationalityTextField.getText(), clientMaritalStatusTextField.getText(), clientJobTextField.getText(), clientIdPassportTextField.getText(), 
+                    clientAddressTextArea.getText());
 
-            //add the new client to observable list, so the table view can be refreshed
-            MainScreenController.allClients.add(new Client(client.getClientId(clientIdPassportTextField.getText()),clientNamesTextField.getText(),
-                        clientLastNamesTextField.getText(), clientNationalityTextField.getText(), clientMaritalStatusTextField.getText(), clientJobTextField.getText(), 
-                        clientIdPassportTextField.getText(), clientAddressTextArea.getText()));
+                //add the new client to observable list, so the table view can be refreshed
+                MainScreenController.allClients.add(newCreatedClient);
+            
+                //Create a folder with the id or password as name for the new user documents
+                String mkdirCommand = "mkdir -p /home/teodoro/Documents/Projects/JavaProjects/themis/src/Documents/".concat(newCreatedClient.getIdpassport());
+                java.lang.Runtime.getRuntime().exec(mkdirCommand);
+                
+                //returns to the main screen
+                controller.setScreen(Themis.mainScreen);
+            }
+            catch (Exception e){
+                String errorMessge = "Esta Cedulo o Pasaporte ya ha sido registrada para ".concat(client.getClientName(clientIdPassportTextField.getText()));
+                Dialogs.create()
+                .title("Cedula o Pasaporte en uso")
+                .masthead(null)
+                .message(errorMessge)
+                .showError();
+
+            }
         } 
+
     }
 }

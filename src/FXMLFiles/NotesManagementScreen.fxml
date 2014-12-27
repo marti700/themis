@@ -10,7 +10,7 @@
    <top>
       <HBox prefHeight="83.0" prefWidth="830.0" spacing="20.0" BorderPane.alignment="CENTER">
          <children>
-            <Button mnemonicParsing="false" prefHeight="47.0" prefWidth="51.0" styleClass="backButtons">
+            <Button mnemonicParsing="false" onAction="#goToClientDetailsScreen" prefHeight="47.0" prefWidth="51.0" styleClass="backButtons">
                <HBox.margin>
                   <Insets left="10.0" top="20.0" />
                </HBox.margin>
@@ -55,7 +55,11 @@
                   <Insets left="10.0" />
                </GridPane.margin>
             </TableView>
-            <TextFlow fx:id="noteContentTextFlow" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            <TextArea prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+               <GridPane.margin>
+                  <Insets left="5.0" right="10.0" top="10.0" />
+               </GridPane.margin>
+            </TextArea>
          </children>
       </GridPane>
    </center>
