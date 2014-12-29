@@ -21,6 +21,10 @@ import javafx.collections.FXCollections;
 import javafx.scene.control.ListView;
 import javafx.collections.ObservableList; 
 import java.util.HashMap;
+import java.io.File;
+import java.nio.file.*;
+import java.awt.Desktop;
+import java.awt.Desktop.*;
 
 public class DocumentTypeSelectorController implements Initializable, ControlledScreen{
     
@@ -90,8 +94,70 @@ public class DocumentTypeSelectorController implements Initializable, Controlled
         controller = screenParent;
     }
 
-   //events handlers
+    private boolean haveSubtype(){
+        if (documentSubTypes.get(documentTypeList.getSelectionModel().getSelectedItem()) != null)
+            return true;
+        else 
+            return false;
 
+    }
+    private void copyNewedCreatedDocument()throws Exception{
+        Path sourceFilePathWithSubType =  Paths.get("/home/teodoro/Documents/Projects/JavaProjects/themis/src/Templates/".concat(documentTypeList.getSelectionModel()
+                .getSelectedItem()).replaceAll(" ", ".").concat("/").concat(documentSubTypeList.getSelectionModel().getSelectedItem().replaceAll(" ",".").concat(".doc")));
+
+        Path sourceFilePathWithoutSubType = Paths.get("/home/teodoro/Documents/Projects/JavaProjects/themis/src/Templates/".concat(documentTypeList.getSelectionModel()
+                .getSelectedItem().replaceAll(" ", ".")).concat("/").concat(documentTypeList.getSelectionModel().getSelectedItem().replaceAll(" ", ".").concat(".doc")));
+        
+        Path sourceFilePath;
+        
+        //To treat Documents that don't have a sub type
+        //if Document have a subtype
+        if (haveSubtype())
+           sourceFilePath = sourceFilePathWithSubType;
+        
+        //If document don't have a subtype
+        else
+            sourceFilePath = sourceFilePathWithoutSubType;
+        
+        //build the Path
+        Path destinationPath = Paths.get("/home/teodoro/Documents/Projects/JavaProjects/themis/src/Documents/".concat(client.getIdpassport()).concat( "/")
+                .concat(sourceFilePath.getFileName().toString()));
+        //Path destinationPath = new Path (destinationStringPath);
+
+        //execute copy command 
+        //java.lang.Runtime.getRuntime().exec(copyCommand); 
+        Files.copy(sourceFilePath, destinationPath);
+
+    }
+   
+    private void renameDocument(String documentName){
+        File fileWithSubType = new File("/home/teodoro/Documents/Projects/JavaProjects/themis/src/Documents/".concat(client.getIdpassport()).concat("/")
+                .concat(documentSubTypeList.getSelectionModel().getSelectedItem().replaceAll(" ",".")).concat(".doc"));
+        
+        File fileWithoutSybType = new File("/home/teodoro/Documents/Projects/JavaProjects/themis/src/Documents/".concat(client.getIdpassport()).concat("/")
+                .concat(documentTypeList.getSelectionModel().getSelectedItem().replaceAll(" ",".")).concat(".doc"));
+
+        File file = null;
+        
+        // if have subtype 
+        if (haveSubtype())
+            fileWithSubType.renameTo(new File ("/home/teodoro/Documents/Projects/JavaProjects/themis/src/Documents/".concat(client.getIdpassport()).concat("/")
+                    .concat(documentName).concat(".doc")));
+        // if no subtype
+        else
+            fileWithSubType.renameTo(new File ("/home/teodoro/Documents/Projects/JavaProjects/themis/src/Documents/".concat(client.getIdpassport()).concat("/")
+                    .concat(documentName).concat(".doc")));
+    }
+
+    private void openDocument(String documentName) throws Exception{
+        // Opens the a document
+        java.lang.Runtime.getRuntime().exec("gnome-open /home/teodoro/Documents/Projects/JavaProjects/themis/src/Documents/".concat(client.getIdpassport()).concat("/")
+                .concat(documentName).concat(".doc"));
+        
+        //Desktop.getDesktop().open(file);
+    }
+   
+    //events handlers
     @FXML
     private void showClientDetailScreen(ActionEvent e){
        controller.setScreen(Themis.clientDetailScreen); 
@@ -100,7 +166,7 @@ public class DocumentTypeSelectorController implements Initializable, Controlled
     @FXML
     private void createDocument(ActionEvent e)throws Exception {
         client = MainScreenController.getSelectedClient();
-        //Saves the document in the data
+        //Saves the document in the database
         /*------------------------------------------------------------------------------------------*/
         Calendar timeStamp = Calendar.getInstance();
         SimpleDateFormat timeStampFormat = new SimpleDateFormat("dd-MM-yyyy[HH:mm:ss]");
@@ -113,72 +179,20 @@ public class DocumentTypeSelectorController implements Initializable, Controlled
         String documentPath = "/home/teodoro/Documents/Projects/JavaProjects/themis/src/Documents/".concat(client.getIdpassport()).concat("/").concat(documentName);
         int documentOwner = client.getClientId();
 
-        //for debug proupuses
-        /*System.out.println("Document Name: "+documentName);
-        System.out.println("Document Type: "+documentType);
-        System.out.println("document Path: "+documentPath);
-        System.out.println("Document Owner:"+documentOwner);*/
-        
         document.insertDocument(documentName, documentType, documentPath, documentOwner);
+        /*----------------------------------------------------------------------------------------------*/
 
         //Add the document to the documents observable list in order to display the recently added document to the used
         int documentId = document.getDocumentId(documentPath);
         ClientDetailScreenController.allClientDocuments.add(new Document(documentId, documentName, documentType, documentPath, documentOwner)); 
-        /*---------------------------------------------------------------------------------------------*/
-        //copy the document from the templates folder to the document folder
-        /*-----------------------------------------------------------------------------------*/
-        String sourceFile;
-        String renameCommand;
-        //To treat Documents that don't have a sub type
-        //if Document have a subtype
-        if (documentSubTypes.get(documentTypeList.getSelectionModel().getSelectedItem()) != null)
-            sourceFile = "/home/teodoro/Documents/Projects/JavaProjects/themis/src/Templates/".concat(documentTypeList.getSelectionModel().getSelectedItem()).replaceAll(" ", ".")
-                .concat("/").concat(documentSubTypeList.getSelectionModel().getSelectedItem().replaceAll(" ",".").concat(".doc"));
-        
-        //If document don't have a subtype
-        else
-            sourceFile = "/home/teodoro/Documents/Projects/JavaProjects/themis/src/Templates/".concat(documentTypeList.getSelectionModel().getSelectedItem().replaceAll(" ", "."))
-                .concat("/").concat(documentTypeList.getSelectionModel().getSelectedItem().replaceAll(" ", ".").concat(".doc"));
-        
-        //build the command string
-        String copyCommand = "cp -v ".concat(sourceFile).concat(" ").concat("/home/teodoro/Documents/Projects/JavaProjects/themis/src/Documents/")
-            .concat(client.getIdpassport()).concat("/");
 
-        //execute copy command 
-        java.lang.Runtime.getRuntime().exec(copyCommand); 
+        //copy the document from the templates folder to the document folder
+        copyNewedCreatedDocument();
 
         //change the copied document template name to the document name
+        renameDocument(documentName); 
         
-        // if have subtype 
-        if (documentSubTypes.get(documentTypeList.getSelectionModel().getSelectedItem()) != null)
-            renameCommand = "mv -v /home/teodoro/Documents/Projects/JavaProjects/themis/src/Documents/".concat(client.getIdpassport()).concat("/")
-                .concat(documentSubTypeList.getSelectionModel().getSelectedItem().replaceAll(" ",".")).concat(".doc").concat(" ")
-                .concat("/home/teodoro/Documents/Projects/JavaProjects/themis/src/Documents/").concat(client.getIdpassport()).concat("/").concat(documentName).concat(".doc");
-
-        // if no subtype
-        else
-             renameCommand = "mv -v /home/teodoro/Documents/Projects/JavaProjects/themis/src/Documents/".concat(client.getIdpassport()).concat("/")
-                .concat(documentTypeList.getSelectionModel().getSelectedItem().replaceAll(" ",".")).concat(".doc").concat(" ")
-                .concat("/home/teodoro/Documents/Projects/JavaProjects/themis/src/Documents/").concat(client.getIdpassport()).concat("/").concat(documentName).concat(".doc");
-
-        
-        java.lang.Runtime.getRuntime().exec(renameCommand); 
-
-        /*---------------------------------------------------------------------------------------*/
         //opens the document
-        /*----------------------------------------------------------------------------------------*/ 
-        String openCommand;
-
-        // if have subtype;
-         if (documentSubTypes.get(documentTypeList.getSelectionModel().getSelectedItem()) != null)
-            openCommand = "gnome-open /home/teodoro/Documents/Projects/JavaProjects/themis/src/Documents/".concat(client.getIdpassport()).concat("/")
-                .concat(documentName).concat(".doc");
-
-        // if no subtype
-        else
-             openCommand = "gnome-open /home/teodoro/Documents/Projects/JavaProjects/themis/src/Documents/".concat(client.getIdpassport()).concat("/")
-                .concat(documentName).concat(".doc");
-        
-        java.lang.Runtime.getRuntime().exec(openCommand);
+        openDocument(documentName);
     }
 }
