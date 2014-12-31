@@ -41,6 +41,21 @@ public class Document{
         this.owner = new SimpleIntegerProperty(owner);
     }
     
+    public Document (int id, String name, String type, String path, int owner, String creationDate){
+
+        Calendar currentDate = Calendar.getInstance();  //gets the current date;
+        SimpleDateFormat formatDate = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss"); //format current date
+
+        this.id = new SimpleIntegerProperty(id);
+        this.name = new SimpleStringProperty(name);
+        this.type = new SimpleStringProperty(type);
+        this.path = new SimpleStringProperty(path);
+        this.creationDate = new SimpleStringProperty(formatDate.format(currentDate.getTime()));
+        this.owner = new SimpleIntegerProperty(owner);
+        this.creationDate = new SimpleStringProperty(creationDate);
+    }
+
+    
     //getters
     public int getDocumentId(){return id.get();}
     public String getName(){return name.get();}
@@ -79,7 +94,7 @@ public class Document{
 			// add data to observablelist 
 			while (queryResult.next()){
 				allDocuments.add(new Document(queryResult.getInt("id"), queryResult.getString("name"), queryResult.getString("type"), queryResult.getString("path"), 
-									queryResult.getInt("ownedby")));
+									queryResult.getInt("ownedby"), queryResult.getString("creationdate")));
 			}
 		}
 		catch (Exception e){

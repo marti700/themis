@@ -50,6 +50,23 @@ public class Client{
 		this.lastVisit = new SimpleStringProperty(formatDate.format(currentDate.getTime()));
 	}
 
+    public Client(int id, String names, String lastNames, String nationality, String maritalStatus, String job, String idPassport, String address, String firstVisit, 
+            String lastVisit ) throws Exception{
+		
+        //initialize properties
+		this.id = new SimpleIntegerProperty(id);
+		this.names = new SimpleStringProperty(names);
+		this.lastNames = new SimpleStringProperty(lastNames);
+		this.maritalStatus = new SimpleStringProperty(maritalStatus);
+		this.idPassport = new SimpleStringProperty(idPassport);
+		this.nationality = new SimpleStringProperty(nationality);
+		this.job = new SimpleStringProperty(job);
+		this.address = new SimpleStringProperty(address);
+		this.firstVisit = new SimpleStringProperty(firstVisit);
+		this.lastVisit = new SimpleStringProperty(lastVisit);
+	}
+
+
 	//getters
 	public int getClientId(){return id.get();}
 	public String getNames(){return names.get();}
@@ -153,7 +170,8 @@ public class Client{
 			// add data to observablelist 
 			while (queryResult.next()){
 				allClients.add(new Client(queryResult.getInt("id"), queryResult.getString("names"), queryResult.getString("lastnames"), queryResult.getString("nationality"), 
-										queryResult.getString("maritalstatus"), queryResult.getString("job"), queryResult.getString("idpassport"), queryResult.getString("address")));
+										queryResult.getString("maritalstatus"), queryResult.getString("job"), queryResult.getString("idpassport"), queryResult.getString("address"),
+                                        queryResult.getString("firstvisit"), queryResult.getString("lastvisit")));
 			}
 		}
 		catch (Exception e){

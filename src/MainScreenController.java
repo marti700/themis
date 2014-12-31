@@ -1,5 +1,6 @@
 package themis;
 
+import java.util.HashMap;
 import javafx.collections.transformation.FilteredList;
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -41,12 +42,23 @@ public class MainScreenController implements Initializable, ControlledScreen{
         allClients = clients.getAllClients();
         
         clientsTable.setItems(allClients);
-        
+
+        //holds the column names that will be displayed in the Table view
+        HashMap<String,String> columnNames = new HashMap<>();
+        columnNames.put("names", "Nombres");
+        columnNames.put("lastnames","Apellidos");
+        columnNames.put("idpassport", "Cedula/Pasaporte");
+        columnNames.put("address", "Domicilio");
+        TableColumn<Client,String> column = null;
+
         try{
             for (int i=0; i<clients.getClientDatabaseTableResultSet().getMetaData().getColumnCount();++i){
                 //give a column it header name
-                TableColumn<Client,String> column = new TableColumn<Client,String>(clients.getClientDatabaseTableResultSet().getMetaData().getColumnName(i+1));
-                
+                if (columnNames.get(clients.getClientDatabaseTableResultSet().getMetaData().getColumnName(i+1)) != null)
+                    column = new TableColumn<Client,String>(columnNames.get(clients.getClientDatabaseTableResultSet().getMetaData().getColumnName(i+1)));
+                else 
+                    continue;
+                System.out.println(clients.getClientDatabaseTableResultSet().getMetaData().getColumnName(i+1));                
                 //add data to the columns
                 //clients.getClientDatabaseTableResultSet().getMetaData().getColumnName(i+1) will call the method getColumnNameProperty of the client object 
                 //where columnName is the name of a javax.beans property for more info about this see:

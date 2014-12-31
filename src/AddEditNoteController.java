@@ -65,7 +65,6 @@ public class AddEditNoteController implements Initializable, ControlledScreen{
             System.out.println("Estamos Editando");
             //edit note infomation
             note.editNote(NotesManagerController.getSelectedNote().getNoteId(), noteTextArea.getText());
-            System.out.println(NotesManagerController.getSelectedNote().getOwnedby()); 
             // create a note obect 
             Note editedNote = new Note(note.getNoteId(NotesManagerController.getSelectedNote().getCreateddate()), noteTextArea.getText(), 
                                         NotesManagerController.getSelectedNote().getCreateddate(), NotesManagerController.getSelectedNote().getOwnedby());
@@ -73,7 +72,6 @@ public class AddEditNoteController implements Initializable, ControlledScreen{
             //refresh tableview by updating allNotes observable list
             NotesManagerController.allNotes.set(NotesManagerController.getSelectedNoteIdex(),editedNote);
 
-            controller.setScreen(Themis.notesManagerScreen);
         }
         else {
             System.out.println("Estamos Nuevos");
@@ -82,10 +80,9 @@ public class AddEditNoteController implements Initializable, ControlledScreen{
             note.addNote(noteTextArea.getText());
 
             //add the new note to observable list, so the table view can be refreshed
-            NotesManagerController.allNotes.add(new Note(note.getNoteId(NotesManagerController.getSelectedNote().getCreateddate()), noteTextArea.getText(), 
-                                                MainScreenController.getSelectedClient().getClientId()));
-
-            controller.setScreen(Themis.notesManagerScreen);
+            NotesManagerController.allNotes.add(new Note(-3, noteTextArea.getText(), MainScreenController.getSelectedClient().getClientId()));
         } 
+        
+        controller.setScreen(Themis.notesManagerScreen);
     }
 }

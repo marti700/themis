@@ -1,5 +1,6 @@
 package themis;
 
+import java.util.HashMap;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.event.ActionEvent;
@@ -21,7 +22,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 public class ClientDetailScreenController implements Initializable, ControlledScreen{
     
     ScreensController controller;
-    
+    private static boolean tableViewColumnAlreadyLoaded = false;    
     public static ObservableList<Document> allClientDocuments = FXCollections.observableArrayList();
 
     @FXML
@@ -60,7 +61,8 @@ public class ClientDetailScreenController implements Initializable, ControlledSc
         //for some reason is not posible declare a fxml injected control as static (it comes null)
         //so, i declared a static tableview and then i make it point to the same tableview that comes from the fxml
         clientDocumentsTable = documentsTable;
-
+        
+        
         //open a document on doube clic
         documentsTable.setOnMousePressed(new EventHandler<MouseEvent>() {
             @Override
@@ -79,19 +81,33 @@ public class ClientDetailScreenController implements Initializable, ControlledSc
     }
     
     public static void refresh(){
-        
+       /*Refresh the Document table view evertime a information abou an user is requested*/ 
+
         Client client = new Client();
         Document documents = new Document();
     
 
         allClientDocuments = documents.getAllClientDocuments();
-
         clientDocumentsTable.setItems(allClientDocuments);
 
+        //holds the column names that will be displayed in the Table view
+        HashMap<String,String> columnNames = new HashMap<>();
+        columnNames.put("name", "Nombre");
+        columnNames.put("type", "Tipo");
+        columnNames.put("creationdate", "Fecha de Creacion");
+        TableColumn<Document,String> column = null;
+       
+        //populate the table with the column names and data
         try{
             for (int i=0; i<documents.getDocumentDatabaseTableResultSet().getMetaData().getColumnCount();++i){
+                
                 //give a column it header name
-                TableColumn<Document,String> column = new TableColumn<Document,String>(documents.getDocumentDatabaseTableResultSet().getMetaData().getColumnName(i+1));
+                if (columnNames.get(documents.getDocumentDatabaseTableResultSet().getMetaData().getColumnName(i+1)) != null){
+                    if (!tableViewColumnAlreadyLoaded)
+                        column = new TableColumn<Document,String>(columnNames.get(documents.getDocumentDatabaseTableResultSet().getMetaData().getColumnName(i+1)));
+                }
+                else 
+                    continue;
                 
                 //add data to the columns
                 //clients.getClientDatabaseTableResultSet().getMetaData().getColumnName(i+1) will call the method getColumnNameProperty of the client object 
@@ -103,6 +119,7 @@ public class ClientDetailScreenController implements Initializable, ControlledSc
                 clientDocumentsTable.getColumns().add(column);
                 //System.out.println(clientDocumentsTable);
             }
+            tableViewColumnAlreadyLoaded = true;
         }
         catch(Exception e){
             e.printStackTrace();

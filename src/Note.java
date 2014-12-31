@@ -50,6 +50,7 @@ public class Note{
     public String getContenttext(){return contentText.get();}
     public String getCreateddate(){return creationDate.get();}
     public int getOwnedby(){return ownedBy.get();}     
+    
     public void addNote(String noteContent){
         
         try{

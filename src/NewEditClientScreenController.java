@@ -99,7 +99,8 @@ public class NewEditClientScreenController implements Initializable, ControlledS
             // create a client obect 
             Client editedClient = new Client(MainScreenController.allClients.get(MainScreenController.getSelectedClientIndex()).getClientId(), clientNamesTextField.getText(), 
                                     clientLastNamesTextField.getText(), clientNationalityTextField.getText(), clientMaritalStatusTextField.getText(), clientJobTextField.getText(), 
-                                    clientIdPassportTextField.getText(), clientAddressTextArea.getText());
+                                    clientIdPassportTextField.getText(), clientAddressTextArea.getText(), MainScreenController.getSelectedClient().getFirstvisit(), 
+                                    MainScreenController.getSelectedClient().getLastvisit());
             
             //refresh tableview by updating allclients observable list
             MainScreenController.allClients.set(MainScreenController.getSelectedClientIndex(),editedClient);

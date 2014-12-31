@@ -1,5 +1,6 @@
 package themis;
 
+import java.util.HashMap;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.event.ActionEvent;
@@ -23,10 +24,13 @@ import javafx.scene.text.Text;
 public class NotesManagerController implements Initializable, ControlledScreen{
     
     ScreensController controller;
-    
+   
+    private static boolean tableViewColumnAlreadyLoaded = false;    
+
     public static ObservableList<Note> allNotes = FXCollections.observableArrayList();
     private static int selectedNoteIndex = 0;
     private static Note SelectedNote;
+
 
     @FXML
     private Button AddNoteButton;
@@ -35,10 +39,10 @@ public class NotesManagerController implements Initializable, ControlledScreen{
     private Button EditNoteButton;
 
     @FXML
-    private TextFlow noteContentTextFlow;
-  
-    @FXML
     private TableView<Note> notesTable;
+
+    @FXML
+    private TextArea noteContentTextArea;
 
     public static TableView<Note> clientNotesTable = null; 
     /*
@@ -60,10 +64,24 @@ public class NotesManagerController implements Initializable, ControlledScreen{
         notesTable.setOnMousePressed(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent e){
-                if (e.isPrimaryButtonDown() && e.getClickCount() == 2){
+                if (e.isPrimaryButtonDown() && e.getClickCount() == 1){
                     try{
-                       // String openDocument = "gnome-open ".concat(documentsTable.getSelectionModel().getSelectedItem().getPath()).concat(".doc");
-                        //java.lang.Runtime.getRuntime().exec(openDocument);
+                        //format the notes in a way that the text does not go tu much to the right
+                        
+                        String[] wordsInNote;
+                        String formatedNote = "";
+                        int wordsPerLine = 0;
+                        wordsInNote = notesTable.getSelectionModel().getSelectedItem().getContenttext().split(" ");
+                        for (int i=0; i<wordsInNote.length; i++){
+                            if (wordsPerLine == 5){
+                                formatedNote += "\n";
+                                wordsPerLine = 0;
+                            }
+                            formatedNote += " ".concat(wordsInNote[i]);
+                            
+                            ++wordsPerLine;
+                        }
+                        noteContentTextArea.setText(formatedNote);
                     }
                     catch(Exception exception){
                         exception.printStackTrace();
@@ -74,6 +92,7 @@ public class NotesManagerController implements Initializable, ControlledScreen{
     }
     
     public static Note getSelectedNote() {return clientNotesTable.getSelectionModel().getSelectedItem();}
+    
     public static void refresh(){
         
         Client client = new Client();
@@ -83,11 +102,21 @@ public class NotesManagerController implements Initializable, ControlledScreen{
         allNotes = notes.getAllNotes();
 
         clientNotesTable.setItems(allNotes);
+        
+        HashMap<String,String> columnNames = new HashMap<>();
+        columnNames.put("contenttext", "Contenido de Nota");
+        columnNames.put("createddate", "Fecha de Creacion");
+        TableColumn<Note,String> column = null;
 
         try{
             for (int i=0; i<notes.getNotesDatabaseTableResultSet().getMetaData().getColumnCount();++i){
                 //give a column it header name
-                TableColumn<Note,String> column = new TableColumn<Note,String>(notes.getNotesDatabaseTableResultSet().getMetaData().getColumnName(i+1));
+                if (columnNames.get(notes.getNotesDatabaseTableResultSet().getMetaData().getColumnName(i+1)) != null){
+                    if (!tableViewColumnAlreadyLoaded)
+                        column = new TableColumn<Note,String>(columnNames.get(notes.getNotesDatabaseTableResultSet().getMetaData().getColumnName(i+1)));
+                }
+                else 
+                    continue;
                 
                 //add data to the columns
                 //clients.getNotesDatabaseTableResultSet().getMetaData().getColumnName(i+1) will call the method getColumnNameProperty of the Note object 
@@ -98,6 +127,8 @@ public class NotesManagerController implements Initializable, ControlledScreen{
                 //add the column to the tableview
                 clientNotesTable.getColumns().add(column);
             }
+            //the Table column have been loaded
+            tableViewColumnAlreadyLoaded = true;
         }
         catch(Exception e){
             e.printStackTrace();
