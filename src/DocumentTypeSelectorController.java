@@ -102,11 +102,17 @@ public class DocumentTypeSelectorController implements Initializable, Controlled
 
     }
     private void copyNewedCreatedDocument()throws Exception{
-        Path sourceFilePathWithSubType =  Paths.get("/home/teodoro/Documents/Projects/JavaProjects/themis/src/Templates/".concat(documentTypeList.getSelectionModel()
-                .getSelectedItem()).replaceAll(" ", ".").concat("/").concat(documentSubTypeList.getSelectionModel().getSelectedItem().replaceAll(" ",".").concat(".doc")));
+        
+        // the following to file objects are used to extract the relative path of the files
+        File filePathWithSubType = new File("Templates/".concat(documentTypeList.getSelectionModel()
+                .getSelectedItem()).replaceAll(" ", ".").concat("/").concat(documentSubTypeList.getSelectionModel().getSelectedItem().replaceAll(" ",".").concat(".txt")));
 
-        Path sourceFilePathWithoutSubType = Paths.get("/home/teodoro/Documents/Projects/JavaProjects/themis/src/Templates/".concat(documentTypeList.getSelectionModel()
-                .getSelectedItem().replaceAll(" ", ".")).concat("/").concat(documentTypeList.getSelectionModel().getSelectedItem().replaceAll(" ", ".").concat(".doc")));
+        File filePathWithoutSubtype = new File("Templates/".concat(documentTypeList.getSelectionModel()
+                .getSelectedItem().replaceAll(" ", ".")).concat("/").concat(documentTypeList.getSelectionModel().getSelectedItem().replaceAll(" ", ".").concat(".txt")));
+
+        Path sourceFilePathWithSubType =  Paths.get(filePathWithSubType.getAbsolutePath());
+
+        Path sourceFilePathWithoutSubType = Paths.get(filePathWithoutSubtype.getAbsolutePath());
         
         Path sourceFilePath;
         
@@ -120,7 +126,7 @@ public class DocumentTypeSelectorController implements Initializable, Controlled
             sourceFilePath = sourceFilePathWithoutSubType;
         
         //build the Path
-        Path destinationPath = Paths.get("/home/teodoro/Documents/Projects/JavaProjects/themis/src/Documents/".concat(client.getIdpassport()).concat( "/")
+        Path destinationPath = Paths.get("Documents/".concat(client.getIdpassport()).concat( "/")
                 .concat(sourceFilePath.getFileName().toString()));
         //Path destinationPath = new Path (destinationStringPath);
 
@@ -131,30 +137,57 @@ public class DocumentTypeSelectorController implements Initializable, Controlled
     }
    
     private void renameDocument(String documentName){
-        File fileWithSubType = new File("/home/teodoro/Documents/Projects/JavaProjects/themis/src/Documents/".concat(client.getIdpassport()).concat("/")
-                .concat(documentSubTypeList.getSelectionModel().getSelectedItem().replaceAll(" ",".")).concat(".doc"));
-        
-        File fileWithoutSybType = new File("/home/teodoro/Documents/Projects/JavaProjects/themis/src/Documents/".concat(client.getIdpassport()).concat("/")
-                .concat(documentTypeList.getSelectionModel().getSelectedItem().replaceAll(" ",".")).concat(".doc"));
 
-        File file = null;
+        boolean fileRenamed;
+        boolean fileExtistence;        
+        boolean fileExtistencesub;
+
+        File fileWithSubType = new File("Documents/".concat(client.getIdpassport()).concat("/")
+                .concat(documentSubTypeList.getSelectionModel().getSelectedItem().replaceAll(" ",".")).concat(".txt"));
+        
+        System.out.println("Documents/".concat(client.getIdpassport()).concat("/")
+                .concat(documentSubTypeList.getSelectionModel().getSelectedItem().replaceAll(" ",".")).concat(".txt"));
+
+        File fileWithoutSubType = new File("Documents/".concat(client.getIdpassport()).concat("/")
+                .concat(documentTypeList.getSelectionModel().getSelectedItem().replaceAll(" ",".")).concat(".txt"));
+
+        File newFileWithSubType = new File("Documents/".concat(client.getIdpassport()).concat("/")
+                .concat(documentName).concat(".txt"));
+        
+        File newFileWithoutSubType = new File("Documents/".concat(client.getIdpassport()).concat("/")
+                .concat(documentName).concat(".txt"));
+
+        
+                //File file = null;
         
         // if have subtype 
-        if (haveSubtype())
-            fileWithSubType.renameTo(new File ("/home/teodoro/Documents/Projects/JavaProjects/themis/src/Documents/".concat(client.getIdpassport()).concat("/")
-                    .concat(documentName).concat(".doc")));
+        if (haveSubtype()){
+                System.out.println("from with subtype if");
+            System.out.println(fileWithSubType.exists());
+            System.out.println(newFileWithSubType.getAbsolutePath());
+            System.out.println(fileWithSubType.getAbsolutePath());
+            fileRenamed = fileWithSubType.renameTo(new File(newFileWithSubType.getAbsolutePath()));
+
+            System.out.println(fileRenamed);
+        }
         // if no subtype
-        else
-            fileWithSubType.renameTo(new File ("/home/teodoro/Documents/Projects/JavaProjects/themis/src/Documents/".concat(client.getIdpassport()).concat("/")
-                    .concat(documentName).concat(".doc")));
+        else{
+            System.out.println("from else no subtype");
+            System.out.println(fileWithoutSubType.exists());
+            fileRenamed = fileWithoutSubType.renameTo(newFileWithoutSubType);
+
+            System.out.println(fileRenamed);
+        }
     }
 
     private void openDocument(String documentName) throws Exception{
         // Opens the a document
-        java.lang.Runtime.getRuntime().exec("gnome-open /home/teodoro/Documents/Projects/JavaProjects/themis/src/Documents/".concat(client.getIdpassport()).concat("/")
-                .concat(documentName).concat(".doc"));
+        File file = new File("Documents/".concat(client.getIdpassport()).concat("/").concat(documentName).concat(".txt"));
         
-        //Desktop.getDesktop().open(file);
+        /*java.lang.Runtime.getRuntime().exec("gnome-open /home/teodoro/Documents/Projects/JavaProjects/themis/src/Documents/".concat(client.getIdpassport()).concat("/")
+                .concat(documentName).concat(".doc"));*/
+        
+        Desktop.getDesktop().open(file);
     }
    
     //events handlers
@@ -169,14 +202,14 @@ public class DocumentTypeSelectorController implements Initializable, Controlled
         //Saves the document in the database
         /*------------------------------------------------------------------------------------------*/
         Calendar timeStamp = Calendar.getInstance();
-        SimpleDateFormat timeStampFormat = new SimpleDateFormat("dd-MM-yyyy[HH:mm:ss]");
+        SimpleDateFormat timeStampFormat = new SimpleDateFormat("dd-MM-yyyy[HH-mm-ss]");
         
         String documentName = documentTypeList.getSelectionModel().getSelectedItem().concat(".").concat(client.getNames()).concat("-")
             .concat(timeStampFormat.format(timeStamp.getTime()));
         documentName = documentName.replaceAll(" ", ".");  //changes empty spaces with dots
         
         String documentType = documentTypeList.getSelectionModel().getSelectedItem();
-        String documentPath = "/home/teodoro/Documents/Projects/JavaProjects/themis/src/Documents/".concat(client.getIdpassport()).concat("/").concat(documentName);
+        String documentPath = "/home/teodoro/Documents/Projects/JavaProjects/themis/srci/Documents/".concat(client.getIdpassport()).concat("/").concat(documentName);
         int documentOwner = client.getClientId();
 
         document.insertDocument(documentName, documentType, documentPath, documentOwner);

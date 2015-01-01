@@ -86,9 +86,8 @@ public class Note{
             e.printStackTrace();
         }
     }
-    //returns all Documents
 	public ObservableList<Note> getAllNotes(){
-	/* Returns an obserbable list which contains all documents*/
+	/* Returns an obserbable list that contains all notes*/
 		try{
 			ResultSet queryResult = getNotesDatabaseTableResultSet();
 			
@@ -105,7 +104,7 @@ public class Note{
 	}
 
 	public ResultSet getNotesDatabaseTableResultSet() throws Exception{
-		/* Returns a resultset of a SQL select executed against the Documents database table */
+		/* Returns a resultset of a SQL select executed against the notes database table */
 
 		try{
             String queryString = "SELECT id, contentText, createdDate, ownedby FROM Notas WHERE ownedby = ?";

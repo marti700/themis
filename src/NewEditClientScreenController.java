@@ -11,6 +11,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextArea;
 import org.controlsfx.dialog.Dialogs;
+import java.io.File;
+//import java.nio.file;
 
 public class NewEditClientScreenController implements Initializable, ControlledScreen{
     
@@ -85,8 +87,7 @@ public class NewEditClientScreenController implements Initializable, ControlledS
 
     @FXML 
     private void addClient (ActionEvent event) throws Exception{
-        System.out.println(MainScreenController.allClients.get(MainScreenController.getSelectedClientIndex() ));
-        
+                
         //edit button was pressed in the mainscreen
         if (editWasPressed) {
             System.out.println("Estamos Editando");
@@ -122,8 +123,10 @@ public class NewEditClientScreenController implements Initializable, ControlledS
                 MainScreenController.allClients.add(newCreatedClient);
             
                 //Create a folder with the id or password as name for the new user documents
-                String mkdirCommand = "mkdir -p /home/teodoro/Documents/Projects/JavaProjects/themis/src/Documents/".concat(newCreatedClient.getIdpassport());
-                java.lang.Runtime.getRuntime().exec(mkdirCommand);
+                File dir = new File("Documents/"+newCreatedClient.getIdpassport());
+                dir.mkdirs();
+                //String mkdirCommand = "mkdir -p /home/teodoro/Documents/Projects/JavaProjects/themis/src/Documents/".concat(newCreatedClient.getIdpassport());
+                //java.lang.Runtime.getRuntime().exec(mkdirCommand);
                 
                 //returns to the main screen
                 controller.setScreen(Themis.mainScreen);

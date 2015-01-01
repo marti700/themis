@@ -60,26 +60,29 @@ public class NotesManagerController implements Initializable, ControlledScreen{
         //so, i declared a static tableview and then i make it point to the same tableview that comes from the fxml
         clientNotesTable = notesTable;
 
-        //open a document on doube clic
+        //shows notes content when user clicks a note
         notesTable.setOnMousePressed(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent e){
-                if (e.isPrimaryButtonDown() && e.getClickCount() == 1){
+                if (e.isPrimaryButtonDown()){
                     try{
-                        //format the notes in a way that the text does not go tu much to the right
                         
+                        //format the notes in a way that the text does not go tu much to the right
                         String[] wordsInNote;
                         String formatedNote = "";
                         int wordsPerLine = 0;
                         wordsInNote = notesTable.getSelectionModel().getSelectedItem().getContenttext().split(" ");
+                        System.out.println("Despues de llenar el arreglo");
                         for (int i=0; i<wordsInNote.length; i++){
                             if (wordsPerLine == 5){
                                 formatedNote += "\n";
                                 wordsPerLine = 0;
                             }
+                            System.out.println("Agregando a format note");
                             formatedNote += " ".concat(wordsInNote[i]);
-                            
+                            System.out.println("Antes de incrementar the thing");
                             ++wordsPerLine;
+                            System.out.println("Despues de Incrementar the thing");
                         }
                         noteContentTextArea.setText(formatedNote);
                     }
@@ -107,13 +110,15 @@ public class NotesManagerController implements Initializable, ControlledScreen{
         columnNames.put("contenttext", "Contenido de Nota");
         columnNames.put("createddate", "Fecha de Creacion");
         TableColumn<Note,String> column = null;
-
+                        
         try{
             for (int i=0; i<notes.getNotesDatabaseTableResultSet().getMetaData().getColumnCount();++i){
                 //give a column it header name
                 if (columnNames.get(notes.getNotesDatabaseTableResultSet().getMetaData().getColumnName(i+1)) != null){
                     if (!tableViewColumnAlreadyLoaded)
                         column = new TableColumn<Note,String>(columnNames.get(notes.getNotesDatabaseTableResultSet().getMetaData().getColumnName(i+1)));
+                    else
+                        break;
                 }
                 else 
                     continue;
@@ -129,12 +134,15 @@ public class NotesManagerController implements Initializable, ControlledScreen{
             }
             //the Table column have been loaded
             tableViewColumnAlreadyLoaded = true;
+            
+            //select the first element of the table
+            clientNotesTable.getSelectionModel().selectFirst();
         }
         catch(Exception e){
             e.printStackTrace();
         }
 
-        System.out.println("Porque no estoy siendo llamado");
+        
 
     }
 

@@ -105,6 +105,8 @@ public class ClientDetailScreenController implements Initializable, ControlledSc
                 if (columnNames.get(documents.getDocumentDatabaseTableResultSet().getMetaData().getColumnName(i+1)) != null){
                     if (!tableViewColumnAlreadyLoaded)
                         column = new TableColumn<Document,String>(columnNames.get(documents.getDocumentDatabaseTableResultSet().getMetaData().getColumnName(i+1)));
+                    else
+                        break;
                 }
                 else 
                     continue;
