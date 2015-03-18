@@ -9,8 +9,8 @@ public class DatabaseConnector{
 	public static void connectToDatabase(){
 		
 		try{
-			//connection = DriverManager.getConnection("jdbc:postgresql://localhost:5434/Themis", "postgres","P@ssw0rd");
-			connection = DriverManager.getConnection("jdbc:postgresql://localhost:3500/Themis", "postgres","P@ssw0rd");
+			connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/Themis", "postgres","P@ssw0rd");
+			//connection = DriverManager.getConnection("jdbc:postgresql://localhost:3500/Themis", "postgres","P@ssw0rd");
 		}
 		catch (Exception e){
 			e.printStackTrace();
