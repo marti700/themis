@@ -1,6 +1,7 @@
 package themis;
 
 import java.util.*;
+import java.util.HashMap;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Arrays;
@@ -105,10 +106,10 @@ public class DocumentTypeSelectorController implements Initializable, Controlled
         
         // the following to file objects are used to extract the relative path of the files
         File filePathWithSubType = new File("Templates/".concat(documentTypeList.getSelectionModel()
-                .getSelectedItem()).replaceAll(" ", ".").concat("/").concat(documentSubTypeList.getSelectionModel().getSelectedItem().replaceAll(" ",".").concat(".doc")));
+                .getSelectedItem()).replaceAll(" ", ".").concat("/").concat(documentSubTypeList.getSelectionModel().getSelectedItem().replaceAll(" ",".").concat(".docx")));
 
         File filePathWithoutSubtype = new File("Templates/".concat(documentTypeList.getSelectionModel()
-                .getSelectedItem().replaceAll(" ", ".")).concat("/").concat(documentTypeList.getSelectionModel().getSelectedItem().replaceAll(" ", ".").concat(".doc")));
+                .getSelectedItem().replaceAll(" ", ".")).concat("/").concat(documentTypeList.getSelectionModel().getSelectedItem().replaceAll(" ", ".").concat(".docx")));
 
         Path sourceFilePathWithSubType =  Paths.get(filePathWithSubType.getAbsolutePath());
 
@@ -130,10 +131,24 @@ public class DocumentTypeSelectorController implements Initializable, Controlled
                 .concat(sourceFilePath.getFileName().toString()));
         //Path destinationPath = new Path (destinationStringPath);
 
-        //execute copy command 
+                //execute copy command 
         //java.lang.Runtime.getRuntime().exec(copyCommand); 
         Files.copy(sourceFilePath, destinationPath);
-
+        
+       
+        //test code i will change this as soon I write the actual templates
+        //This code Changes the template placeholders with relevant information
+        //See https://github.com/plutext/docx4j/blob/master/src/samples/docx4j/org/docx4j/samples/VariableReplace.java
+        HashMap<String, String> mappings = new HashMap<String, String>();
+        mappings.put("cambian", "cambiaran");
+        mappings.put("camb", "cambiar"); 
+        
+        System.out.println("Created TemplatesHandler Instance");
+        String b = destinationPath.toString();
+        TemplatesHandler template = new TemplatesHandler(b);
+        System.out.println("Replacing text ...");
+        template.replaceTextInDocument(mappings);
+        template.saveDocumentTemplate(destinationPath.toString());
     }
    
     private void renameDocument(String documentName){
@@ -143,19 +158,19 @@ public class DocumentTypeSelectorController implements Initializable, Controlled
         boolean fileExtistencesub;
 
         File fileWithSubType = new File("Documents/".concat(client.getIdpassport()).concat("/")
-                .concat(documentSubTypeList.getSelectionModel().getSelectedItem().replaceAll(" ",".")).concat(".doc"));
+                .concat(documentSubTypeList.getSelectionModel().getSelectedItem().replaceAll(" ",".")).concat(".docx"));
         
         System.out.println("Documents/".concat(client.getIdpassport()).concat("/")
-                .concat(documentSubTypeList.getSelectionModel().getSelectedItem().replaceAll(" ",".")).concat(".doc"));
+                .concat(documentSubTypeList.getSelectionModel().getSelectedItem().replaceAll(" ",".")).concat(".docx"));
 
         File fileWithoutSubType = new File("Documents/".concat(client.getIdpassport()).concat("/")
-                .concat(documentTypeList.getSelectionModel().getSelectedItem().replaceAll(" ",".")).concat(".doc"));
+                .concat(documentTypeList.getSelectionModel().getSelectedItem().replaceAll(" ",".")).concat(".docx"));
 
         File newFileWithSubType = new File("Documents/".concat(client.getIdpassport()).concat("/")
-                .concat(documentName).concat(".doc"));
+                .concat(documentName).concat(".docx"));
         
         File newFileWithoutSubType = new File("Documents/".concat(client.getIdpassport()).concat("/")
-                .concat(documentName).concat(".doc"));
+                .concat(documentName).concat(".docx"));
 
         
                 //File file = null;
@@ -182,10 +197,10 @@ public class DocumentTypeSelectorController implements Initializable, Controlled
 
     private void openDocument(String documentName) throws Exception{
         // Opens the a document
-        File file = new File("Documents/".concat(client.getIdpassport()).concat("/").concat(documentName).concat(".doc"));
+        File file = new File("Documents/".concat(client.getIdpassport()).concat("/").concat(documentName).concat(".docx"));
         
         java.lang.Runtime.getRuntime().exec("gnome-open /home/teodoro/Documents/Projects/JavaProjects/themis/src/Documents/".concat(client.getIdpassport()).concat("/")
-                .concat(documentName).concat(".doc"));
+                .concat(documentName).concat(".docx"));
         
         //Desktop.getDesktop().open(file);
     }

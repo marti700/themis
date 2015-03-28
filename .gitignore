@@ -120,5 +120,7 @@ sftp-config.jso
 
 ### Other Undesirable Things ###
 Thumbs.db
+Documents/
 *.doc
 *.txt
+*docx#
