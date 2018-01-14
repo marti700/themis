@@ -2,9 +2,8 @@
 package themis;
 
 import javafx.application.Application;
-import javafx.scene.Scene;
-import javafx.scene.Parent;
 import javafx.scene.Group;
+import javafx.scene.Scene;
 import javafx.stage.Stage;
 import screensframework.*;
 
