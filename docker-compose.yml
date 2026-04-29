@@ -1,0 +1,44 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: themis
+      POSTGRES_USER: themis
+      POSTGRES_PASSWORD: themis_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U themis -d themis"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    image: golang:1.24-bookworm
+    volumes:
+      - .:/workspace:cached
+    working_dir: /workspace/backend
+    command: sleep infinity
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: themis
+      DB_USER: themis
+      DB_PASSWORD: themis_dev
+      DB_DSN: "postgres://themis:themis_dev@postgres:5432/themis?sslmode=disable"
+
+  pythonapi:
+    image: python:3.12-slim
+    volumes:
+      - .:/workspace:cached
+    working_dir: /workspace/pythonapi
+    command: sleep infinity
+
+volumes:
+  postgres_data:
