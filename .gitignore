@@ -1,0 +1,44 @@
+# --- Security ---
+# Ignore all .env files in any subdirectory
+**/.env
+**/.env.*
+!.env.example
+
+# --- Go / Backend ---
+# Binaries and tool outputs
+backend/bin/
+**/node_modules/
+**/dist/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# --- Python / PythonAPI ---
+# Virtual environments and cache
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+.env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+
+# --- IDEs & OS ---
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
