@@ -7,8 +7,8 @@ package database
 
 import (
 	"context"
-	"database/sql"
-	"time"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const addCustomerToCompany = `-- name: AddCustomerToCompany :exec
@@ -22,8 +22,8 @@ type AddCustomerToCompanyParams struct {
 	CustomerID int32 `json:"customer_id"`
 }
 
-func (q *Queries) AddCustomerToCompany(ctx context.Context, arg AddCustomerToCompanyParams) error {
-	_, err := q.db.ExecContext(ctx, addCustomerToCompany, arg.CompanyID, arg.CustomerID)
+func (q *Queries) AddCustomerToCompany(ctx context.Context, arg *AddCustomerToCompanyParams) error {
+	_, err := q.db.Exec(ctx, addCustomerToCompany, arg.CompanyID, arg.CustomerID)
 	return err
 }
 
@@ -39,15 +39,15 @@ RETURNING id, first_name, last_name, birthday, address, marital_status, occupati
 type CreateCustomerParams struct {
 	FirstName     string            `json:"first_name"`
 	LastName      string            `json:"last_name"`
-	Birthday      time.Time         `json:"birthday"`
-	Address       sql.NullString    `json:"address"`
+	Birthday      pgtype.Date       `json:"birthday"`
+	Address       pgtype.Text       `json:"address"`
 	MaritalStatus NullMaritalStatus `json:"marital_status"`
-	Occupation    sql.NullString    `json:"occupation"`
+	Occupation    pgtype.Text       `json:"occupation"`
 	IDNumber      string            `json:"id_number"`
 }
 
-func (q *Queries) CreateCustomer(ctx context.Context, arg CreateCustomerParams) (Customer, error) {
-	row := q.db.QueryRowContext(ctx, createCustomer,
+func (q *Queries) CreateCustomer(ctx context.Context, arg *CreateCustomerParams) (Customer, error) {
+	row := q.db.QueryRow(ctx, createCustomer,
 		arg.FirstName,
 		arg.LastName,
 		arg.Birthday,
@@ -78,7 +78,7 @@ WHERE cc.customer_id = $1
 `
 
 func (q *Queries) GetCompaniesByCustomer(ctx context.Context, customerID int32) ([]Company, error) {
-	rows, err := q.db.QueryContext(ctx, getCompaniesByCustomer, customerID)
+	rows, err := q.db.Query(ctx, getCompaniesByCustomer, customerID)
 	if err != nil {
 		return nil, err
 	}
@@ -97,9 +97,6 @@ func (q *Queries) GetCompaniesByCustomer(ctx context.Context, customerID int32) 
 		}
 		items = append(items, i)
 	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -112,7 +109,7 @@ WHERE id = $1 LIMIT 1
 `
 
 func (q *Queries) GetCustomer(ctx context.Context, id int32) (Customer, error) {
-	row := q.db.QueryRowContext(ctx, getCustomer, id)
+	row := q.db.QueryRow(ctx, getCustomer, id)
 	var i Customer
 	err := row.Scan(
 		&i.ID,
@@ -135,7 +132,7 @@ WHERE cc.company_id = $1
 `
 
 func (q *Queries) GetCustomersByCompany(ctx context.Context, companyID int32) ([]Customer, error) {
-	rows, err := q.db.QueryContext(ctx, getCustomersByCompany, companyID)
+	rows, err := q.db.Query(ctx, getCustomersByCompany, companyID)
 	if err != nil {
 		return nil, err
 	}
@@ -158,9 +155,6 @@ func (q *Queries) GetCustomersByCompany(ctx context.Context, companyID int32) ([
 		}
 		items = append(items, i)
 	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -174,7 +168,7 @@ WHERE cd.customer_id = $1
 `
 
 func (q *Queries) GetDocumentsByCustomer(ctx context.Context, customerID int32) ([]Document, error) {
-	rows, err := q.db.QueryContext(ctx, getDocumentsByCustomer, customerID)
+	rows, err := q.db.Query(ctx, getDocumentsByCustomer, customerID)
 	if err != nil {
 		return nil, err
 	}
@@ -193,9 +187,6 @@ func (q *Queries) GetDocumentsByCustomer(ctx context.Context, customerID int32) 
 		}
 		items = append(items, i)
 	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -212,7 +203,7 @@ type LinkDocumentToCustomerParams struct {
 	DocumentID int32 `json:"document_id"`
 }
 
-func (q *Queries) LinkDocumentToCustomer(ctx context.Context, arg LinkDocumentToCustomerParams) error {
-	_, err := q.db.ExecContext(ctx, linkDocumentToCustomer, arg.CustomerID, arg.DocumentID)
+func (q *Queries) LinkDocumentToCustomer(ctx context.Context, arg *LinkDocumentToCustomerParams) error {
+	_, err := q.db.Exec(ctx, linkDocumentToCustomer, arg.CustomerID, arg.DocumentID)
 	return err
 }

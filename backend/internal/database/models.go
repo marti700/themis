@@ -5,10 +5,10 @@
 package database
 
 import (
-	"database/sql"
 	"database/sql/driver"
 	"fmt"
-	"time"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type MaritalStatus string
@@ -57,29 +57,29 @@ func (ns NullMaritalStatus) Value() (driver.Value, error) {
 }
 
 type Company struct {
-	ID        int32          `json:"id"`
-	Name      string         `json:"name"`
-	TaxID     string         `json:"tax_id"`
-	Industry  sql.NullString `json:"industry"`
-	CreatedAt sql.NullTime   `json:"created_at"`
+	ID        int32              `json:"id"`
+	Name      string             `json:"name"`
+	TaxID     string             `json:"tax_id"`
+	Industry  pgtype.Text        `json:"industry"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
 type CompanyCustomer struct {
-	CompanyID  int32        `json:"company_id"`
-	CustomerID int32        `json:"customer_id"`
-	JoinedAt   sql.NullTime `json:"joined_at"`
+	CompanyID  int32              `json:"company_id"`
+	CustomerID int32              `json:"customer_id"`
+	JoinedAt   pgtype.Timestamptz `json:"joined_at"`
 }
 
 type Customer struct {
-	ID            int32             `json:"id"`
-	FirstName     string            `json:"first_name"`
-	LastName      string            `json:"last_name"`
-	Birthday      time.Time         `json:"birthday"`
-	Address       sql.NullString    `json:"address"`
-	MaritalStatus NullMaritalStatus `json:"marital_status"`
-	Occupation    sql.NullString    `json:"occupation"`
-	IDNumber      string            `json:"id_number"`
-	CreatedAt     sql.NullTime      `json:"created_at"`
+	ID            int32              `json:"id"`
+	FirstName     string             `json:"first_name"`
+	LastName      string             `json:"last_name"`
+	Birthday      pgtype.Date        `json:"birthday"`
+	Address       pgtype.Text        `json:"address"`
+	MaritalStatus NullMaritalStatus  `json:"marital_status"`
+	Occupation    pgtype.Text        `json:"occupation"`
+	IDNumber      string             `json:"id_number"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
 }
 
 type CustomerDocument struct {
@@ -88,9 +88,9 @@ type CustomerDocument struct {
 }
 
 type Document struct {
-	ID        int32        `json:"id"`
-	Name      string       `json:"name"`
-	SizeBytes int64        `json:"size_bytes"`
-	FilePath  string       `json:"file_path"`
-	CreatedAt sql.NullTime `json:"created_at"`
+	ID        int32              `json:"id"`
+	Name      string             `json:"name"`
+	SizeBytes int64              `json:"size_bytes"`
+	FilePath  string             `json:"file_path"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }

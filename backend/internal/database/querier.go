@@ -9,13 +9,13 @@ import (
 )
 
 type Querier interface {
-	AddCustomerToCompany(ctx context.Context, arg AddCustomerToCompanyParams) error
-	CreateCustomer(ctx context.Context, arg CreateCustomerParams) (Customer, error)
+	AddCustomerToCompany(ctx context.Context, arg *AddCustomerToCompanyParams) error
+	CreateCustomer(ctx context.Context, arg *CreateCustomerParams) (Customer, error)
 	GetCompaniesByCustomer(ctx context.Context, customerID int32) ([]Company, error)
 	GetCustomer(ctx context.Context, id int32) (Customer, error)
 	GetCustomersByCompany(ctx context.Context, companyID int32) ([]Customer, error)
 	GetDocumentsByCustomer(ctx context.Context, customerID int32) ([]Document, error)
-	LinkDocumentToCustomer(ctx context.Context, arg LinkDocumentToCustomerParams) error
+	LinkDocumentToCustomer(ctx context.Context, arg *LinkDocumentToCustomerParams) error
 }
 
 var _ Querier = (*Queries)(nil)

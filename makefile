@@ -8,8 +8,8 @@ endif
 DB_URL ?= postgres://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=disable
 
 # Directory paths
-MIGRATIONS_DIR=backend/database/migrations
-QUERIES_DIR=backend/database/queries
+MIGRATIONS_DIR=backend/internal/database/migrations
+QUERIES_DIR=backend/internal/database/queries
 
 .PHONY: migrate-up migrate-down sqlc generate help
 
