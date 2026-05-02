@@ -6,7 +6,8 @@
 
 # --- Go / Backend ---
 # Binaries and tool outputs
-backend/bin/
+bin/
+.gopath/
 **/node_modules/
 **/dist/
 *.exe
@@ -35,6 +36,9 @@ sdist/
 var/
 wheels/
 *.egg-info/
+
+# --- Docs ---
+devbox-setup.md
 
 # --- IDEs & OS ---
 .idea/

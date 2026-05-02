@@ -1,0 +1,60 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.17.2/.schema/devbox.schema.json",
+  "packages": [
+    "go@1.26.2",
+    "python@3.12.13",
+    "goose@latest",
+    "sqlc@latest"
+  ],
+  "env": {
+    "DB_HOST":     "localhost",
+    "DB_PORT":     "5432",
+    "DB_NAME":     "themis",
+    "DB_USER":     "themis",
+    "DB_PASSWORD": "themis_dev",
+    "DB_URL":      "postgres://themis:themis_dev@localhost:5432/themis?sslmode=disable",
+    "GOPATH":      "$PWD/.gopath"
+  },
+  "shell": {
+    "init_hook": [
+      "echo ''",
+      "echo 'Themis dev environment ready'",
+      "echo '  DB:      postgres://localhost:5432/themis  (docker container, must be running)'",
+      "echo '  NIM LLM: http://localhost:8000             (docker container, must be running)'",
+      "echo ''",
+      "echo 'Available scripts (run with: devbox run <name>)'",
+      "echo '  migrate-up      apply pending DB migrations'",
+      "echo '  migrate-down    roll back last migration'",
+      "echo '  migrate-create  create a new migration file (pass name as first arg)'",
+      "echo '  sqlc            regenerate Go query code from SQL'",
+      "echo '  generate        migrate-up + sqlc in one step'",
+      "echo '  build-backend   compile backend to bin/api'",
+      "echo '  build-crawler   compile data crawler to bin/crawler'",
+      "echo '  run-backend     run the backend API server'",
+      "echo '  run-crawler     run the data crawler'",
+      "echo ''"
+    ],
+    "scripts": {
+      "migrate-up": "goose -dir backend/internal/database/migrations postgres \"$DB_URL\" up",
+      "migrate-down": "goose -dir backend/internal/database/migrations postgres \"$DB_URL\" down",
+      "migrate-create": "goose -dir backend/internal/database/migrations postgres \"$DB_URL\" create $1 sql",
+      "sqlc": "sqlc -f backend/sqlc.yaml generate",
+      "generate": [
+        "devbox run migrate-up",
+        "devbox run sqlc"
+      ],
+      "build-backend": [
+        "cd backend && go build -o ../bin/api ."
+      ],
+      "build-crawler": [
+        "cd themisdatacrawler && go build -o ../bin/crawler ."
+      ],
+      "run-backend": [
+        "cd backend && go run ."
+      ],
+      "run-crawler": [
+        "cd themisdatacrawler && go run ."
+      ]
+    }
+  }
+}

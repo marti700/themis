@@ -33,6 +33,7 @@ import (
 	"bytes"         // bytes.NewReader wraps a []byte so http.NewRequest can read it
 	"encoding/json" // serialise Go structs to JSON and back
 	"fmt"
+	"io"
 	"net/http" // standard Go HTTP client
 	"strings"  // used to strip markdown fences from the model's JSON output
 	"time"     // used to set a timeout on the HTTP client
@@ -70,7 +71,6 @@ id_number: (string) Government ID, Passport, or SSN if mentioned.
 
 Output Structure Example:
 
-JSON
 [
   {
     "first_name": "John",
@@ -78,7 +78,7 @@ JSON
     "address": "123 Maple St, Springfield",
     "marital_status": "married",
     "occupation": "Software Engineer",
-    "id_number": "A1234567",
+    "id_number": "A1234567"
   }
 ]
 `
@@ -169,9 +169,11 @@ type FunctionCall struct {
 
 // ChatRequest is the full JSON body we POST to /v1/chat/completions.
 type ChatRequest struct {
-	Model    string        `json:"model"`
-	Messages []ChatMessage `json:"messages"`
-	Tools    []ToolDef     `json:"tools,omitempty"` // omit when empty (tool-free requests)
+	Model       string        `json:"model"`
+	Messages    []ChatMessage `json:"messages"`
+	Tools       []ToolDef     `json:"tools,omitempty"`
+	MaxTokens   int           `json:"max_tokens,omitempty"`
+	Temperature float64       `json:"temperature,omitempty"`
 }
 
 // ChatResponse is the JSON body returned by the API.
@@ -214,25 +216,32 @@ func postChat(client *http.Client, req ChatRequest) (*ChatResponse, error) {
 	// the request with a 415 Unsupported Media Type error.
 	httpReq.Header.Set("Content-Type", "application/json")
 
-	// Execute the HTTP request.  resp.Body is a network stream; we must close it
-	// when done to free the underlying TCP connection.
 	resp, err := client.Do(httpReq)
 	if err != nil {
 		return nil, fmt.Errorf("http post: %w", err)
 	}
 	defer resp.Body.Close()
 
-	// Decode the JSON response body directly into our ChatResponse struct.
-	var chatResp ChatResponse
-	if err := json.NewDecoder(resp.Body).Decode(&chatResp); err != nil {
-		return nil, fmt.Errorf("decode response: %w", err)
+	// Buffer the full body so we can both decode it and include it in errors.
+	rawBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("read response body: %w", err)
 	}
 
-	// The API can return HTTP 200 but still signal an error inside the JSON body.
-	// Check for that and surface it as a Go error.
+	var chatResp ChatResponse
+	if err := json.Unmarshal(rawBody, &chatResp); err != nil {
+		return nil, fmt.Errorf("decode response (status %d): %w\nraw body: %s", resp.StatusCode, err, rawBody)
+	}
+
 	if chatResp.Error != nil {
 		return nil, fmt.Errorf("API error [%s]: %s", chatResp.Error.Type, chatResp.Error.Message)
 	}
+
+	// Surface the raw body alongside empty-choices so we can see what the server sent.
+	if len(chatResp.Choices) == 0 {
+		return nil, fmt.Errorf("no choices in response (status %d)\nraw body: %s", resp.StatusCode, rawBody)
+	}
+
 	return &chatResp, nil
 }
 
@@ -263,15 +272,14 @@ func RunCrawlerAgent(docPath string) ([]CustomerInfo, error) {
 	// or we hit the iteration cap.
 	for i := 0; i < maxLoopIters; i++ {
 		resp, err := postChat(client, ChatRequest{
-			Model:    nimModel,
-			Messages: messages,
-			Tools:    tools,
+			Model:       nimModel,
+			Messages:    messages,
+			Tools:       tools,
+			MaxTokens:   1024,
+			Temperature: 0,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("iteration %d: %w", i, err)
-		}
-		if len(resp.Choices) == 0 {
-			return nil, fmt.Errorf("iteration %d: no choices in response", i)
 		}
 
 		// The model's reply for this round.
