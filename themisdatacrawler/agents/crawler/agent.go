@@ -34,6 +34,7 @@ import (
 	"encoding/json" // serialise Go structs to JSON and back
 	"fmt"
 	"io"
+	"log"
 	"net/http" // standard Go HTTP client
 	"strings"  // used to strip markdown fences from the model's JSON output
 	"time"     // used to set a timeout on the HTTP client
@@ -42,56 +43,36 @@ import (
 // SYSTEM_PROMPT is the persistent instruction given to the model at the start of
 // every conversation.  It tells the model its role and the exact output format
 // expected.  It is the first message in every request (role: "system").
-const SYSTEM_PROMPT = `
-Role: You are a precision data extraction engine. Your task is to parse the provided text and identify all individual customers, converting their information into a valid JSON array based on a specific Go struct schema.
+const SYSTEM_PROMPT = `You are a precision data extraction engine that works in two steps:
 
-Instructions:
+STEP 1 — Read the document.
+Call the get_text_from_docx tool with the file path provided by the user.
+You MUST invoke this tool using the tool-calling mechanism. Never write a tool call as text or inside a code block.
 
-Extract: Locate every person mentioned in the text who qualifies as a customer.
+STEP 2 — Extract customers.
+Once you have the document text, identify every person who qualifies as a customer and return a JSON array. No commentary, no markdown fences — raw JSON only.
 
-Format: Output the results as a JSON array of objects. Each object must strictly follow the field names and data requirements below.
+Schema (each object in the array):
+  first_name      string  — given name
+  last_name       string  — family name
+  address         string  — full physical address; "" if missing
+  marital_status  string  — one of: single, married, divorced, widowed, legal_union; null if not mentioned
+  occupation      string  — job title or profession; "" if missing
+  id_number       string  — government ID / passport / SSN; "" if missing
 
-Null Handling: If a piece of information is missing from the text, use null for fields typed as pgtype or NullMaritalStatus. For string fields, use an empty string "".
-
-No Commentary: Provide only the JSON. Do not include any introductory or explanatory text.
-
-Schema Definitions:
-
-first_name: (string)
-
-last_name: (string)
-
-address: (string) Full physical address.
-
-marital_status: (string) Must be one of the following valid enum values: single, married, divorced, widowed, legal_union . If not mentioned, use null.
-
-occupation: (string) Current job title or profession.
-
-id_number: (string) Government ID, Passport, or SSN if mentioned.
-
-Output Structure Example:
-
-[
-  {
-    "first_name": "John",
-    "last_name": "Doe",
-    "address": "123 Maple St, Springfield",
-    "marital_status": "married",
-    "occupation": "Software Engineer",
-    "id_number": "A1234567"
-  }
-]
+Example output:
+[{"first_name":"John","last_name":"Doe","address":"123 Maple St","marital_status":"married","occupation":"Engineer","id_number":"A1234567"}]
 `
 
 const (
 	// nimURL is the full URL of the OpenAI-compatible chat completions endpoint
 	// served by the local NIM container.  The NIM listens on port 8000 and exposes
 	// the same path as the real OpenAI API (/v1/chat/completions).
-	nimURL = "http://localhost:8000/v1/chat/completions"
+	nimURL = "http://localhost:11434/v1/chat/completions"
 
 	// nimModel is the model identifier sent in every request.
 	// NIM uses the model name from the container image without the registry prefix.
-	nimModel = "meta/llama-3.2-3b-instruct"
+	nimModel = "lukaspetrik/gemma3-tools:12b"
 
 	// maxLoopIters is a safety cap.  If the model keeps calling tools and never
 	// produces a final text response after this many rounds, we give up and return
@@ -111,6 +92,15 @@ type CustomerInfo struct {
 	MaritalStatus *string `json:"marital_status"` // nil when not mentioned in the document
 	Occupation    string  `json:"occupation"`
 	IDNumber      string  `json:"id_number"`
+}
+
+func (c CustomerInfo) String() string {
+	ms := "<nil>"
+	if c.MaritalStatus != nil {
+		ms = *c.MaritalStatus
+	}
+	return fmt.Sprintf("{FirstName:%s LastName:%s Address:%s MaritalStatus:%s Occupation:%s IDNumber:%s}",
+		c.FirstName, c.LastName, c.Address, ms, c.Occupation, c.IDNumber)
 }
 
 // --- OpenAI-compatible request / response types ---
@@ -261,7 +251,7 @@ func RunCrawlerAgent(docPath string) ([]CustomerInfo, error) {
 		{Role: "system", Content: SYSTEM_PROMPT},
 		{
 			Role:    "user",
-			Content: fmt.Sprintf("Extract all customers from the document located at: %s", docPath),
+			Content: fmt.Sprintf("Call get_text_from_docx with path=%q, then extract all customers as JSON.", docPath),
 		},
 	}
 
@@ -284,6 +274,8 @@ func RunCrawlerAgent(docPath string) ([]CustomerInfo, error) {
 
 		// The model's reply for this round.
 		assistantMsg := resp.Choices[0].Message
+		log.Printf("[iter %d] finish_reason=%q tool_calls=%d content=%q",
+			i, resp.Choices[0].FinishReason, len(assistantMsg.ToolCalls), assistantMsg.Content)
 
 		// Always append the assistant's turn to the conversation so that the
 		// next request includes the full history.  The model needs this context
