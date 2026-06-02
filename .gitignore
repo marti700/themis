@@ -46,3 +46,5 @@ devbox-setup.md
 *.swp
 *.swo
 .DS_Store
+examples/
+infra/OBSERVABILITY.md

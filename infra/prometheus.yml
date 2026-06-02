@@ -1,0 +1,11 @@
+global:
+  scrape_interval: 15s
+
+# We leave 'scrape_configs' empty or minimal because 
+# Alloy is PUSHING data to Prometheus, not the other way around.
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+

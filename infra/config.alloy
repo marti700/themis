@@ -1,0 +1,137 @@
+// =============================================================================
+// ALLOY CONFIG SYNTAX PRIMER
+// =============================================================================
+// Every block follows the pattern:
+//   component_type.component_name "label" { ... }
+//
+// The type is a dotted namespace: otelcol.receiver.otlp, prometheus.scrape, etc.
+// The label (e.g. "default", "local_system") lets you have multiple instances
+// of the same component type running simultaneously without name collisions.
+//
+// Components wire together by referencing each other's exported fields:
+//   component_type.component_name.label.field
+//
+// For example, otelcol.processor.batch.default.input is:
+//   type=otelcol.processor.batch, label=default, field=input
+//
+// Data flows through this file in two parallel pipelines that converge at the
+// end into a single remote_write destination:
+//
+//   Pipeline A (OpenTelemetry / Go API metrics):
+//     otelcol.receiver.otlp "default"
+//       → otelcol.processor.batch "default"
+//         → otelcol.exporter.prometheus "to_mimir"
+//           → prometheus.remote_write "local_prometheus"
+//
+//   Pipeline B (host system metrics: CPU, memory, disk, etc.):
+//     prometheus.exporter.unix "local_system"
+//       → prometheus.scrape "local_system"
+//         → prometheus.remote_write "local_prometheus"
+// =============================================================================
+
+
+// -----------------------------------------------------------------------------
+// PIPELINE A — OpenTelemetry metrics from the Go API
+// -----------------------------------------------------------------------------
+
+// Step A1: Receive OTLP (OpenTelemetry Protocol) data over gRPC on port 4317.
+//
+// OTLP is the standard wire format for OpenTelemetry data (metrics, traces,
+// logs). Your Go API uses an OTel SDK that sends metrics to this receiver.
+//
+// 0.0.0.0 means "listen on all network interfaces", so any container or
+// process on the same Docker network can reach it.
+//
+// The `output` block wires the receiver's output to the next component.
+// `metrics = [...]` is a list because you could fan-out to multiple processors.
+// Here there is only one destination: the batch processor's input field.
+otelcol.receiver.otlp "default" {
+  grpc { endpoint = "0.0.0.0:4317" }
+  output {
+    metrics = [otelcol.processor.batch.default.input]
+  }
+}
+
+// Step A2: Buffer incoming metrics into batches before forwarding them.
+//
+// Without batching, every single metric data point would trigger a separate
+// write request downstream, which is very expensive at scale. The batch
+// processor accumulates data points and flushes them together either when a
+// size threshold is hit or a timeout expires (defaults: 8192 items or 200ms).
+//
+// The output wires to the Prometheus exporter, which converts OTLP metrics
+// into the Prometheus exposition format that remote_write understands.
+otelcol.processor.batch "default" {
+  output {
+    metrics = [otelcol.exporter.prometheus.to_mimir.input]
+  }
+}
+
+
+// -----------------------------------------------------------------------------
+// PIPELINE B — Host system metrics (CPU, memory, disk, network, etc.)
+// -----------------------------------------------------------------------------
+
+// Step B1: Run a built-in Prometheus node exporter to collect OS-level stats.
+//
+// This is equivalent to running the standalone `node_exporter` binary, but
+// embedded inside Alloy. It exposes metrics like:
+//   - node_cpu_seconds_total
+//   - node_memory_MemAvailable_bytes
+//   - node_filesystem_avail_bytes
+//   - node_network_receive_bytes_total
+//
+// The empty body `{ }` means "use all defaults". The component automatically
+// exports a `targets` field (a list of scrape targets pointing at itself)
+// that the scrape component below consumes.
+prometheus.exporter.unix "local_system" { }
+
+// Step B2: Scrape the exporter above on a regular interval.
+//
+// `targets` is assigned the target list exported by the unix exporter above.
+// Referencing another component uses the full dotted path:
+//   prometheus.exporter.unix.local_system.targets
+//   ^type                    ^label        ^exported field
+//
+// `forward_to` sends the scraped metrics to the remote_write receiver.
+// `.receiver` is the field that prometheus.remote_write exposes as its input.
+// It is a list so you could send to multiple remote_write endpoints.
+prometheus.scrape "local_system" {
+  targets    = prometheus.exporter.unix.local_system.targets
+  forward_to = [prometheus.remote_write.local_prometheus.receiver]
+}
+
+
+// -----------------------------------------------------------------------------
+// SHARED SINK — Both pipelines write to Prometheus here
+// -----------------------------------------------------------------------------
+
+// Final destination: push all metrics to Prometheus via the remote_write API.
+//
+// `remote_write` is a Prometheus protocol for pushing metrics to a compatible
+// backend (Prometheus in write mode, Grafana Mimir, Thanos Receive, etc.).
+// Here it targets a Prometheus container named "prometheus" on port 9090.
+// "prometheus" resolves via Docker DNS since both containers share a network.
+//
+// This component exposes two key fields:
+//   .receiver — input for prometheus-native metric pipelines (Pipeline B)
+//   .input    — not used here, but would be used for otelcol pipelines directly
+prometheus.remote_write "local_prometheus" {
+  endpoint {
+    url = "http://prometheus:9090/api/v1/write"
+  }
+}
+
+// Bridge between the OTel pipeline and the Prometheus remote_write sink.
+//
+// otelcol components speak the OpenTelemetry data model internally. The
+// prometheus.remote_write component speaks the Prometheus data model.
+// This exporter translates between the two formats, then hands off to
+// prometheus.remote_write via its `.receiver` field.
+//
+// This is why Pipeline A has this extra hop that Pipeline B doesn't need:
+// Pipeline B starts in Prometheus format already (scraped by prometheus.scrape),
+// while Pipeline A starts in OTLP format and must be converted first.
+otelcol.exporter.prometheus "to_mimir" {
+  forward_to = [prometheus.remote_write.local_prometheus.receiver]
+}

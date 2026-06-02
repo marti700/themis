@@ -1,0 +1,30 @@
+services:
+  api:
+    build: .
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://alloy:4317
+    depends_on:
+      - alloy
+
+  alloy:
+    image: grafana/alloy:latest
+    volumes:
+      - ./config.alloy:/etc/alloy/config.alloy
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "12345:12345" # Alloy's built-in Debug UI (very useful!)
+    command: run --server.http.listen-addr=0.0.0.0:12345 /etc/alloy/config.alloy
+
+  # The Backend
+  prometheus:
+    image: prom/prometheus:latest
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --enable-feature=remote-write-receiver # Vital for Alloy to push data
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"

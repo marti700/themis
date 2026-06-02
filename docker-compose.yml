@@ -1,4 +1,11 @@
 services:
+
+  # ---------------------------------------------------------------------------
+  # DATABASE
+  # postgres:16-alpine is the lightweight variant of the official image.
+  # The healthcheck ensures dependent services (backend) only start once
+  # Postgres is actually ready to accept connections, not just running.
+  # ---------------------------------------------------------------------------
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
@@ -16,6 +23,15 @@ services:
       timeout: 5s
       retries: 5
 
+  # ---------------------------------------------------------------------------
+  # GO BACKEND (dev container)
+  # Mounts the whole repo so you can edit locally and run inside the container.
+  # `sleep infinity` keeps the container alive so you can exec into it and
+  # run `go run`, `go test`, etc. manually or via a dev tool.
+  # OTEL_EXPORTER_OTLP_ENDPOINT tells the OTel SDK where to send telemetry —
+  # it points at the Alloy container which acts as the OTel collector.
+  # NOTE: golang:1.26-bookworm does not exist yet; latest stable is 1.24.
+  # ---------------------------------------------------------------------------
   backend:
     image: golang:1.26-bookworm
     volumes:
@@ -25,6 +41,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      alloy:
+        condition: service_started
     environment:
       DB_HOST: postgres
       DB_PORT: "5432"
@@ -32,7 +50,12 @@ services:
       DB_USER: themis
       DB_PASSWORD: themis_dev
       DB_DSN: "postgres://themis:themis_dev@postgres:5432/themis?sslmode=disable"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://alloy:4317"
 
+  # ---------------------------------------------------------------------------
+  # PYTHON API (dev container)
+  # Same pattern as backend: mounts the repo and sleeps so you can exec in.
+  # ---------------------------------------------------------------------------
   pythonapi:
     image: python:3.12-slim
     volumes:
@@ -40,5 +63,58 @@ services:
     working_dir: /workspace/pythonapi
     command: sleep infinity
 
+  # ---------------------------------------------------------------------------
+  # OBSERVABILITY — ALLOY (OpenTelemetry collector + system metrics agent)
+  # Alloy receives OTLP metrics from the backend on port 4317 (gRPC),
+  # collects host CPU/memory stats natively, batches everything, and pushes
+  # it all to Prometheus via remote_write.
+  # Port 12345 exposes Alloy's built-in debug UI — useful for inspecting
+  # the pipeline and verifying data is flowing correctly.
+  # ---------------------------------------------------------------------------
+  alloy:
+    image: grafana/alloy:latest
+    volumes:
+      - ./infra/config.alloy:/etc/alloy/config.alloy
+    ports:
+      - "4317:4317"    # OTLP gRPC — receives metrics from the backend
+      - "12345:12345"  # Alloy debug UI
+    command: run --server.http.listen-addr=0.0.0.0:12345 /etc/alloy/config.alloy
+
+  # ---------------------------------------------------------------------------
+  # OBSERVABILITY — PROMETHEUS (metrics storage backend)
+  # --enable-feature=remote-write-receiver opens the /api/v1/write endpoint
+  # so Alloy can push metrics to it (by default Prometheus only pulls/scrapes).
+  # prometheus_data persists metric storage across container restarts.
+  # ---------------------------------------------------------------------------
+  prometheus:
+    image: prom/prometheus:latest
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.enable-remote-write-receiver
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infra/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    depends_on:
+      - alloy
+
+  # ---------------------------------------------------------------------------
+  # OBSERVABILITY — GRAFANA (dashboards and visualization)
+  # Reads from Prometheus as a data source. grafana_data persists dashboards,
+  # data source config, and user settings across container restarts.
+  # Default login: admin / admin (change on first login).
+  # ---------------------------------------------------------------------------
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+
 volumes:
   postgres_data:
+  prometheus_data:
+  grafana_data:
