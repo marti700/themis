@@ -38,7 +38,7 @@ wheels/
 *.egg-info/
 
 # --- Docs ---
-devbox-setup.md
+/docs
 
 # --- IDEs & OS ---
 .idea/
@@ -47,4 +47,3 @@ devbox-setup.md
 *.swo
 .DS_Store
 examples/
-infra/OBSERVABILITY.md
