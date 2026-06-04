@@ -33,11 +33,13 @@ services:
   # NOTE: golang:1.26-bookworm does not exist yet; latest stable is 1.24.
   # ---------------------------------------------------------------------------
   backend:
-    image: golang:1.26-bookworm
+    build: ./backend
     volumes:
       - .:/workspace:cached
+      - go_cache:/root/go/pkg/mod
     working_dir: /workspace/backend
-    command: sleep infinity
+    ports:
+      - "9094:9094"
     depends_on:
       postgres:
         condition: service_healthy
@@ -118,3 +120,4 @@ volumes:
   postgres_data:
   prometheus_data:
   grafana_data:
+  go_cache:

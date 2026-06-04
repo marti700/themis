@@ -20,7 +20,7 @@ CREATE TABLE customers (
     id SERIAL PRIMARY KEY,
     first_name VARCHAR(255) NOT NULL,
     last_name VARCHAR(255) NOT NULL,
-    birthday DATE NOT NULL,
+    birthday DATE,
     address TEXT,
     marital_status marital_status,
     occupation VARCHAR(255),

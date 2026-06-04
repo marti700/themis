@@ -5,7 +5,11 @@ package main
 // agent on each one to extract customer information.
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath" // filepath.Join builds OS-correct paths, e.g. "docs/file.docx"
 
@@ -33,6 +37,7 @@ func main() {
 
 		// Build the full relative path to the file, e.g. "docs/contract.docx".
 		docPath := filepath.Join(docsDir, entry.Name())
+		fmt.Println(docPath)
 
 		// RunCrawlerAgent sends the document to the local NIM (the Llama model),
 		// lets the model read the file via the get_text_from_docx tool, and
@@ -46,8 +51,36 @@ func main() {
 
 		// Print each extracted customer.  %+v includes field names in the output,
 		// e.g. {FirstName:John LastName:Doe ...}
+		fmt.Println("Customers number", len(customers))
 		for _, c := range customers {
-			log.Printf("Customer: %+v", c)
+			fmt.Println("Tamo aqui")
+			body, err := json.Marshal(c)
+			fmt.Println(c)
+			if err != nil {
+				log.Printf("Error marshalling customer: %v", err)
+				continue
+			}
+
+			request, err := http.NewRequest("POST", "http://localhost:9094/users", bytes.NewBuffer(body))
+			if err != nil {
+				log.Printf("Error creating request: %v", err)
+				continue
+			}
+			request.Header.Set("Content-type", "application/json")
+
+			resp, err := http.DefaultClient.Do(request)
+			if err != nil {
+				log.Printf("Error sending customer: %v", err)
+				continue
+			}
+			if resp.StatusCode != http.StatusCreated {
+				var errBody bytes.Buffer
+				errBody.ReadFrom(resp.Body)
+				log.Printf("Backend rejected customer (HTTP %d): %s | customer: %+v", resp.StatusCode, errBody.String(), c)
+			} else {
+				log.Printf("Customer saved: %+v", c)
+			}
+			resp.Body.Close()
 		}
 	}
 }

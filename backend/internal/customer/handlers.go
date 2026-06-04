@@ -19,6 +19,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	var params database.CreateCustomerParams
 	json.NewDecoder(r.Body).Decode(&params)
 
+	log.Printf("Llegan lo montro man#### %v", &params)
 	cus, err := h.Queries.CreateCustomer(r.Context(), &params)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
