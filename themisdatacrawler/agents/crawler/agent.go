@@ -34,7 +34,6 @@ import (
 	"encoding/json" // serialise Go structs to JSON and back
 	"fmt"
 	"io"
-	"log"
 	"net/http" // standard Go HTTP client
 	"strings"  // used to strip markdown fences from the model's JSON output
 	"time"     // used to set a timeout on the HTTP client
@@ -265,7 +264,7 @@ func RunCrawlerAgent(docPath string) ([]CustomerInfo, error) {
 			Model:       nimModel,
 			Messages:    messages,
 			Tools:       tools,
-			MaxTokens:   1024,
+			MaxTokens:   4096,
 			Temperature: 0,
 		})
 		if err != nil {
@@ -274,8 +273,8 @@ func RunCrawlerAgent(docPath string) ([]CustomerInfo, error) {
 
 		// The model's reply for this round.
 		assistantMsg := resp.Choices[0].Message
-		log.Printf("[iter %d] finish_reason=%q tool_calls=%d content=%q",
-			i, resp.Choices[0].FinishReason, len(assistantMsg.ToolCalls), assistantMsg.Content)
+		// log.Printf("[iter %d] finish_reason=%q tool_calls=%d content=%q",
+		// i, resp.Choices[0].FinishReason, len(assistantMsg.ToolCalls), assistantMsg.Content)
 
 		// Always append the assistant's turn to the conversation so that the
 		// next request includes the full history.  The model needs this context
@@ -298,7 +297,7 @@ func RunCrawlerAgent(docPath string) ([]CustomerInfo, error) {
 			// Without it the API will reject the request.
 			messages = append(messages, ChatMessage{
 				Role:       "tool",
-				ToolCallID: tc.ID,          // echo the ID back so the model can match request/result
+				ToolCallID: tc.ID, // echo the ID back so the model can match request/result
 				Name:       tc.Function.Name,
 				Content:    result,
 			})

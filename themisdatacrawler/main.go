@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath" // filepath.Join builds OS-correct paths, e.g. "docs/file.docx"
+	"strings"
 
 	// Our own crawler package defined in agents/crawler/
 	"github.com/marti700/themisdatacrawler/agents/crawler"
@@ -29,6 +30,7 @@ func main() {
 		log.Fatalf("Failed to read docs directory %q: %v", docsDir, err)
 	}
 
+	cusCache := make(map[string]bool)
 	for _, entry := range entries {
 		// Skip subdirectories — we only want files.
 		if entry.IsDir() {
@@ -53,9 +55,14 @@ func main() {
 		// e.g. {FirstName:John LastName:Doe ...}
 		fmt.Println("Customers number", len(customers))
 		for _, c := range customers {
-			fmt.Println("Tamo aqui")
+			_, ok := cusCache[strings.TrimSpace(c.IDNumber)]
+			if ok || c.IDNumber == "" {
+				fmt.Println("No va")
+				continue
+			}
+			// fmt.Println("Tamo aqui")
 			body, err := json.Marshal(c)
-			fmt.Println(c)
+			// fmt.Println(c)
 			if err != nil {
 				log.Printf("Error marshalling customer: %v", err)
 				continue
@@ -78,7 +85,8 @@ func main() {
 				errBody.ReadFrom(resp.Body)
 				log.Printf("Backend rejected customer (HTTP %d): %s | customer: %+v", resp.StatusCode, errBody.String(), c)
 			} else {
-				log.Printf("Customer saved: %+v", c)
+				cusCache[strings.TrimSpace(c.IDNumber)] = true
+				log.Printf("Customer %s saved: %+v", c.FirstName, c)
 			}
 			resp.Body.Close()
 		}
