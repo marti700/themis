@@ -43,7 +43,7 @@ func initOtel(ctx context.Context) (func(), error) {
 
 	mp := sdkmetric.NewMeterProvider(
 		sdkmetric.WithResource(res),
-		sdkmetric.WithReader(sdkmetric.NewPeriodicReader(exporter)),
+		sdkmetric.WithReader(sdkmetric.NewPeriodicReader(exporter, sdkmetric.WithInterval(15*time.Second))),
 	)
 	otel.SetMeterProvider(mp)
 

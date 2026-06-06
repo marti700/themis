@@ -13,34 +13,19 @@ import (
 	"os"
 	"path/filepath" // filepath.Join builds OS-correct paths, e.g. "docs/file.docx"
 	"strings"
+	"sync"
 
 	// Our own crawler package defined in agents/crawler/
 	"github.com/marti700/themisdatacrawler/agents/crawler"
 )
 
-func main() {
-	// docsDir is the folder where .docx files to be crawled are stored.
-	// The path is relative to where you run the binary from (the module root).
-	docsDir := "docs"
+var cusCache map[string]bool
+var rwmut sync.RWMutex
 
-	// os.ReadDir lists all entries (files and subdirectories) in docsDir.
-	// It returns an error if the directory does not exist or cannot be read.
-	entries, err := os.ReadDir(docsDir)
-	if err != nil {
-		log.Fatalf("Failed to read docs directory %q: %v", docsDir, err)
-	}
+func worker(wg *sync.WaitGroup, ch <-chan string) {
+	defer wg.Done()
 
-	cusCache := make(map[string]bool)
-	for _, entry := range entries {
-		// Skip subdirectories — we only want files.
-		if entry.IsDir() {
-			continue
-		}
-
-		// Build the full relative path to the file, e.g. "docs/contract.docx".
-		docPath := filepath.Join(docsDir, entry.Name())
-		fmt.Println(docPath)
-
+	for docPath := range ch {
 		// RunCrawlerAgent sends the document to the local NIM (the Llama model),
 		// lets the model read the file via the get_text_from_docx tool, and
 		// returns the list of customers it found in the document.
@@ -55,11 +40,15 @@ func main() {
 		// e.g. {FirstName:John LastName:Doe ...}
 		fmt.Println("Customers number", len(customers))
 		for _, c := range customers {
+
+			rwmut.RLock()
 			_, ok := cusCache[strings.TrimSpace(c.IDNumber)]
 			if ok || c.IDNumber == "" {
 				fmt.Println("No va")
+				rwmut.RUnlock()
 				continue
 			}
+			rwmut.RUnlock()
 			// fmt.Println("Tamo aqui")
 			body, err := json.Marshal(c)
 			// fmt.Println(c)
@@ -85,10 +74,51 @@ func main() {
 				errBody.ReadFrom(resp.Body)
 				log.Printf("Backend rejected customer (HTTP %d): %s | customer: %+v", resp.StatusCode, errBody.String(), c)
 			} else {
+				rwmut.Lock()
 				cusCache[strings.TrimSpace(c.IDNumber)] = true
+				rwmut.Unlock()
 				log.Printf("Customer %s saved: %+v", c.FirstName, c)
 			}
 			resp.Body.Close()
 		}
 	}
+}
+
+func main() {
+
+	cusCache = make(map[string]bool)
+	// docsDir is the folder where .docx files to be crawled are stored.
+	// The path is relative to where you run the binary from (the module root).
+	docsDir := "docs"
+
+	// os.ReadDir lists all entries (files and subdirectories) in docsDir.
+	// It returns an error if the directory does not exist or cannot be read.
+	entries, err := os.ReadDir(docsDir)
+	if err != nil {
+		log.Fatalf("Failed to read docs directory %q: %v", docsDir, err)
+	}
+
+	var wg sync.WaitGroup
+
+	// create workers
+	docPathChan := make(chan string)
+	for i := 0; i < 4; i++ {
+		wg.Add(1)
+		go worker(&wg, docPathChan)
+	}
+
+	for _, entry := range entries {
+		// Skip subdirectories — we only want files.
+		if entry.IsDir() {
+			continue
+		}
+
+		// Build the full relative path to the file, e.g. "docs/contract.docx".
+		docPath := filepath.Join(docsDir, entry.Name())
+		fmt.Println(docPath)
+		docPathChan <- docPath
+	}
+
+	close(docPathChan)
+	wg.Wait()
 }
