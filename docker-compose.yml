@@ -63,7 +63,9 @@ services:
     volumes:
       - .:/workspace:cached
     working_dir: /workspace/pythonapi
-    command: sleep infinity
+    ports:
+      - "8001:8001"
+    command: sh -c "pip install -r requirements.txt && uvicorn main:app --host 0.0.0.0 --port 8001 --reload"
 
   # ---------------------------------------------------------------------------
   # OBSERVABILITY — ALLOY (OpenTelemetry collector + system metrics agent)

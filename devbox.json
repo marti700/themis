@@ -3,6 +3,7 @@
   "packages": [
     "go@1.26.2",
     "python@3.12.13",
+    "uv@latest",
     "goose@latest",
     "sqlc@latest"
   ],
@@ -54,6 +55,9 @@
       ],
       "run-crawler": [
         "cd themisdatacrawler && go run ."
+      ],
+      "run-pythonapi": [
+        "cd pythonapi && uv run uvicorn main:app --reload --port 8001"
       ]
     }
   }
