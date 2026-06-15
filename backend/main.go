@@ -9,8 +9,9 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/marti700/themis/internal/customer"
-	"github.com/marti700/themis/internal/database"
+	"github.com/marti700/themis/backend/customer"
+	"github.com/marti700/themis/backend/database"
+	"github.com/marti700/themis/frontend"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	otelruntime "go.opentelemetry.io/contrib/instrumentation/runtime"
@@ -78,10 +79,13 @@ func main() {
 
 	queries := database.New(conPool)
 	customerHandler := &customer.Handler{Queries: queries}
+	webHandler := &frontend.Handler{Queries: queries}
 
 	r := mux.NewRouter()
-	r.HandleFunc("/users", customerHandler.Create).Methods(http.MethodPost)
-	r.HandleFunc("/users/{id}", customerHandler.Get).Methods(http.MethodGet)
+	r.HandleFunc("/customers", customerHandler.Create).Methods(http.MethodPost)
+	r.HandleFunc("/customers/{id}", customerHandler.Get).Methods(http.MethodGet)
+	r.HandleFunc("/customers", webHandler.CustomerDirectory).Methods(http.MethodGet)
+	r.HandleFunc("/customers/{id}/profile", webHandler.CustomerProfile).Methods(http.MethodGet)
 
 	// otelhttp.NewHandler wraps the entire router and automatically emits
 	// http_server_request_duration_seconds for every request — count, duration,

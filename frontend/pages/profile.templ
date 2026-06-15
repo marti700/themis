@@ -1,0 +1,262 @@
+package pages
+
+import (
+	"fmt"
+	"github.com/marti700/themis/backend/database"
+	"github.com/marti700/themis/frontend/components"
+)
+
+type ProfileData struct {
+	Customer  database.Customer
+	Documents []database.Document
+	Companies []database.Company
+}
+
+func fullName(c database.Customer) string {
+	return c.FirstName + " " + c.LastName
+}
+
+func profileInitials(c database.Customer) string {
+	f := ""
+	l := ""
+	if len(c.FirstName) > 0 {
+		f = string([]rune(c.FirstName)[0:1])
+	}
+	if len(c.LastName) > 0 {
+		l = string([]rune(c.LastName)[0:1])
+	}
+	return f + l
+}
+
+func birthdayStr(c database.Customer) string {
+	if !c.Birthday.Valid {
+		return "—"
+	}
+	t := c.Birthday.Time
+	return fmt.Sprintf("%s %d, %d", t.Month().String()[:3], t.Day(), t.Year())
+}
+
+func maritalStatusStr(c database.Customer) string {
+	if !c.MaritalStatus.Valid {
+		return "—"
+	}
+	switch c.MaritalStatus.MaritalStatus {
+	case database.MaritalStatusSingle:
+		return "Single"
+	case database.MaritalStatusMarried:
+		return "Married"
+	case database.MaritalStatusDivorced:
+		return "Divorced"
+	case database.MaritalStatusWidowed:
+		return "Widowed"
+	case database.MaritalStatusLegalUnion:
+		return "Legal Union"
+	}
+	return "—"
+}
+
+templ Profile(data ProfileData) {
+	@components.Layout(fullName(data.Customer)) {
+		@components.Sidebar("customers")
+		<main class="ml-sidebar_width min-h-screen">
+			@components.TopNav("Search case files...")
+			<div class="p-xl">
+				<!-- Breadcrumb & Header -->
+				<div class="mb-lg">
+					<nav class="flex items-center gap-xs text-secondary mb-xs">
+						<a href="/customers" class="font-label-sm text-label-sm hover:underline">Customers</a>
+						<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+						<span class="font-label-sm text-label-sm text-primary">{ fullName(data.Customer) }</span>
+					</nav>
+					<div class="flex justify-between items-end">
+						<div>
+							<h2 class="font-headline-lg text-headline-lg text-primary">{ fullName(data.Customer) }</h2>
+							<p class="font-body-md text-secondary mt-xs">
+								Private Client • ID: { data.Customer.IDNumber }
+							</p>
+						</div>
+						<div class="flex gap-sm">
+							<button class="bg-surface-container-lowest border border-outline-variant px-md py-sm font-label-sm text-label-sm rounded-lg hover:bg-surface-container-low transition-colors">
+								Export Profile
+							</button>
+							<button class="bg-primary text-on-primary px-md py-sm font-label-sm text-label-sm rounded-lg hover:opacity-90 transition-opacity">
+								Edit Details
+							</button>
+						</div>
+					</div>
+				</div>
+				<!-- Main Profile Grid -->
+				<div class="grid grid-cols-12 gap-lg">
+					<!-- Left Column -->
+					<div class="col-span-12 lg:col-span-8 space-y-lg">
+						<!-- Personal Information -->
+						<section class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-[0px_4px_12px_rgba(0,0,0,0.03)] p-lg">
+							<div class="flex items-center gap-sm mb-xl">
+								<span class="material-symbols-outlined text-primary">person</span>
+								<h3 class="font-headline-md text-headline-md border-b-2 border-primary-fixed pr-xl">Personal Information</h3>
+							</div>
+							<div class="grid grid-cols-2 md:grid-cols-4 gap-xl">
+								<div class="space-y-xs">
+									<p class="font-label-sm text-label-sm text-secondary uppercase tracking-wider">Birthdate</p>
+									<p class="font-body-md font-semibold text-primary">{ birthdayStr(data.Customer) }</p>
+								</div>
+								<div class="space-y-xs">
+									<p class="font-label-sm text-label-sm text-secondary uppercase tracking-wider">Marital Status</p>
+									<p class="font-body-md font-semibold text-primary">{ maritalStatusStr(data.Customer) }</p>
+								</div>
+								<div class="space-y-xs">
+									<p class="font-label-sm text-label-sm text-secondary uppercase tracking-wider">Occupation</p>
+									<p class="font-body-md font-semibold text-primary">
+										if data.Customer.Occupation.Valid {
+											{ data.Customer.Occupation.String }
+										} else {
+											—
+										}
+									</p>
+								</div>
+								<div class="space-y-xs">
+									<p class="font-label-sm text-label-sm text-secondary uppercase tracking-wider">Document ID</p>
+									<p class="font-body-md font-semibold text-primary">{ data.Customer.IDNumber }</p>
+								</div>
+								<div class="col-span-2 space-y-xs">
+									<p class="font-label-sm text-label-sm text-secondary uppercase tracking-wider">Primary Address</p>
+									<p class="font-body-md font-semibold text-primary">
+										if data.Customer.Address.Valid {
+											{ data.Customer.Address.String }
+										} else {
+											—
+										}
+									</p>
+								</div>
+							</div>
+						</section>
+						<!-- Associated Documents -->
+						<section class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-[0px_4px_12px_rgba(0,0,0,0.03)]">
+							<div class="p-lg flex justify-between items-center">
+								<div class="flex items-center gap-sm">
+									<span class="material-symbols-outlined text-primary">contract</span>
+									<h3 class="font-headline-md text-headline-md">Associated Documents</h3>
+								</div>
+								<span class="bg-secondary-fixed text-on-secondary-fixed px-sm py-1 rounded font-label-sm text-[11px] uppercase tracking-widest">
+									{ fmt.Sprintf("%d", len(data.Documents)) } Documents
+								</span>
+							</div>
+							<div class="overflow-x-auto">
+								<table class="w-full text-left border-collapse">
+									<thead>
+										<tr class="bg-surface-container-low border-y border-outline-variant">
+											<th class="px-lg py-sm font-label-sm text-label-sm text-on-surface-variant uppercase">Document Name</th>
+											<th class="px-lg py-sm font-label-sm text-label-sm text-on-surface-variant uppercase">Date Filed</th>
+											<th class="px-lg py-sm font-label-sm text-label-sm text-on-surface-variant uppercase text-right">Action</th>
+										</tr>
+									</thead>
+									<tbody class="divide-y divide-outline-variant">
+										if len(data.Documents) == 0 {
+											<tr>
+												<td colspan="3" class="px-lg py-xl text-center text-secondary font-body-md">No documents associated with this customer.</td>
+											</tr>
+										}
+										for _, doc := range data.Documents {
+											<tr class="hover:bg-surface-container-low transition-colors">
+												<td class="px-lg py-md">
+													<div class="flex items-center gap-sm">
+														<span class="material-symbols-outlined text-secondary">description</span>
+														<span class="font-body-md font-semibold text-primary">{ doc.Name }</span>
+													</div>
+												</td>
+												<td class="px-lg py-md font-body-md text-secondary">
+													if doc.CreatedAt.Valid {
+														{ fmt.Sprintf("%s %d, %d", doc.CreatedAt.Time.Month().String()[:3], doc.CreatedAt.Time.Day(), doc.CreatedAt.Time.Year()) }
+													} else {
+														—
+													}
+												</td>
+												<td class="px-lg py-md text-right">
+													<button class="text-primary hover:bg-primary hover:text-on-primary p-sm rounded transition-all">
+														<span class="material-symbols-outlined">download</span>
+													</button>
+												</td>
+											</tr>
+										}
+									</tbody>
+								</table>
+							</div>
+						</section>
+					</div>
+					<!-- Right Column -->
+					<div class="col-span-12 lg:col-span-4 space-y-lg">
+						<!-- Profile Card -->
+						<div class="bg-primary text-on-primary rounded-xl p-lg flex flex-col items-center text-center">
+							<div class="w-24 h-24 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center text-[32px] font-bold border-4 border-on-primary-container mb-md">
+								{ profileInitials(data.Customer) }
+							</div>
+							<h4 class="font-headline-md text-headline-md mb-xs">{ fullName(data.Customer) }</h4>
+							<div class="flex items-center gap-xs text-on-primary-container font-label-sm text-label-sm mb-lg">
+								<span class="material-symbols-outlined text-[16px]">verified</span>
+								CLIENT
+							</div>
+							<div class="w-full space-y-sm">
+								<div class="flex justify-between items-center py-sm border-t border-on-primary-fixed-variant">
+									<span class="text-on-primary-container font-label-sm text-label-sm">ACCOUNT STATUS</span>
+									<span class="font-bold">STANDING</span>
+								</div>
+								<div class="flex justify-between items-center py-sm border-t border-on-primary-fixed-variant">
+									<span class="text-on-primary-container font-label-sm text-label-sm">DOCUMENTS</span>
+									<span class="font-bold">{ fmt.Sprintf("%d", len(data.Documents)) }</span>
+								</div>
+							</div>
+						</div>
+						<!-- Contact Details -->
+						<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg">
+							<h3 class="font-label-sm text-label-sm text-secondary uppercase tracking-widest mb-lg">Contact Information</h3>
+							<ul class="space-y-md">
+								<li class="flex items-start gap-md">
+									<span class="material-symbols-outlined text-primary">badge</span>
+									<div>
+										<p class="font-label-sm text-[11px] text-secondary uppercase tracking-wider">Document ID</p>
+										<p class="font-body-md text-primary">{ data.Customer.IDNumber }</p>
+									</div>
+								</li>
+								<li class="flex items-start gap-md">
+									<span class="material-symbols-outlined text-primary">work</span>
+									<div>
+										<p class="font-label-sm text-[11px] text-secondary uppercase tracking-wider">Occupation</p>
+										<p class="font-body-md text-primary">
+											if data.Customer.Occupation.Valid {
+												{ data.Customer.Occupation.String }
+											} else {
+												—
+											}
+										</p>
+									</div>
+								</li>
+								if len(data.Companies) > 0 {
+									<li class="flex items-start gap-md">
+										<span class="material-symbols-outlined text-primary">business</span>
+										<div>
+											<p class="font-label-sm text-[11px] text-secondary uppercase tracking-wider">Associated Company</p>
+											<p class="font-body-md text-primary">{ data.Companies[0].Name }</p>
+										</div>
+									</li>
+								}
+								<li class="flex items-start gap-md">
+									<span class="material-symbols-outlined text-primary">location_on</span>
+									<div>
+										<p class="font-label-sm text-[11px] text-secondary uppercase tracking-wider">Address</p>
+										<p class="font-body-md text-primary">
+											if data.Customer.Address.Valid {
+												{ data.Customer.Address.String }
+											} else {
+												—
+											}
+										</p>
+									</div>
+								</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</main>
+	}
+}

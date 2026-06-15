@@ -8,7 +8,7 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"github.com/marti700/themis/internal/database"
+	"github.com/marti700/themis/backend/database"
 )
 
 type Handler struct {

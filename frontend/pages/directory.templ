@@ -1,0 +1,164 @@
+package pages
+
+import (
+	"fmt"
+	"github.com/marti700/themis/backend/database"
+	"github.com/marti700/themis/frontend/components"
+)
+
+func initials(c database.Customer) string {
+	f := ""
+	l := ""
+	if len(c.FirstName) > 0 {
+		f = string([]rune(c.FirstName)[0:1])
+	}
+	if len(c.LastName) > 0 {
+		l = string([]rune(c.LastName)[0:1])
+	}
+	return f + l
+}
+
+var avatarColors = []string{
+	"bg-secondary-container text-on-secondary-container",
+	"bg-primary-container text-on-primary-container",
+	"bg-tertiary-fixed text-on-tertiary-fixed-variant",
+	"bg-secondary-fixed text-on-secondary-fixed-variant",
+	"bg-surface-container-high text-on-surface-variant",
+}
+
+func avatarColor(id int32) string {
+	return avatarColors[int(id)%len(avatarColors)]
+}
+
+templ Directory(customers []database.Customer) {
+	@components.Layout("Customer Directory") {
+		@components.Sidebar("customers")
+		<main class="ml-sidebar_width min-h-screen">
+			@components.TopNav("Search by name, ID, or role...")
+			<div class="p-xl">
+				<div class="mb-lg flex justify-between items-end">
+					<div>
+						<h2 class="font-headline-lg text-headline-lg text-primary mb-xs">Customer Directory</h2>
+						<p class="font-body-md text-secondary">Manage and view all registered legal clients within the system.</p>
+					</div>
+					<div class="flex gap-sm">
+						<button class="px-md py-sm border border-outline-variant bg-surface-container-lowest flex items-center gap-xs font-label-sm text-secondary hover:bg-surface-container transition-colors">
+							<span class="material-symbols-outlined text-[18px]">filter_list</span>
+							Filter
+						</button>
+						<button class="px-md py-sm border border-outline-variant bg-surface-container-lowest flex items-center gap-xs font-label-sm text-secondary hover:bg-surface-container transition-colors">
+							<span class="material-symbols-outlined text-[18px]">download</span>
+							Export
+						</button>
+					</div>
+				</div>
+				<!-- Customer Table -->
+				<div class="bg-surface-container-lowest border border-outline-variant shadow-[0px_4px_12px_rgba(0,0,0,0.03)] overflow-hidden">
+					<table class="w-full text-left border-collapse">
+						<thead class="bg-surface-container-low border-b border-outline-variant">
+							<tr>
+								<th class="px-lg py-md font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Name</th>
+								<th class="px-lg py-md font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Document ID</th>
+								<th class="px-lg py-md font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Occupation</th>
+								<th class="px-lg py-md font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Status</th>
+								<th class="px-lg py-md font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider text-right">Actions</th>
+							</tr>
+						</thead>
+						<tbody class="divide-y divide-outline-variant">
+							for _, c := range customers {
+								<tr class="hover:bg-surface-container-low transition-colors">
+									<td class="px-lg py-md">
+										<div class="flex items-center gap-md">
+											<div class={ "w-10 h-10 flex items-center justify-center font-bold font-body-md", avatarColor(c.ID) }>
+												{ initials(c) }
+											</div>
+											<div>
+												<p class="font-body-md font-bold text-primary">{ c.FirstName } { c.LastName }</p>
+												<p class="text-[12px] text-secondary">{ c.IDNumber }</p>
+											</div>
+										</div>
+									</td>
+									<td class="px-lg py-md font-mono text-body-md text-on-surface-variant">{ c.IDNumber }</td>
+									<td class="px-lg py-md font-body-md text-on-surface-variant">
+										if c.Occupation.Valid {
+											{ c.Occupation.String }
+										} else {
+											—
+										}
+									</td>
+									<td class="px-lg py-md">
+										<span class="inline-flex items-center gap-xs px-sm py-[2px] bg-secondary-container text-on-secondary-container text-[11px] font-bold uppercase rounded-full">
+											<span class="w-1.5 h-1.5 rounded-full bg-on-secondary-container"></span>
+											Active
+										</span>
+									</td>
+									<td class="px-lg py-md text-right">
+										<a href={ templ.SafeURL(fmt.Sprintf("/customers/%d/profile", c.ID)) } class="text-primary font-label-sm hover:underline flex items-center gap-xs ml-auto">
+											View <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+										</a>
+									</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+					<div class="bg-surface-container px-lg py-md flex justify-between items-center">
+						<p class="font-label-sm text-secondary">
+							Showing { fmt.Sprintf("%d", len(customers)) } customers
+						</p>
+						<div class="flex gap-xs">
+							<button class="w-8 h-8 flex items-center justify-center border border-outline-variant bg-surface-container-lowest text-secondary disabled:opacity-50" disabled>
+								<span class="material-symbols-outlined text-[18px]">keyboard_arrow_left</span>
+							</button>
+							<button class="w-8 h-8 flex items-center justify-center border border-primary bg-primary text-on-primary font-bold text-[12px]">1</button>
+							<button class="w-8 h-8 flex items-center justify-center border border-outline-variant bg-surface-container-lowest text-secondary">
+								<span class="material-symbols-outlined text-[18px]">keyboard_arrow_right</span>
+							</button>
+						</div>
+					</div>
+				</div>
+				<!-- Dashboard Summary Widgets -->
+				<div class="mt-2xl grid grid-cols-12 gap-lg">
+					<div class="col-span-8 bg-surface-container-low p-lg border border-outline-variant/50">
+						<div class="flex justify-between items-start mb-md">
+							<h3 class="font-headline-md text-headline-md text-primary">Registration Insights</h3>
+							<span class="text-[11px] font-bold text-secondary uppercase tracking-widest">Last 30 Days</span>
+						</div>
+						<div class="flex items-end gap-sm h-32">
+							<div class="flex-1 bg-primary/20 h-[40%]"></div>
+							<div class="flex-1 bg-primary/20 h-[60%]"></div>
+							<div class="flex-1 bg-primary h-[85%]"></div>
+							<div class="flex-1 bg-primary/20 h-[45%]"></div>
+							<div class="flex-1 bg-primary/40 h-[70%]"></div>
+						</div>
+						<div class="mt-md pt-md border-t border-outline-variant flex gap-xl">
+							<div>
+								<p class="text-[24px] font-bold text-primary">{ fmt.Sprintf("%d", len(customers)) }</p>
+								<p class="font-label-sm text-secondary">Total Customers</p>
+							</div>
+							<div>
+								<p class="text-[24px] font-bold text-primary">92%</p>
+								<p class="font-label-sm text-secondary">Completion Rate</p>
+							</div>
+						</div>
+					</div>
+					<div class="col-span-4 bg-tertiary text-on-tertiary p-lg flex flex-col justify-between">
+						<div>
+							<span class="material-symbols-outlined text-on-tertiary-container mb-md">verified_user</span>
+							<h3 class="font-headline-md text-headline-md mb-xs">Legal Compliance</h3>
+							<p class="font-label-sm text-on-tertiary-container">Verification status across current customer directory.</p>
+						</div>
+						<div class="mt-xl">
+							<div class="w-full bg-on-tertiary-fixed h-2 mb-xs">
+								<div class="bg-primary-fixed h-full w-[88%]"></div>
+							</div>
+							<p class="font-label-sm text-on-tertiary-container flex justify-between">
+								<span>88% Verified</span>
+								<span>{ fmt.Sprintf("%d", len(customers)) } Total</span>
+							</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</main>
+	}
+}

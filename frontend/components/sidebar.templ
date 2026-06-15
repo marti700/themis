@@ -1,0 +1,45 @@
+package components
+
+templ Sidebar(activePage string) {
+	<aside class="fixed left-0 top-0 h-screen w-sidebar_width bg-surface-container-lowest border-r border-outline-variant flex flex-col py-lg z-50">
+		<div class="px-lg mb-2xl">
+			<h1 class="font-headline-md text-headline-md font-bold text-primary mb-xs">Themis Legal</h1>
+			<p class="font-label-sm text-label-sm text-secondary">Legal Management</p>
+		</div>
+		<button class="mx-lg mb-xl bg-primary text-on-primary font-body-md font-bold py-md px-lg flex items-center justify-center gap-sm transition-opacity hover:opacity-90">
+			<span class="material-symbols-outlined">add</span>
+			New Case
+		</button>
+		<nav class="flex-1 space-y-unit">
+			if activePage == "customers" {
+				<a class="flex items-center gap-md px-lg py-md text-primary font-bold border-l-4 border-primary bg-surface-container-low transition-colors duration-200" href="/customers">
+					<span class="material-symbols-outlined">group</span>
+					<span>Customers</span>
+				</a>
+			} else {
+				<a class="flex items-center gap-md px-lg py-md text-secondary font-medium hover:bg-surface-container transition-colors duration-200" href="/customers">
+					<span class="material-symbols-outlined">group</span>
+					<span>Customers</span>
+				</a>
+			}
+			<a class="flex items-center gap-md px-lg py-md text-secondary font-medium hover:bg-surface-container transition-colors duration-200" href="#">
+				<span class="material-symbols-outlined">description</span>
+				<span>Documents</span>
+			</a>
+			<a class="flex items-center gap-md px-lg py-md text-secondary font-medium hover:bg-surface-container transition-colors duration-200" href="#">
+				<span class="material-symbols-outlined">edit_note</span>
+				<span>Drafts</span>
+			</a>
+		</nav>
+		<div class="mt-auto pt-lg border-t border-outline-variant/30 space-y-unit">
+			<a class="flex items-center gap-md px-lg py-md text-secondary font-medium hover:bg-surface-container transition-colors duration-200" href="#">
+				<span class="material-symbols-outlined">settings</span>
+				<span>Settings</span>
+			</a>
+			<a class="flex items-center gap-md px-lg py-md text-secondary font-medium hover:bg-surface-container transition-colors duration-200" href="#">
+				<span class="material-symbols-outlined">help</span>
+				<span>Support</span>
+			</a>
+		</div>
+	</aside>
+}

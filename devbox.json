@@ -35,9 +35,9 @@
       "echo ''"
     ],
     "scripts": {
-      "migrate-up": "goose -dir backend/internal/database/migrations postgres \"$DB_URL\" up",
-      "migrate-down": "goose -dir backend/internal/database/migrations postgres \"$DB_URL\" down",
-      "migrate-create": "goose -dir backend/internal/database/migrations postgres \"$DB_URL\" create $1 sql",
+      "migrate-up": "goose -dir backend/database/migrations postgres \"$DB_URL\" up",
+      "migrate-down": "goose -dir backend/database/migrations postgres \"$DB_URL\" down",
+      "migrate-create": "goose -dir backend/database/migrations postgres \"$DB_URL\" create $1 sql",
       "sqlc": "sqlc -f backend/sqlc.yaml generate",
       "generate": [
         "devbox run migrate-up",
