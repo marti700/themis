@@ -2,6 +2,8 @@ from io import BytesIO
 from pathlib import Path
 
 from docx import Document
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
@@ -12,7 +14,20 @@ from pydantic import BaseModel
 
 app = FastAPI(title="Themis Document API")
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 TEMPLATES_DIR = Path(__file__).parent / "docxtemplates"
+STATIC_DIR = Path(__file__).parent / "static"
+
+
+@app.get("/templates")
+def list_templates():
+    return [f.stem for f in sorted(TEMPLATES_DIR.glob("*.docx"))]
 _SIG_SENTINEL = "__SIGNATURES__"
 
 
@@ -174,3 +189,8 @@ def generate_sell_contract(req: SellContractRequest):
         media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         headers=headers,
     )
+
+
+# Static files last so API routes take precedence
+if STATIC_DIR.exists():
+    app.mount("/ui", StaticFiles(directory=str(STATIC_DIR), html=True), name="static")

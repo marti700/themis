@@ -22,10 +22,17 @@ templ Sidebar(activePage string) {
 					<span>Customers</span>
 				</a>
 			}
-			<a class="flex items-center gap-md px-lg py-md text-secondary font-medium hover:bg-surface-container transition-colors duration-200" href="#">
-				<span class="material-symbols-outlined">description</span>
-				<span>Documents</span>
-			</a>
+			if activePage == "documents" {
+				<a class="flex items-center gap-md px-lg py-md text-primary font-bold border-l-4 border-primary bg-surface-container-low transition-colors duration-200" href="/documents/builder">
+					<span class="material-symbols-outlined">description</span>
+					<span>Documents</span>
+				</a>
+			} else {
+				<a class="flex items-center gap-md px-lg py-md text-secondary font-medium hover:bg-surface-container transition-colors duration-200" href="/documents/builder">
+					<span class="material-symbols-outlined">description</span>
+					<span>Documents</span>
+				</a>
+			}
 			<a class="flex items-center gap-md px-lg py-md text-secondary font-medium hover:bg-surface-container transition-colors duration-200" href="#">
 				<span class="material-symbols-outlined">edit_note</span>
 				<span>Drafts</span>

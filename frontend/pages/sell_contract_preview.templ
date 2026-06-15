@@ -1,0 +1,188 @@
+package pages
+
+import "strings"
+
+templ ph(label string) {
+	<span class="text-outline italic text-[12px]">[ { label } ]</span>
+}
+
+templ phPrice() {
+	<span class="text-outline italic text-[12px]">RD{ "$" } [ PRECIO ]</span>
+}
+
+templ partyBlock(parties []PartyPreview, denomination string, connector string) {
+	if len(parties) == 1 {
+		<p class="text-justify leading-relaxed">
+			{ connector } <strong class="text-primary">{ strings.ToUpper(parties[0].FirstName + " " + parties[0].LastName) }</strong>,
+			de nacionalidad <span class="text-outline italic text-[12px]">[ NACIONALIDAD ]</span>, mayor de edad,
+			if parties[0].MaritalStatus != "" {
+				{ parties[0].MaritalStatus },
+			} else {
+				@ph("ESTADO CIVIL"),
+			}
+			if parties[0].Occupation != "" {
+				{ parties[0].Occupation },
+			} else {
+				@ph("OCUPACIÓN"),
+			}
+			portador(a) de la cédula de Identidad y Electoral No. <strong>{ parties[0].IDNumber }</strong>,
+			domiciliado(a) y residente en
+			if parties[0].Address != "" {
+				{ parties[0].Address };
+			} else {
+				@ph("DOMICILIO");
+			}
+		</p>
+		<p class="text-justify leading-relaxed">
+			quien en lo que sigue del presente contrato se denominará <strong>{ denomination }</strong>;
+		</p>
+	} else {
+		for _, p := range parties {
+			<p class="text-justify leading-relaxed">
+				<strong class="text-primary">{ strings.ToUpper(p.FirstName + " " + p.LastName) }</strong>,
+				de nacionalidad <span class="text-outline italic text-[12px]">[ NACIONALIDAD ]</span>, mayor de edad,
+				if p.MaritalStatus != "" {
+					{ p.MaritalStatus },
+				} else {
+					@ph("ESTADO CIVIL"),
+				}
+				if p.Occupation != "" {
+					{ p.Occupation },
+				} else {
+					@ph("OCUPACIÓN"),
+				}
+				portador(a) de la cédula No. <strong>{ p.IDNumber }</strong>,
+				domiciliado(a) en
+				if p.Address != "" {
+					{ p.Address };
+				} else {
+					@ph("DOMICILIO");
+				}
+			</p>
+		}
+		<p class="text-justify leading-relaxed">
+			quienes en lo que sigue del presente contrato se denominarán <strong>{ denomination }</strong>;
+		</p>
+	}
+}
+
+templ SellContractPreview(d SellContractPreviewData) {
+	<div class="font-serif text-on-background text-[14px] space-y-md">
+		<!-- Firm / Notary Header -->
+		<div class="text-center space-y-xs border-b border-outline-variant pb-lg mb-lg">
+			<p class="font-bold text-[15px] uppercase tracking-widest">@ph("NOMBRE DEL BUFETE")</p>
+			<p class="text-secondary italic text-[13px]">@ph("SERVICIO DEL BUFETE")</p>
+			<p class="mt-sm"><span class="text-outline italic text-[12px]">[ Lic. NOMBRE DEL NOTARIO ]</span> · TEL. <span class="text-outline italic text-[12px]">[ TELÉFONO ]</span></p>
+			<p class="text-secondary text-[13px]">@ph("MUNICIPIO")</p>
+		</div>
+		<!-- Title -->
+		<div class="text-center mb-lg">
+			<h3 class="font-bold uppercase tracking-widest text-[15px] border-b-2 border-primary inline-block pb-xs">
+				Acto Bajo Firma Privada
+			</h3>
+		</div>
+		<!-- Parties -->
+		<div class="space-y-sm">
+			if len(d.Sellers) > 0 {
+				@partyBlock(d.Sellers, d.SellerDenomination, "Entre de una parte")
+			} else {
+				<p class="text-secondary italic text-[12px]">[Sin vendedores asignados]</p>
+			}
+			<p class="text-justify leading-relaxed">y de la otra parte:</p>
+			if len(d.Buyers) > 0 {
+				@partyBlock(d.Buyers, d.BuyerDenomination, "")
+			} else {
+				<p class="text-secondary italic text-[12px]">[Sin compradores asignados]</p>
+			}
+			<p class="text-justify leading-relaxed">se ha convenido y pactado el siguiente contrato:</p>
+		</div>
+		<!-- Clause 1 -->
+		<div>
+			<p class="font-bold uppercase mt-md mb-xs">Primero:</p>
+			<p class="text-justify leading-relaxed">
+				<strong>{ d.SellerDenomination }</strong> por medio del presente acto VENDEN, CEDEN Y TRANSFIEREN
+				desde ahora y para siempre con todas las garantías legales a favor de <strong>{ d.BuyerDenomination }</strong>
+				quien acepta, el bien inmueble de su propiedad descrito a continuación:
+			</p>
+			<p class="text-justify leading-relaxed mt-sm pl-lg border-l-2 border-outline-variant">
+				@ph("DESCRIPCIÓN DEL INMUEBLE")
+			</p>
+		</div>
+		<!-- Clause 2 -->
+		<div>
+			<p class="font-bold uppercase mt-md mb-xs">Segundo:</p>
+			<p class="text-justify leading-relaxed">
+				El precio convenido y pactado entre las partes ha sido por la suma de
+				@ph("PRECIO EN LETRAS"),
+				@phPrice(), moneda de curso legal, suma esta que
+				<strong>{ d.SellerDenomination }</strong> declaran haber recibido de manos de
+				<strong>{ d.BuyerDenomination }</strong> a su entera satisfacción.
+			</p>
+		</div>
+		<!-- Clause 3 -->
+		<div>
+			<p class="font-bold uppercase mt-md mb-xs">Tercero:</p>
+			<p class="text-justify leading-relaxed">
+				<strong>{ d.SellerDenomination }</strong> justifican su derecho de propiedad al objeto de la
+				presente venta de la forma siguiente:
+				<span class="text-outline italic text-[12px]">[ JUSTIFICACIÓN DE PROPIEDAD ]</span>
+			</p>
+		</div>
+		<!-- Clause 4 -->
+		<div>
+			<p class="font-bold uppercase mt-md mb-xs">Cuarto:</p>
+			<p class="text-justify leading-relaxed">
+				Las partes hacen constar que están conformes con todo lo convenido y pactado en el presente
+				contrato, por lo que proceden a dar su aprobación firmándolo al pie del mismo.
+			</p>
+		</div>
+		<!-- Closing -->
+		<p class="text-justify leading-relaxed mt-md">
+			Hecho leído y firmado de buena fe, en
+			<span class="text-outline italic text-[12px]">[ DOS ]</span>,
+			<span class="text-outline italic text-[12px]">[ 2 ]</span>
+			originales del mismo contenido y efecto, una para cada parte. En la Ciudad de
+			<span class="text-outline italic text-[12px]">[ CIUDAD ]</span>, Provincia
+			<span class="text-outline italic text-[12px]">[ PROVINCIA ]</span>,
+			República Dominicana, a los
+			<span class="text-outline italic text-[12px]">[ DÍA EN LETRAS ]</span>,
+			<span class="text-outline italic text-[12px]">[ DÍA ]</span>
+			días del mes de <span class="text-outline italic text-[12px]">[ MES ]</span>
+			del año <span class="text-outline italic text-[12px]">[ AÑO EN LETRAS ]</span>,
+			<span class="text-outline italic text-[12px]">[ AÑO ]</span>.
+		</p>
+		<!-- Signatures -->
+		<div class="grid grid-cols-2 gap-3xl mt-3xl pt-lg">
+			for _, s := range d.Sellers {
+				<div class="text-center">
+					<div class="border-t-2 border-on-surface pt-md">
+						<p class="font-bold text-[13px] uppercase">{ strings.ToUpper(s.FirstName + " " + s.LastName) }</p>
+						<p class="text-secondary text-[12px] mt-xs">{ d.SellerDenomination }</p>
+					</div>
+				</div>
+			}
+			for _, b := range d.Buyers {
+				<div class="text-center">
+					<div class="border-t-2 border-on-surface pt-md">
+						<p class="font-bold text-[13px] uppercase">{ strings.ToUpper(b.FirstName + " " + b.LastName) }</p>
+						<p class="text-secondary text-[12px] mt-xs">{ d.BuyerDenomination }</p>
+					</div>
+				</div>
+			}
+		</div>
+		<!-- Notary -->
+		<div class="mt-3xl pt-lg border-t border-outline-variant space-y-sm">
+			<p class="text-justify leading-relaxed text-[13px]">
+				Yo, <span class="text-outline italic text-[12px]">[ NOTARIO TÍTULO Y NOMBRE ]</span>,
+				Notario Público de los del número de este municipio de
+				<span class="text-outline italic text-[12px]">[ MUNICIPIO ]</span>,
+				con matrícula No. <span class="text-outline italic text-[12px]">[ MATRÍCULA ]</span>,
+				CERTIFICO Y DOY FE que las firmas que aparecen al pie del presente documento
+				fueron puestas libre y voluntariamente en mi presencia por los señores
+				<span class="text-outline italic text-[12px]">[ LISTA DE FIRMANTES ]</span>.
+			</p>
+			<p class="text-center font-bold uppercase text-[13px] mt-lg">@ph("NOTARIO TÍTULO Y NOMBRE")</p>
+			<p class="text-center text-secondary text-[12px]">Abogado - Notario</p>
+		</div>
+	</div>
+}

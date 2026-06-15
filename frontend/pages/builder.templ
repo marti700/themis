@@ -1,0 +1,474 @@
+package pages
+
+import "github.com/marti700/themis/frontend/components"
+
+templ Builder() {
+	@components.Layout("Document Builder") {
+		@components.Sidebar("documents")
+		<main class="ml-sidebar_width min-h-screen">
+			@components.TopNav("New document...")
+			<div class="p-xl max-w-7xl mx-auto">
+				<!-- Progress bar -->
+				<div class="mb-3xl">
+					<div class="flex items-center justify-between relative">
+						<div class="absolute top-5 left-0 w-full h-[2px] bg-surface-container-highest -z-10"></div>
+						<div id="progress-line" class="absolute top-5 left-0 h-[2px] bg-primary -z-10 transition-all duration-500" style="width:0%"></div>
+						for i, label := range []string{"Select Type", "Pick People", "Assign Roles", "Preview"} {
+							<div class="flex flex-col items-center gap-sm">
+								<div id={ "dot-" + string(rune('1'+i)) } class="w-10 h-10 rounded-full bg-surface-container-highest text-secondary flex items-center justify-center font-bold border-4 border-surface">
+									{ string(rune('1'+i)) }
+								</div>
+								<span id={ "label-" + string(rune('1'+i)) } class="font-label-sm text-label-sm text-secondary">{ label }</span>
+							</div>
+						}
+					</div>
+				</div>
+				<!-- Step 1: Select Type -->
+				<div id="step-1" class="step-panel">
+					<div class="mb-xl">
+						<h2 class="font-headline-lg text-headline-lg text-primary mb-xs">Select Document Type</h2>
+						<p class="font-body-md text-secondary">Choose the type of legal document you want to create.</p>
+					</div>
+					<div id="type-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-md min-h-[120px]">
+						<div class="col-span-3 flex items-center gap-md text-secondary">
+							<span class="material-symbols-outlined animate-spin">autorenew</span>
+							<span class="font-label-sm">Loading templates...</span>
+						</div>
+					</div>
+					<div class="mt-xl flex justify-end">
+						<button id="step1-next" disabled
+							onclick="goToStep(2, initStep2)"
+							class="bg-primary text-on-primary font-bold py-md px-2xl rounded-lg hover:opacity-90 transition-all flex items-center gap-md disabled:opacity-40 disabled:cursor-not-allowed">
+							Next: Pick People
+							<span class="material-symbols-outlined">arrow_forward</span>
+						</button>
+					</div>
+				</div>
+				<!-- Step 2: Pick Customers -->
+				<div id="step-2" class="step-panel hidden">
+					<div class="mb-xl">
+						<h2 class="font-headline-lg text-headline-lg text-primary mb-xs">Select Customers</h2>
+						<p class="font-body-md text-secondary">Choose the people who will be part of this document.</p>
+					</div>
+					<div class="relative mb-md">
+						<span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline text-[20px]">search</span>
+						<input
+							type="text"
+							placeholder="Search by name or ID..."
+							oninput="filterCustomers(this.value)"
+							class="w-full pl-3xl pr-md py-sm bg-surface-container-lowest border border-outline-variant focus:border-primary focus:ring-0 text-body-md transition-all"
+						/>
+					</div>
+					<div id="customer-list" class="space-y-sm max-h-[480px] overflow-y-auto pr-sm">
+						<div class="flex items-center gap-md text-secondary py-lg">
+							<span class="material-symbols-outlined animate-spin">autorenew</span>
+							<span class="font-label-sm">Loading customers...</span>
+						</div>
+					</div>
+					<div class="mt-xl flex items-center justify-between">
+						<button onclick="goToStep(1, null)" class="flex items-center gap-sm text-secondary font-bold hover:text-primary transition-colors">
+							<span class="material-symbols-outlined">arrow_back</span>
+							Back
+						</button>
+						<div class="flex items-center gap-lg">
+							<span id="selected-count" class="font-label-sm text-secondary">No customers selected</span>
+							<button id="step2-next" disabled
+								onclick="goToStep(3, initStep3)"
+								class="bg-primary text-on-primary font-bold py-md px-2xl rounded-lg hover:opacity-90 transition-all flex items-center gap-md disabled:opacity-40 disabled:cursor-not-allowed">
+								Next: Assign Roles
+								<span class="material-symbols-outlined">arrow_forward</span>
+							</button>
+						</div>
+					</div>
+				</div>
+				<!-- Step 3: Assign Roles (split view) -->
+				<div id="step-3" class="step-panel hidden">
+					<div class="grid grid-cols-1 lg:grid-cols-12 gap-xl items-start">
+						<!-- Left: role assignment -->
+						<div class="lg:col-span-5 space-y-lg">
+							<div>
+								<h2 class="font-headline-lg text-headline-lg text-primary mb-xs">Assign Roles</h2>
+								<p class="font-body-md text-secondary">Define each party's legal role in this agreement.</p>
+							</div>
+							<!-- Denomination inputs -->
+							<div class="bg-surface-container-lowest border border-outline-variant p-lg rounded-lg space-y-md">
+								<p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Group Labels</p>
+								<div>
+									<label class="font-label-sm text-secondary block mb-xs">Sellers denomination</label>
+									<input id="seller-denom" type="text" value="LOS VENDEDORES"
+										class="w-full py-sm px-md border border-outline-variant bg-surface focus:border-primary focus:ring-0 font-body-md transition-all"
+										oninput="onDenomChange()"/>
+								</div>
+								<div>
+									<label class="font-label-sm text-secondary block mb-xs">Buyers denomination</label>
+									<input id="buyer-denom" type="text" value="LOS COMPRADORES"
+										class="w-full py-sm px-md border border-outline-variant bg-surface focus:border-primary focus:ring-0 font-body-md transition-all"
+										oninput="onDenomChange()"/>
+								</div>
+							</div>
+							<!-- Role cards -->
+							<div id="role-cards" class="space-y-md"></div>
+							<div class="flex items-center justify-between pt-lg">
+								<button onclick="goToStep(2, null)" class="flex items-center gap-sm text-secondary font-bold hover:text-primary transition-colors">
+									<span class="material-symbols-outlined">arrow_back</span>
+									Back
+								</button>
+								<button onclick="goToStep(4, loadPreview)"
+									class="bg-primary text-on-primary font-bold py-md px-2xl rounded-lg hover:opacity-90 transition-all flex items-center gap-md">
+									Generate Preview
+									<span class="material-symbols-outlined">auto_awesome</span>
+								</button>
+							</div>
+						</div>
+						<!-- Right: party summary -->
+						<div class="lg:col-span-7">
+							<div class="bg-surface-container p-xl rounded-xl border border-outline-variant">
+								<p class="font-label-sm text-label-sm text-secondary uppercase tracking-widest mb-lg">Party Summary</p>
+								<div id="role-summary" class="space-y-md"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!-- Step 4: Preview -->
+				<div id="step-4" class="step-panel hidden">
+					<div class="grid grid-cols-1 lg:grid-cols-12 gap-xl items-start">
+						<!-- Left: actions panel -->
+						<div class="lg:col-span-3 space-y-lg">
+							<div>
+								<h2 class="font-headline-md text-headline-md text-primary mb-xs">Document Preview</h2>
+								<p class="font-body-md text-secondary text-sm">Review how the document will look with the selected parties.</p>
+							</div>
+							<div class="bg-surface-container-lowest border border-outline-variant p-lg rounded-lg space-y-md">
+								<p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Parties</p>
+								<div id="preview-party-list" class="space-y-sm text-sm"></div>
+							</div>
+							<div class="space-y-sm">
+								<button onclick="goToStep(3, null)" class="w-full flex items-center justify-center gap-sm text-secondary font-bold hover:text-primary transition-colors py-sm border border-outline-variant rounded-lg">
+									<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+									Edit Roles
+								</button>
+								<p class="font-label-sm text-secondary text-center text-[11px]">
+									Fields marked <span class="italic">[ campo por completar ]</span> will be filled before generating the final document.
+								</p>
+							</div>
+						</div>
+						<!-- Right: digital paper preview -->
+						<div class="lg:col-span-9">
+							<div class="bg-surface-container p-md rounded-xl border border-outline-variant">
+								<div class="flex items-center justify-between mb-md px-sm">
+									<span class="font-label-sm text-label-sm text-secondary uppercase tracking-widest">Draft Preview</span>
+									<div class="flex gap-sm">
+										<button onclick="window.print()" class="p-sm bg-surface-container-lowest border border-outline-variant rounded hover:bg-surface transition-colors">
+											<span class="material-symbols-outlined text-[18px] text-secondary">print</span>
+										</button>
+									</div>
+								</div>
+								<div class="bg-white shadow-md mx-auto p-[48px] min-h-[842px] max-w-[794px]">
+									<div id="preview-content">
+										<div class="flex items-center justify-center py-3xl">
+											<div class="flex flex-col items-center gap-md text-secondary">
+												<span class="material-symbols-outlined text-[48px] animate-spin">autorenew</span>
+												<p class="font-label-sm">Generating preview...</p>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</main>
+		<script>
+const PYTHON_API = 'http://localhost:8001';
+
+const state = {
+  step: 1,
+  contractType: null,
+  customers: [],
+  selected: new Set(),
+  roles: {},
+  sellerDenomination: 'LOS VENDEDORES',
+  buyerDenomination: 'LOS COMPRADORES'
+};
+
+// ===== Navigation =====
+
+function goToStep(n, initFn) {
+  state.step = n;
+  document.querySelectorAll('.step-panel').forEach((el, i) => {
+    el.classList.toggle('hidden', i + 1 !== n);
+  });
+  updateProgress(n);
+  if (initFn) initFn();
+}
+
+function updateProgress(step) {
+  const labels = ['Select Type', 'Pick People', 'Assign Roles', 'Preview'];
+  const pct = ((step - 1) / 3 * 100).toFixed(0);
+  document.getElementById('progress-line').style.width = pct + '%';
+
+  for (let i = 1; i <= 4; i++) {
+    const dot = document.getElementById('dot-' + i);
+    const lbl = document.getElementById('label-' + i);
+    if (!dot) continue;
+    if (i < step) {
+      dot.className = 'w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold border-4 border-surface';
+      dot.innerHTML = '<span class="material-symbols-outlined text-[18px]" style="font-variation-settings:\'FILL\' 1">check</span>';
+      lbl.className = 'font-label-sm text-label-sm text-on-surface';
+    } else if (i === step) {
+      dot.className = 'w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold border-4 border-surface ring-4 ring-primary/20';
+      dot.innerHTML = String(i);
+      lbl.className = 'font-label-sm text-label-sm text-primary font-bold';
+    } else {
+      dot.className = 'w-10 h-10 rounded-full bg-surface-container-highest text-secondary flex items-center justify-center font-bold border-4 border-surface';
+      dot.innerHTML = String(i);
+      lbl.className = 'font-label-sm text-label-sm text-secondary';
+    }
+  }
+}
+
+// ===== Step 1: Contract Types =====
+
+async function loadTemplates() {
+  try {
+    const res = await fetch(PYTHON_API + '/templates');
+    const types = await res.json();
+    const c = document.getElementById('type-cards');
+    c.innerHTML = types.length
+      ? types.map(t => `
+          <div class="type-card cursor-pointer border-2 border-outline-variant bg-surface-container-lowest p-lg rounded-lg flex flex-col items-center text-center gap-sm hover:border-primary hover:bg-surface-container-low transition-all"
+               onclick="selectType('${t}', this)">
+            <span class="material-symbols-outlined text-[40px] text-secondary mb-sm">description</span>
+            <h3 class="font-label-sm text-label-sm text-on-surface">${formatTypeName(t)}</h3>
+          </div>`).join('')
+      : '<p class="text-secondary col-span-3 py-lg text-center">No templates found. Make sure the Python API is running.</p>';
+  } catch {
+    document.getElementById('type-cards').innerHTML =
+      `<p class="text-error col-span-3 py-lg text-center text-sm">Could not reach Python API at ${PYTHON_API}. Is it running?</p>`;
+  }
+}
+
+function selectType(type, el) {
+  state.contractType = type;
+  document.querySelectorAll('.type-card').forEach(c => {
+    c.classList.remove('border-primary', 'bg-primary-fixed');
+  });
+  el.classList.add('border-primary', 'bg-primary-fixed');
+  document.getElementById('step1-next').disabled = false;
+}
+
+function formatTypeName(type) {
+  return type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+}
+
+// ===== Step 2: Customer Selection =====
+
+async function initStep2() {
+  if (state.customers.length > 0) { renderCustomerList(state.customers); return; }
+  try {
+    const res = await fetch('/api/customers');
+    state.customers = await res.json() || [];
+    renderCustomerList(state.customers);
+  } catch {
+    document.getElementById('customer-list').innerHTML =
+      '<p class="text-error text-sm py-lg">Could not load customers.</p>';
+  }
+}
+
+let _filterQuery = '';
+
+function renderCustomerList(customers) {
+  const c = document.getElementById('customer-list');
+  if (!customers || !customers.length) {
+    c.innerHTML = '<p class="text-secondary py-lg text-sm text-center">No customers found.</p>';
+    return;
+  }
+  c.innerHTML = customers.map(cu => {
+    const ini = initials(cu);
+    const color = avatarColor(cu.id);
+    const checked = state.selected.has(cu.id);
+    return `
+      <label class="flex items-center gap-md p-md bg-surface-container-lowest border-2 ${checked ? 'border-primary' : 'border-outline-variant'} rounded-lg cursor-pointer hover:border-primary hover:bg-surface-container-low transition-all">
+        <input type="checkbox" class="w-4 h-4 accent-primary shrink-0" ${checked ? 'checked' : ''} onchange="toggleCustomer(${cu.id}, this)"/>
+        <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold shrink-0 ${color}">${ini}</div>
+        <div class="flex-1 min-w-0">
+          <p class="font-bold text-on-surface text-sm">${cu.first_name} ${cu.last_name}</p>
+          <p class="text-[11px] text-secondary font-mono">${cu.id_number}</p>
+        </div>
+        ${checked ? '<span class="material-symbols-outlined text-primary text-[20px] shrink-0" style="font-variation-settings:\'FILL\' 1">check_circle</span>' : ''}
+      </label>`;
+  }).join('');
+  updateSelectedCount();
+}
+
+function toggleCustomer(id, checkbox) {
+  if (checkbox.checked) {
+    state.selected.add(id);
+    if (!state.roles[id]) state.roles[id] = 'seller';
+  } else {
+    state.selected.delete(id);
+  }
+  renderCustomerList(currentFiltered());
+}
+
+function currentFiltered() {
+  if (!_filterQuery) return state.customers;
+  const q = _filterQuery.toLowerCase();
+  return state.customers.filter(c =>
+    (c.first_name + ' ' + c.last_name).toLowerCase().includes(q) ||
+    c.id_number.toLowerCase().includes(q)
+  );
+}
+
+function filterCustomers(q) { _filterQuery = q; renderCustomerList(currentFiltered()); }
+
+function updateSelectedCount() {
+  const n = state.selected.size;
+  document.getElementById('selected-count').textContent =
+    n === 0 ? 'No customers selected' : `${n} customer${n === 1 ? '' : 's'} selected`;
+  document.getElementById('step2-next').disabled = n === 0;
+}
+
+const _avatarColors = [
+  'bg-secondary-container text-on-secondary-container',
+  'bg-primary-container text-on-primary-container',
+  'bg-tertiary-fixed text-on-tertiary-fixed-variant',
+  'bg-secondary-fixed text-on-secondary-fixed-variant',
+  'bg-surface-container-high text-on-surface-variant',
+];
+function avatarColor(id) { return _avatarColors[id % _avatarColors.length]; }
+function initials(c) { return ((c.first_name[0] || '') + (c.last_name[0] || '')).toUpperCase(); }
+
+// ===== Step 3: Role Assignment =====
+
+function initStep3() {
+  const selected = state.customers.filter(c => state.selected.has(c.id));
+  document.getElementById('role-cards').innerHTML = selected.map(c => {
+    const ini = initials(c);
+    const color = avatarColor(c.id);
+    const role = state.roles[c.id] || 'seller';
+    return `
+      <div class="bg-surface-container-lowest border border-outline-variant p-lg rounded-lg flex items-center justify-between gap-md">
+        <div class="flex items-center gap-md">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold shrink-0 ${color}">${ini}</div>
+          <div>
+            <p class="font-bold text-on-surface text-sm">${c.first_name} ${c.last_name}</p>
+            <p class="text-[11px] text-secondary font-mono">${c.id_number}</p>
+          </div>
+        </div>
+        <div class="relative shrink-0">
+          <select class="appearance-none bg-surface border border-outline-variant font-label-sm rounded px-md py-sm pr-3xl focus:ring-2 focus:ring-primary outline-none"
+                  onchange="assignRole(${c.id}, this.value)">
+            <option value="seller" ${role === 'seller' ? 'selected' : ''}>Vendedor</option>
+            <option value="buyer" ${role === 'buyer' ? 'selected' : ''}>Comprador</option>
+          </select>
+          <span class="material-symbols-outlined absolute right-sm top-1/2 -translate-y-1/2 pointer-events-none text-secondary text-[18px]">unfold_more</span>
+        </div>
+      </div>`;
+  }).join('');
+  updateRoleSummary();
+}
+
+function assignRole(id, role) { state.roles[id] = role; updateRoleSummary(); }
+
+function onDenomChange() {
+  state.sellerDenomination = document.getElementById('seller-denom').value || 'LOS VENDEDORES';
+  state.buyerDenomination  = document.getElementById('buyer-denom').value  || 'LOS COMPRADORES';
+  updateRoleSummary();
+}
+
+function updateRoleSummary() {
+  const selected = state.customers.filter(c => state.selected.has(c.id));
+  const sellers = selected.filter(c => state.roles[c.id] === 'seller');
+  const buyers  = selected.filter(c => state.roles[c.id] === 'buyer');
+
+  const partyHtml = (list, denom) => list.length
+    ? list.map(c => `
+        <div class="flex items-center gap-sm py-sm border-b border-outline-variant/40">
+          <div class="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${avatarColor(c.id)}">${initials(c)}</div>
+          <p class="text-sm text-on-surface">${c.first_name} ${c.last_name}</p>
+        </div>`).join('')
+    : '<p class="text-secondary text-sm italic py-sm">None assigned</p>';
+
+  document.getElementById('role-summary').innerHTML = `
+    <div class="space-y-lg">
+      <div>
+        <p class="font-label-sm text-label-sm text-secondary uppercase tracking-wider mb-sm">${state.sellerDenomination}</p>
+        ${partyHtml(sellers)}
+      </div>
+      <div>
+        <p class="font-label-sm text-label-sm text-secondary uppercase tracking-wider mb-sm">${state.buyerDenomination}</p>
+        ${partyHtml(buyers)}
+      </div>
+    </div>`;
+}
+
+// ===== Step 4: Preview =====
+
+async function loadPreview() {
+  const sellers = getPartiesByRole('seller');
+  const buyers  = getPartiesByRole('buyer');
+
+  // Populate side-panel party list
+  const all = [...sellers.map(s => ({...s, denom: state.sellerDenomination})),
+               ...buyers.map(b => ({...b, denom: state.buyerDenomination}))];
+  document.getElementById('preview-party-list').innerHTML = all.map(p => `
+    <div class="flex items-center gap-sm">
+      <span class="material-symbols-outlined text-[16px] text-secondary">person</span>
+      <div>
+        <p class="font-bold text-[12px]">${p.first_name} ${p.last_name}</p>
+        <p class="text-[11px] text-secondary">${p.denom}</p>
+      </div>
+    </div>`).join('');
+
+  try {
+    const res = await fetch('/preview/sell_contract', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sellers,
+        buyers,
+        seller_denomination: state.sellerDenomination,
+        buyer_denomination:  state.buyerDenomination
+      })
+    });
+    if (!res.ok) throw new Error('Server error ' + res.status);
+    document.getElementById('preview-content').innerHTML = await res.text();
+  } catch (e) {
+    document.getElementById('preview-content').innerHTML =
+      `<p class="text-error text-sm">Failed to load preview: ${e.message}</p>`;
+  }
+}
+
+function getPartiesByRole(role) {
+  return state.customers
+    .filter(c => state.selected.has(c.id) && state.roles[c.id] === role)
+    .map(c => ({
+      first_name:     c.first_name,
+      last_name:      c.last_name,
+      id_number:      c.id_number,
+      address:        extractText(c.address),
+      marital_status: extractMaritalStatus(c.marital_status),
+      occupation:     extractText(c.occupation)
+    }));
+}
+
+function extractText(v) {
+  if (!v) return '';
+  if (typeof v === 'string') return v;
+  return v.String || v.string || '';
+}
+
+function extractMaritalStatus(ms) {
+  if (!ms) return '';
+  if (typeof ms === 'string') return ms;
+  return ms.valid ? (ms.marital_status || '') : '';
+}
+
+// ===== Init =====
+updateProgress(1);
+loadTemplates();
+		</script>
+	}
+}

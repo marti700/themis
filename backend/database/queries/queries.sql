@@ -33,3 +33,6 @@ WHERE cc.customer_id = $1;
 INSERT INTO company_customers (company_id, customer_id)
 VALUES ($1, $2)
 ON CONFLICT DO NOTHING;
+
+-- name: ListCustomers :many
+SELECT * FROM customers ORDER BY last_name, first_name;

@@ -44,7 +44,18 @@ func Sidebar(activePage string) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<a class=\"flex items-center gap-md px-lg py-md text-secondary font-medium hover:bg-surface-container transition-colors duration-200\" href=\"#\"><span class=\"material-symbols-outlined\">description</span> <span>Documents</span></a> <a class=\"flex items-center gap-md px-lg py-md text-secondary font-medium hover:bg-surface-container transition-colors duration-200\" href=\"#\"><span class=\"material-symbols-outlined\">edit_note</span> <span>Drafts</span></a></nav><div class=\"mt-auto pt-lg border-t border-outline-variant/30 space-y-unit\"><a class=\"flex items-center gap-md px-lg py-md text-secondary font-medium hover:bg-surface-container transition-colors duration-200\" href=\"#\"><span class=\"material-symbols-outlined\">settings</span> <span>Settings</span></a> <a class=\"flex items-center gap-md px-lg py-md text-secondary font-medium hover:bg-surface-container transition-colors duration-200\" href=\"#\"><span class=\"material-symbols-outlined\">help</span> <span>Support</span></a></div></aside>")
+		if activePage == "documents" {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<a class=\"flex items-center gap-md px-lg py-md text-primary font-bold border-l-4 border-primary bg-surface-container-low transition-colors duration-200\" href=\"/documents/builder\"><span class=\"material-symbols-outlined\">description</span> <span>Documents</span></a> ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<a class=\"flex items-center gap-md px-lg py-md text-secondary font-medium hover:bg-surface-container transition-colors duration-200\" href=\"/documents/builder\"><span class=\"material-symbols-outlined\">description</span> <span>Documents</span></a> ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<a class=\"flex items-center gap-md px-lg py-md text-secondary font-medium hover:bg-surface-container transition-colors duration-200\" href=\"#\"><span class=\"material-symbols-outlined\">edit_note</span> <span>Drafts</span></a></nav><div class=\"mt-auto pt-lg border-t border-outline-variant/30 space-y-unit\"><a class=\"flex items-center gap-md px-lg py-md text-secondary font-medium hover:bg-surface-container transition-colors duration-200\" href=\"#\"><span class=\"material-symbols-outlined\">settings</span> <span>Settings</span></a> <a class=\"flex items-center gap-md px-lg py-md text-secondary font-medium hover:bg-surface-container transition-colors duration-200\" href=\"#\"><span class=\"material-symbols-outlined\">help</span> <span>Support</span></a></div></aside>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

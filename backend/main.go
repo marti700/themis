@@ -59,6 +59,19 @@ func initOtel(ctx context.Context) (func(), error) {
 	}, nil
 }
 
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
 func main() {
 	ctx := context.Background()
 
@@ -86,11 +99,14 @@ func main() {
 	r.HandleFunc("/customers/{id}", customerHandler.Get).Methods(http.MethodGet)
 	r.HandleFunc("/customers", webHandler.CustomerDirectory).Methods(http.MethodGet)
 	r.HandleFunc("/customers/{id}/profile", webHandler.CustomerProfile).Methods(http.MethodGet)
+	r.HandleFunc("/api/customers", webHandler.CustomerListJSON).Methods(http.MethodGet, http.MethodOptions)
+	r.HandleFunc("/documents/builder", webHandler.DocumentBuilder).Methods(http.MethodGet)
+	r.HandleFunc("/preview/sell_contract", webHandler.SellContractPreview).Methods(http.MethodPost, http.MethodOptions)
 
 	// otelhttp.NewHandler wraps the entire router and automatically emits
 	// http_server_request_duration_seconds for every request — count, duration,
 	// and status code are all captured without touching individual handlers.
-	err = http.ListenAndServe(":9094", otelhttp.NewHandler(r, "themis-backend"))
+	err = http.ListenAndServe(":9094", corsMiddleware(otelhttp.NewHandler(r, "themis-backend")))
 	if err != nil {
 		log.Fatal(err.Error())
 	}
