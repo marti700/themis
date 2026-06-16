@@ -55,12 +55,14 @@ Schema (each object in the array):
   first_name      string  — given name
   last_name       string  — family name
   address         string  — full physical address; "" if missing
-  marital_status  string  — one of: single, married, divorced, widowed, legal_union; null if not mentioned
+  marital_status  string  — MUST be exactly one of these English values: single, married, divorced, widowed, legal_union; null if not mentioned. Never translate these values.
+  gender          string  — MUST be exactly one of these values: femenin, masculin; if not explicitly stated in the document, infer it from the person's given name; null only when the name gives no clear indication. Never translate these values.
+  nationality     string  — ISO 3166-1 alpha-2 country code (e.g. "DO", "US", "HT"); "" if missing
   occupation      string  — job title or profession; "" if missing
   id_number       string  — government ID / passport / SSN; "" if missing
 
 Example output:
-[{"first_name":"John","last_name":"Doe","address":"123 Maple St","marital_status":"married","occupation":"Engineer","id_number":"A1234567"}]
+[{"first_name":"Juan","last_name":"Perez","address":"Calle Principal 45","marital_status":"married","gender":"masculin","nationality":"DO","occupation":"Ingeniero","id_number":"001-0012345-6"}]
 `
 
 const (
@@ -71,7 +73,8 @@ const (
 
 	// nimModel is the model identifier sent in every request.
 	// NIM uses the model name from the container image without the registry prefix.
-	nimModel = "lukaspetrik/gemma3-tools:12b"
+	// nimModel = "lukaspetrik/gemma3-tools:12b"
+	nimModel = "lukaspetrik/gemma3-tools:4b"
 
 	// maxLoopIters is a safety cap.  If the model keeps calling tools and never
 	// produces a final text response after this many rounds, we give up and return
@@ -89,6 +92,8 @@ type CustomerInfo struct {
 	LastName      string  `json:"last_name"`
 	Address       string  `json:"address"`
 	MaritalStatus *string `json:"marital_status"` // nil when not mentioned in the document
+	Gender        *string `json:"gender"`         // nil when not mentioned; one of: femenin, masculin
+	Nationality   string  `json:"nationality"`
 	Occupation    string  `json:"occupation"`
 	IDNumber      string  `json:"id_number"`
 }
@@ -98,8 +103,12 @@ func (c CustomerInfo) String() string {
 	if c.MaritalStatus != nil {
 		ms = *c.MaritalStatus
 	}
-	return fmt.Sprintf("{FirstName:%s LastName:%s Address:%s MaritalStatus:%s Occupation:%s IDNumber:%s}",
-		c.FirstName, c.LastName, c.Address, ms, c.Occupation, c.IDNumber)
+	g := "<nil>"
+	if c.Gender != nil {
+		g = *c.Gender
+	}
+	return fmt.Sprintf("{FirstName:%s LastName:%s Address:%s MaritalStatus:%s Gender:%s Nationality:%s Occupation:%s IDNumber:%s}",
+		c.FirstName, c.LastName, c.Address, ms, g, c.Nationality, c.Occupation, c.IDNumber)
 }
 
 // --- OpenAI-compatible request / response types ---
@@ -284,7 +293,16 @@ func RunCrawlerAgent(docPath string) ([]CustomerInfo, error) {
 		// If the model did NOT request any tool calls, the conversation is done.
 		// assistantMsg.Content now holds the final answer (the JSON customer list).
 		if len(assistantMsg.ToolCalls) == 0 {
-			return parseCustomers(assistantMsg.Content)
+			customers, err := parseCustomers(assistantMsg.Content)
+			if err != nil {
+				return nil, err
+			}
+			for i := range customers {
+				customers[i].MaritalStatus = normalizeMaritalStatus(customers[i].MaritalStatus)
+				customers[i].Gender = normalizeGender(customers[i].Gender)
+				customers[i].Nationality = ResolveNationality(customers[i].Nationality, customers[i].Gender)
+			}
+			return customers, nil
 		}
 
 		// The model wants to call one or more tools.  Execute each one and add
@@ -321,6 +339,13 @@ func RunCrawlerAgent(docPath string) ([]CustomerInfo, error) {
 // This function strips that fence (if present) before calling json.Unmarshal.
 func parseCustomers(text string) ([]CustomerInfo, error) {
 	text = strings.TrimSpace(text)
+
+	// Replace curly/smart quotes with straight ASCII quotes. Some models emit
+	// typographic quotes (U+201C / U+201D) which are invalid in JSON.
+	text = strings.ReplaceAll(text, "“", "\"")
+	text = strings.ReplaceAll(text, "”", "\"")
+	text = strings.ReplaceAll(text, "‘", "'")
+	text = strings.ReplaceAll(text, "’", "'")
 
 	// Detect and strip markdown code fences.
 	if idx := strings.Index(text, "```"); idx != -1 {

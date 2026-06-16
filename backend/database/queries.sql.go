@@ -29,11 +29,11 @@ func (q *Queries) AddCustomerToCompany(ctx context.Context, arg *AddCustomerToCo
 
 const createCustomer = `-- name: CreateCustomer :one
 INSERT INTO customers (
-    first_name, last_name, birthday, address, marital_status, occupation, id_number
+    first_name, last_name, birthday, address, marital_status, gender, nationality, occupation, id_number
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7
+    $1, $2, $3, $4, $5, $6, $7, $8, $9
 )
-RETURNING id, first_name, last_name, birthday, address, marital_status, occupation, id_number, created_at
+RETURNING id, first_name, last_name, birthday, address, marital_status, occupation, id_number, created_at, gender, nationality
 `
 
 type CreateCustomerParams struct {
@@ -42,6 +42,8 @@ type CreateCustomerParams struct {
 	Birthday      pgtype.Date       `json:"birthday"`
 	Address       pgtype.Text       `json:"address"`
 	MaritalStatus NullMaritalStatus `json:"marital_status"`
+	Gender        NullGender        `json:"gender"`
+	Nationality   pgtype.Text       `json:"nationality"`
 	Occupation    pgtype.Text       `json:"occupation"`
 	IDNumber      string            `json:"id_number"`
 }
@@ -53,6 +55,8 @@ func (q *Queries) CreateCustomer(ctx context.Context, arg *CreateCustomerParams)
 		arg.Birthday,
 		arg.Address,
 		arg.MaritalStatus,
+		arg.Gender,
+		arg.Nationality,
 		arg.Occupation,
 		arg.IDNumber,
 	)
@@ -67,6 +71,8 @@ func (q *Queries) CreateCustomer(ctx context.Context, arg *CreateCustomerParams)
 		&i.Occupation,
 		&i.IDNumber,
 		&i.CreatedAt,
+		&i.Gender,
+		&i.Nationality,
 	)
 	return i, err
 }
@@ -104,7 +110,7 @@ func (q *Queries) GetCompaniesByCustomer(ctx context.Context, customerID int32) 
 }
 
 const getCustomer = `-- name: GetCustomer :one
-SELECT id, first_name, last_name, birthday, address, marital_status, occupation, id_number, created_at FROM customers
+SELECT id, first_name, last_name, birthday, address, marital_status, occupation, id_number, created_at, gender, nationality FROM customers
 WHERE id = $1 LIMIT 1
 `
 
@@ -121,12 +127,14 @@ func (q *Queries) GetCustomer(ctx context.Context, id int32) (Customer, error) {
 		&i.Occupation,
 		&i.IDNumber,
 		&i.CreatedAt,
+		&i.Gender,
+		&i.Nationality,
 	)
 	return i, err
 }
 
 const getCustomersByCompany = `-- name: GetCustomersByCompany :many
-SELECT c.id, c.first_name, c.last_name, c.birthday, c.address, c.marital_status, c.occupation, c.id_number, c.created_at FROM customers c
+SELECT c.id, c.first_name, c.last_name, c.birthday, c.address, c.marital_status, c.occupation, c.id_number, c.created_at, c.gender, c.nationality FROM customers c
 JOIN company_customers cc ON c.id = cc.customer_id
 WHERE cc.company_id = $1
 `
@@ -150,6 +158,8 @@ func (q *Queries) GetCustomersByCompany(ctx context.Context, companyID int32) ([
 			&i.Occupation,
 			&i.IDNumber,
 			&i.CreatedAt,
+			&i.Gender,
+			&i.Nationality,
 		); err != nil {
 			return nil, err
 		}
@@ -209,7 +219,7 @@ func (q *Queries) LinkDocumentToCustomer(ctx context.Context, arg *LinkDocumentT
 }
 
 const listCustomers = `-- name: ListCustomers :many
-SELECT id, first_name, last_name, birthday, address, marital_status, occupation, id_number, created_at FROM customers ORDER BY last_name, first_name
+SELECT id, first_name, last_name, birthday, address, marital_status, occupation, id_number, created_at, gender, nationality FROM customers ORDER BY last_name, first_name
 `
 
 func (q *Queries) ListCustomers(ctx context.Context) ([]Customer, error) {
@@ -231,6 +241,8 @@ func (q *Queries) ListCustomers(ctx context.Context) ([]Customer, error) {
 			&i.Occupation,
 			&i.IDNumber,
 			&i.CreatedAt,
+			&i.Gender,
+			&i.Nationality,
 		); err != nil {
 			return nil, err
 		}

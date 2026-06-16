@@ -57,7 +57,7 @@ func worker(wg *sync.WaitGroup, ch <-chan string) {
 				continue
 			}
 
-			request, err := http.NewRequest("POST", "http://localhost:9094/users", bytes.NewBuffer(body))
+			request, err := http.NewRequest("POST", "http://localhost:9094/customers", bytes.NewBuffer(body))
 			if err != nil {
 				log.Printf("Error creating request: %v", err)
 				continue

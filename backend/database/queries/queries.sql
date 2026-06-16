@@ -4,9 +4,9 @@ WHERE id = $1 LIMIT 1;
 
 -- name: CreateCustomer :one
 INSERT INTO customers (
-    first_name, last_name, birthday, address, marital_status, occupation, id_number
+    first_name, last_name, birthday, address, marital_status, gender, nationality, occupation, id_number
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7
+    $1, $2, $3, $4, $5, $6, $7, $8, $9
 )
 RETURNING *;
 

@@ -1,9 +1,14 @@
 CREATE TYPE marital_status AS ENUM (
-    'single', 
-    'married', 
-    'divorced', 
-    'widowed', 
+    'single',
+    'married',
+    'divorced',
+    'widowed',
     'legal_union'
+);
+
+CREATE TYPE gender AS ENUM (
+    'femenin',
+    'masculin'
 );
 
 CREATE TABLE companies (
@@ -21,6 +26,8 @@ CREATE TABLE customers (
     birthday DATE,
     address TEXT,
     marital_status marital_status,
+    gender gender,
+    nationality VARCHAR(100),
     occupation VARCHAR(255),
     id_number VARCHAR(50) UNIQUE NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW()
