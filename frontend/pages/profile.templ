@@ -36,6 +36,26 @@ func birthdayStr(c database.Customer) string {
 	return fmt.Sprintf("%s %d, %d", t.Month().String()[:3], t.Day(), t.Year())
 }
 
+func genderStr(c database.Customer) string {
+	if !c.Gender.Valid {
+		return "—"
+	}
+	switch c.Gender.Gender {
+	case database.GenderMasculin:
+		return "Masculino"
+	case database.GenderFemenin:
+		return "Femenino"
+	}
+	return "—"
+}
+
+func nationalityStr(c database.Customer) string {
+	if !c.Nationality.Valid || c.Nationality.String == "" {
+		return "—"
+	}
+	return c.Nationality.String
+}
+
 func maritalStatusStr(c database.Customer) string {
 	if !c.MaritalStatus.Valid {
 		return "—"
@@ -103,6 +123,14 @@ templ Profile(data ProfileData) {
 								<div class="space-y-xs">
 									<p class="font-label-sm text-label-sm text-secondary uppercase tracking-wider">Marital Status</p>
 									<p class="font-body-md font-semibold text-primary">{ maritalStatusStr(data.Customer) }</p>
+								</div>
+								<div class="space-y-xs">
+									<p class="font-label-sm text-label-sm text-secondary uppercase tracking-wider">Gender</p>
+									<p class="font-body-md font-semibold text-primary">{ genderStr(data.Customer) }</p>
+								</div>
+								<div class="space-y-xs">
+									<p class="font-label-sm text-label-sm text-secondary uppercase tracking-wider">Nationality</p>
+									<p class="font-body-md font-semibold text-primary">{ nationalityStr(data.Customer) }</p>
 								</div>
 								<div class="space-y-xs">
 									<p class="font-label-sm text-label-sm text-secondary uppercase tracking-wider">Occupation</p>

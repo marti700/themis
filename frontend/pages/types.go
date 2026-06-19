@@ -5,6 +5,7 @@ type PartyPreview struct {
 	LastName      string
 	IDNumber      string
 	Address       string
+	Nationality   string
 	MaritalStatus string
 	Occupation    string
 }

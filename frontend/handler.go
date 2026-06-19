@@ -41,6 +41,7 @@ type previewParty struct {
 	LastName      string `json:"last_name"`
 	IDNumber      string `json:"id_number"`
 	Address       string `json:"address"`
+	Nationality   string `json:"nationality"`
 	MaritalStatus string `json:"marital_status"`
 	Occupation    string `json:"occupation"`
 }
@@ -65,6 +66,7 @@ func (h *Handler) SellContractPreview(w http.ResponseWriter, r *http.Request) {
 			LastName:      p.LastName,
 			IDNumber:      p.IDNumber,
 			Address:       p.Address,
+			Nationality:   p.Nationality,
 			MaritalStatus: p.MaritalStatus,
 			Occupation:    p.Occupation,
 		}

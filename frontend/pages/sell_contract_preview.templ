@@ -14,7 +14,13 @@ templ partyBlock(parties []PartyPreview, denomination string, connector string) 
 	if len(parties) == 1 {
 		<p class="text-justify leading-relaxed">
 			{ connector } <strong class="text-primary">{ strings.ToUpper(parties[0].FirstName + " " + parties[0].LastName) }</strong>,
-			de nacionalidad <span class="text-outline italic text-[12px]">[ NACIONALIDAD ]</span>, mayor de edad,
+			de nacionalidad
+				if parties[0].Nationality != "" {
+					{ parties[0].Nationality },
+				} else {
+					@ph("NACIONALIDAD"),
+				}
+				mayor de edad,
 			if parties[0].MaritalStatus != "" {
 				{ parties[0].MaritalStatus },
 			} else {
@@ -40,7 +46,13 @@ templ partyBlock(parties []PartyPreview, denomination string, connector string) 
 		for _, p := range parties {
 			<p class="text-justify leading-relaxed">
 				<strong class="text-primary">{ strings.ToUpper(p.FirstName + " " + p.LastName) }</strong>,
-				de nacionalidad <span class="text-outline italic text-[12px]">[ NACIONALIDAD ]</span>, mayor de edad,
+				de nacionalidad
+				if parties[0].Nationality != "" {
+					{ parties[0].Nationality },
+				} else {
+					@ph("NACIONALIDAD"),
+				}
+				mayor de edad,
 				if p.MaritalStatus != "" {
 					{ p.MaritalStatus },
 				} else {

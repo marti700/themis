@@ -449,6 +449,7 @@ function getPartiesByRole(role) {
       last_name:      c.last_name,
       id_number:      c.id_number,
       address:        extractText(c.address),
+      nationality:    extractText(c.nationality),
       marital_status: extractMaritalStatus(c.marital_status),
       occupation:     extractText(c.occupation)
     }));
