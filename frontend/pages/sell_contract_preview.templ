@@ -3,11 +3,13 @@ package pages
 import "strings"
 
 templ ph(label string) {
-	<span class="text-outline italic text-[12px]">[ { label } ]</span>
-}
-
-templ phPrice() {
-	<span class="text-outline italic text-[12px]">RD{ "$" } [ PRECIO ]</span>
+	<span
+		class="ph-field text-outline italic text-[12px] cursor-pointer rounded-sm px-[2px] -mx-[2px] hover:bg-primary/10 hover:text-primary transition-colors"
+		data-ph={ label }
+		role="button"
+		tabindex="0"
+		title="Click para completar este campo"
+	>[ { label } ]</span>
 }
 
 templ partyBlock(parties []PartyPreview, denomination string, connector string) {
@@ -43,12 +45,15 @@ templ partyBlock(parties []PartyPreview, denomination string, connector string) 
 			quien en lo que sigue del presente contrato se denominará <strong>{ denomination }</strong>;
 		</p>
 	} else {
-		for _, p := range parties {
+		for i, p := range parties {
 			<p class="text-justify leading-relaxed">
+				if i == 0 && connector != "" {
+					{ connector }
+				}
 				<strong class="text-primary">{ strings.ToUpper(p.FirstName + " " + p.LastName) }</strong>,
 				de nacionalidad
-				if parties[0].Nationality != "" {
-					{ parties[0].Nationality },
+				if p.Nationality != "" {
+					{ p.Nationality },
 				} else {
 					@ph("NACIONALIDAD"),
 				}
@@ -84,7 +89,10 @@ templ SellContractPreview(d SellContractPreviewData) {
 		<div class="text-center space-y-xs border-b border-outline-variant pb-lg mb-lg">
 			<p class="font-bold text-[15px] uppercase tracking-widest">@ph("NOMBRE DEL BUFETE")</p>
 			<p class="text-secondary italic text-[13px]">@ph("SERVICIO DEL BUFETE")</p>
-			<p class="mt-sm"><span class="text-outline italic text-[12px]">[ Lic. NOMBRE DEL NOTARIO ]</span> · TEL. <span class="text-outline italic text-[12px]">[ TELÉFONO ]</span></p>
+			<p class="mt-sm">
+				@ph("Lic. NOMBRE DEL NOTARIO") · TEL.
+				@ph("TELÉFONO")
+			</p>
 			<p class="text-secondary text-[13px]">@ph("MUNICIPIO")</p>
 		</div>
 		<!-- Title -->
@@ -126,7 +134,7 @@ templ SellContractPreview(d SellContractPreviewData) {
 			<p class="text-justify leading-relaxed">
 				El precio convenido y pactado entre las partes ha sido por la suma de
 				@ph("PRECIO EN LETRAS"),
-				@phPrice(), moneda de curso legal, suma esta que
+				RD{ "$" } @ph("PRECIO"), moneda de curso legal, suma esta que
 				<strong>{ d.SellerDenomination }</strong> declaran haber recibido de manos de
 				<strong>{ d.BuyerDenomination }</strong> a su entera satisfacción.
 			</p>
@@ -137,7 +145,7 @@ templ SellContractPreview(d SellContractPreviewData) {
 			<p class="text-justify leading-relaxed">
 				<strong>{ d.SellerDenomination }</strong> justifican su derecho de propiedad al objeto de la
 				presente venta de la forma siguiente:
-				<span class="text-outline italic text-[12px]">[ JUSTIFICACIÓN DE PROPIEDAD ]</span>
+				@ph("JUSTIFICACIÓN DE PROPIEDAD")
 			</p>
 		</div>
 		<!-- Clause 4 -->
@@ -151,17 +159,19 @@ templ SellContractPreview(d SellContractPreviewData) {
 		<!-- Closing -->
 		<p class="text-justify leading-relaxed mt-md">
 			Hecho leído y firmado de buena fe, en
-			<span class="text-outline italic text-[12px]">[ DOS ]</span>,
-			<span class="text-outline italic text-[12px]">[ 2 ]</span>
+			@ph("DOS"),
+			@ph("2")
 			originales del mismo contenido y efecto, una para cada parte. En la Ciudad de
-			<span class="text-outline italic text-[12px]">[ CIUDAD ]</span>, Provincia
-			<span class="text-outline italic text-[12px]">[ PROVINCIA ]</span>,
+			@ph("CIUDAD"), Provincia
+			@ph("PROVINCIA"),
 			República Dominicana, a los
-			<span class="text-outline italic text-[12px]">[ DÍA EN LETRAS ]</span>,
-			<span class="text-outline italic text-[12px]">[ DÍA ]</span>
-			días del mes de <span class="text-outline italic text-[12px]">[ MES ]</span>
-			del año <span class="text-outline italic text-[12px]">[ AÑO EN LETRAS ]</span>,
-			<span class="text-outline italic text-[12px]">[ AÑO ]</span>.
+			@ph("DÍA EN LETRAS"),
+			@ph("DÍA")
+			días del mes de
+			@ph("MES")
+			del año
+			@ph("AÑO EN LETRAS"),
+			@ph("AÑO"){ "." }
 		</p>
 		<!-- Signatures -->
 		<div class="grid grid-cols-2 gap-3xl mt-3xl pt-lg">
@@ -185,13 +195,19 @@ templ SellContractPreview(d SellContractPreviewData) {
 		<!-- Notary -->
 		<div class="mt-3xl pt-lg border-t border-outline-variant space-y-sm">
 			<p class="text-justify leading-relaxed text-[13px]">
-				Yo, <span class="text-outline italic text-[12px]">[ NOTARIO TÍTULO Y NOMBRE ]</span>,
+				Yo,
+				@ph("NOTARIO TÍTULO Y NOMBRE"),
 				Notario Público de los del número de este municipio de
-				<span class="text-outline italic text-[12px]">[ MUNICIPIO ]</span>,
-				con matrícula No. <span class="text-outline italic text-[12px]">[ MATRÍCULA ]</span>,
+				@ph("MUNICIPIO"),
+				con matrícula No.
+				@ph("MATRÍCULA"),
 				CERTIFICO Y DOY FE que las firmas que aparecen al pie del presente documento
 				fueron puestas libre y voluntariamente en mi presencia por los señores
-				<span class="text-outline italic text-[12px]">[ LISTA DE FIRMANTES ]</span>.
+				if d.SignerNames() != "" {
+					<strong>{ d.SignerNames() }</strong>{ "." }
+				} else {
+					@ph("LISTA DE FIRMANTES"){ "." }
+				}
 			</p>
 			<p class="text-center font-bold uppercase text-[13px] mt-lg">@ph("NOTARIO TÍTULO Y NOMBRE")</p>
 			<p class="text-center text-secondary text-[12px]">Abogado - Notario</p>

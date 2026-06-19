@@ -142,14 +142,27 @@ templ Builder() {
 								<p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Parties</p>
 								<div id="preview-party-list" class="space-y-sm text-sm"></div>
 							</div>
+							<!-- Placeholder checklist -->
+							<div id="ph-panel" class="bg-surface-container-lowest border border-outline-variant p-lg rounded-lg space-y-md">
+								<div class="flex items-center justify-between">
+									<p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Campos por completar</p>
+									<span id="ph-count" class="font-label-sm text-[11px] text-secondary tabular-nums">0/0</span>
+								</div>
+								<div id="ph-progress-track" class="h-1 w-full bg-surface-container-highest rounded-full overflow-hidden">
+									<div id="ph-progress-bar" class="h-full bg-primary rounded-full transition-all duration-300" style="width:0%"></div>
+								</div>
+								<div id="ph-list" class="space-y-xs max-h-[320px] overflow-y-auto pr-xs">
+									<p class="font-label-sm text-secondary text-[11px] italic py-sm">Cargando campos...</p>
+								</div>
+								<p class="font-label-sm text-secondary text-[11px] leading-snug">
+									Haz click en cualquier campo <span class="italic text-outline">[ así ]</span> del documento, o en la lista, para completarlo.
+								</p>
+							</div>
 							<div class="space-y-sm">
 								<button onclick="goToStep(3, null)" class="w-full flex items-center justify-center gap-sm text-secondary font-bold hover:text-primary transition-colors py-sm border border-outline-variant rounded-lg">
 									<span class="material-symbols-outlined text-[18px]">arrow_back</span>
 									Edit Roles
 								</button>
-								<p class="font-label-sm text-secondary text-center text-[11px]">
-									Fields marked <span class="italic">[ campo por completar ]</span> will be filled before generating the final document.
-								</p>
 							</div>
 						</div>
 						<!-- Right: digital paper preview -->
@@ -189,7 +202,8 @@ const state = {
   selected: new Set(),
   roles: {},
   sellerDenomination: 'LOS VENDEDORES',
-  buyerDenomination: 'LOS COMPRADORES'
+  buyerDenomination: 'LOS COMPRADORES',
+  fieldValues: {}
 };
 
 // ===== Navigation =====
@@ -435,11 +449,190 @@ async function loadPreview() {
     });
     if (!res.ok) throw new Error('Server error ' + res.status);
     document.getElementById('preview-content').innerHTML = await res.text();
+    initPlaceholders();
   } catch (e) {
     document.getElementById('preview-content').innerHTML =
       `<p class="text-error text-sm">Failed to load preview: ${e.message}</p>`;
   }
 }
+
+// ===== Step 4: Placeholder filling =====
+
+// Called after the preview HTML is injected. Re-applies any values the user
+// already typed, wires up click-to-edit on every [ placeholder ], and (re)builds
+// the side checklist.
+function initPlaceholders() {
+  applyFieldValues();
+  const content = document.getElementById('preview-content');
+  if (content && !content._phBound) {
+    content._phBound = true;
+    const open = e => {
+      const el = e.target.closest('.ph-field');
+      if (!el) return;
+      e.preventDefault();
+      openFieldEditor(el.dataset.ph, el);
+    };
+    content.addEventListener('click', open);
+    content.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') open(e);
+    });
+  }
+  renderPhPanel();
+}
+
+// Reflect state.fieldValues onto every matching placeholder span in the document.
+function applyFieldValues() {
+  document.querySelectorAll('#preview-content .ph-field').forEach(el => {
+    const val = state.fieldValues[el.dataset.ph];
+    if (val) {
+      el.textContent = val;
+      el.classList.remove('text-outline', 'italic');
+      el.classList.add('not-italic', 'font-bold', 'text-primary', 'bg-primary/5');
+    } else {
+      el.textContent = '[ ' + el.dataset.ph + ' ]';
+      el.classList.add('text-outline', 'italic');
+      el.classList.remove('not-italic', 'font-bold', 'text-primary', 'bg-primary/5');
+    }
+  });
+}
+
+// Unique placeholder labels in the order they appear in the document.
+function uniquePlaceholders() {
+  const seen = new Set();
+  const out = [];
+  document.querySelectorAll('#preview-content .ph-field').forEach(el => {
+    const k = el.dataset.ph;
+    if (!seen.has(k)) { seen.add(k); out.push(k); }
+  });
+  return out;
+}
+
+function setFieldValue(label, val) {
+  val = val.trim();
+  if (val) state.fieldValues[label] = val;
+  else delete state.fieldValues[label];
+  applyFieldValues();
+  renderPhPanel();
+}
+
+function renderPhPanel() {
+  const labels = uniquePlaceholders();
+  const filled = labels.filter(l => state.fieldValues[l]).length;
+  const total = labels.length;
+
+  document.getElementById('ph-count').textContent = `${filled}/${total}`;
+  document.getElementById('ph-progress-bar').style.width =
+    (total ? (filled / total * 100) : 0).toFixed(0) + '%';
+
+  const list = document.getElementById('ph-list');
+  if (!total) {
+    list.innerHTML = '<p class="font-label-sm text-secondary text-[11px] italic py-sm">No hay campos pendientes.</p>';
+    return;
+  }
+  list.innerHTML = labels.map(l => {
+    const v = state.fieldValues[l];
+    const done = !!v;
+    const borderCls = done ? 'border-primary/40 bg-primary/5' : 'border-outline-variant hover:border-primary';
+    const iconCls = done ? 'text-primary' : 'text-outline';
+    const iconFill = done ? "font-variation-settings:'FILL' 1" : '';
+    const icon = done ? 'check_circle' : 'radio_button_unchecked';
+    const labelCls = done ? 'text-secondary' : 'text-on-surface font-bold';
+    const valueRow = done
+      ? '<span class="block text-[12px] text-primary font-bold truncate">' + escHtml(v) + '</span>'
+      : '';
+    return '' +
+      '<button type="button" onclick="focusPlaceholder(\'' + escAttr(l) + '\')"' +
+      ' class="w-full text-left flex items-start gap-sm p-sm rounded-lg border ' + borderCls + ' transition-all">' +
+      '<span class="material-symbols-outlined text-[16px] mt-[1px] shrink-0 ' + iconCls + '" style="' + iconFill + '">' + icon + '</span>' +
+      '<span class="min-w-0 flex-1">' +
+      '<span class="block font-label-sm text-[11px] ' + labelCls + ' truncate">' + escHtml(l) + '</span>' +
+      valueRow +
+      '</span>' +
+      '</button>';
+  }).join('');
+}
+
+// Scroll to the first instance of a placeholder in the document and open its editor.
+function focusPlaceholder(label) {
+  const el = document.querySelector(`#preview-content .ph-field[data-ph="${cssEsc(label)}"]`);
+  if (!el) return;
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  el.classList.add('ring-2', 'ring-primary');
+  setTimeout(() => el.classList.remove('ring-2', 'ring-primary'), 1200);
+  openFieldEditor(label, el);
+}
+
+// Inline popover anchored to the clicked placeholder.
+let _phPopover = null;
+function openFieldEditor(label, anchor) {
+  closeFieldEditor();
+  const r = anchor.getBoundingClientRect();
+  const pop = document.createElement('div');
+  _phPopover = pop;
+  pop.className = 'fixed z-50 bg-surface-container-lowest border border-outline-variant rounded-lg shadow-lg p-md w-[340px] space-y-sm';
+  pop.innerHTML = `
+    <p class="font-label-sm text-[10px] text-secondary uppercase tracking-wider truncate">${escHtml(label)}</p>
+    <textarea rows="3" class="w-full block py-xs px-sm border border-outline-variant bg-surface focus:border-primary focus:ring-0 text-body-md text-[13px] resize-y min-h-[60px] max-h-[280px] leading-snug" placeholder="Escribe el valor..."></textarea>
+    <div class="flex items-center justify-between gap-sm">
+      <button type="button" data-act="clear" class="font-label-sm text-[11px] text-secondary hover:text-error transition-colors">Limpiar campo</button>
+      <div class="flex items-center gap-sm">
+        <span class="font-label-sm text-[10px] text-secondary hidden sm:inline">Ctrl+Enter</span>
+        <button type="button" data-act="save" class="shrink-0 bg-primary text-on-primary rounded px-md py-xs hover:opacity-90 flex items-center gap-xs" title="Guardar (Ctrl+Enter)">
+          <span class="material-symbols-outlined text-[16px] align-middle">check</span>
+          <span class="font-label-sm text-[12px]">Guardar</span>
+        </button>
+      </div>
+    </div>`;
+  document.body.appendChild(pop);
+
+  const input = pop.querySelector('textarea');
+  input.value = state.fieldValues[label] || '';
+
+  // Grow the textarea to fit existing content (capped by max-height).
+  const autoGrow = () => {
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 280) + 'px';
+  };
+  autoGrow();
+
+  // Position below the anchor, clamped to the viewport (after sizing the textarea).
+  const top = Math.min(r.bottom + 6, window.innerHeight - pop.offsetHeight - 8);
+  const left = Math.max(8, Math.min(r.left, window.innerWidth - pop.offsetWidth - 8));
+  pop.style.top = top + 'px';
+  pop.style.left = left + 'px';
+
+  input.focus();
+  input.select();
+
+  const commit = () => { setFieldValue(label, input.value); closeFieldEditor(); };
+  input.addEventListener('input', autoGrow);
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); commit(); }
+    else if (e.key === 'Escape') { e.preventDefault(); closeFieldEditor(); }
+  });
+  pop.querySelector('[data-act="save"]').addEventListener('click', commit);
+  pop.querySelector('[data-act="clear"]').addEventListener('click', () => { setFieldValue(label, ''); closeFieldEditor(); });
+
+  // Close when clicking outside.
+  setTimeout(() => document.addEventListener('mousedown', _phOutside), 0);
+}
+
+function _phOutside(e) {
+  if (_phPopover && !_phPopover.contains(e.target) && !e.target.closest('.ph-field')) {
+    closeFieldEditor();
+  }
+}
+
+function closeFieldEditor() {
+  document.removeEventListener('mousedown', _phOutside);
+  if (_phPopover) { _phPopover.remove(); _phPopover = null; }
+}
+
+function escHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function escAttr(s) { return String(s).replace(/['\\]/g, '\\$&'); }
+function cssEsc(s) { return window.CSS && CSS.escape ? CSS.escape(s) : String(s).replace(/"/g, '\\"'); }
 
 function getPartiesByRole(role) {
   return state.customers
