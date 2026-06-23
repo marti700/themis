@@ -1,0 +1,99 @@
+package pages
+
+import "github.com/marti700/themis/frontend/components"
+
+templ CustomerRegister(formErr string) {
+	@components.Layout("Register Customer") {
+		@components.Sidebar("customers")
+		<main class="ml-sidebar_width min-h-screen">
+			@components.TopNav("Search by name, ID, or role...")
+			<div class="p-xl max-w-4xl">
+				<a href="/customers" class="inline-flex items-center gap-xs font-label-sm text-secondary hover:text-primary transition-colors mb-md">
+					<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+					Back to Customers
+				</a>
+				<div class="mb-lg">
+					<h2 class="font-headline-lg text-headline-lg text-primary mb-xs">Register New Customer</h2>
+					<p class="font-body-md text-secondary">Enter the client's details to add them to the system.</p>
+				</div>
+				if formErr != "" {
+					<div class="mb-lg px-md py-sm border border-error bg-error-container text-on-error-container font-label-sm flex items-center gap-sm">
+						<span class="material-symbols-outlined text-[18px]">error</span>
+						{ formErr }
+					</div>
+				}
+				<form method="POST" action="/customers/new">
+					<!-- Personal Information -->
+					<div class="bg-surface-container-lowest border border-outline-variant shadow-[0px_4px_12px_rgba(0,0,0,0.03)] p-lg mb-lg">
+						<h3 class="font-headline-md text-headline-md text-primary mb-lg">Personal Information</h3>
+						<div class="grid grid-cols-2 gap-lg">
+							<div>
+								<label for="first_name" class="font-label-sm text-secondary block mb-xs">First Name *</label>
+								<input id="first_name" name="first_name" type="text" required class="w-full py-sm px-md border border-outline-variant bg-surface focus:border-primary focus:ring-0 font-body-md transition-all"/>
+							</div>
+							<div>
+								<label for="last_name" class="font-label-sm text-secondary block mb-xs">Last Name *</label>
+								<input id="last_name" name="last_name" type="text" required class="w-full py-sm px-md border border-outline-variant bg-surface focus:border-primary focus:ring-0 font-body-md transition-all"/>
+							</div>
+							<div>
+								<label for="id_number" class="font-label-sm text-secondary block mb-xs">Document ID (Cédula) *</label>
+								<input id="id_number" name="id_number" type="text" required class="w-full py-sm px-md border border-outline-variant bg-surface focus:border-primary focus:ring-0 font-body-md transition-all"/>
+							</div>
+							<div>
+								<label for="birthday" class="font-label-sm text-secondary block mb-xs">Date of Birth</label>
+								<input id="birthday" name="birthday" type="date" class="w-full py-sm px-md border border-outline-variant bg-surface focus:border-primary focus:ring-0 font-body-md transition-all"/>
+							</div>
+							<div>
+								<label for="gender" class="font-label-sm text-secondary block mb-xs">Gender</label>
+								<select id="gender" name="gender" class="w-full py-sm px-md border border-outline-variant bg-surface focus:border-primary focus:ring-0 font-body-md transition-all">
+									<option value="">Select...</option>
+									<option value="masculin">Masculino</option>
+									<option value="femenin">Femenino</option>
+								</select>
+							</div>
+							<div>
+								<label for="nationality" class="font-label-sm text-secondary block mb-xs">Nationality</label>
+								<input id="nationality" name="nationality" type="text" class="w-full py-sm px-md border border-outline-variant bg-surface focus:border-primary focus:ring-0 font-body-md transition-all"/>
+							</div>
+						</div>
+					</div>
+					<!-- Civil & Professional -->
+					<div class="bg-surface-container-lowest border border-outline-variant shadow-[0px_4px_12px_rgba(0,0,0,0.03)] p-lg mb-lg">
+						<h3 class="font-headline-md text-headline-md text-primary mb-lg">Civil &amp; Professional</h3>
+						<div class="grid grid-cols-2 gap-lg">
+							<div>
+								<label for="marital_status" class="font-label-sm text-secondary block mb-xs">Marital Status</label>
+								<select id="marital_status" name="marital_status" class="w-full py-sm px-md border border-outline-variant bg-surface focus:border-primary focus:ring-0 font-body-md transition-all">
+									<option value="">Select...</option>
+									<option value="single">Single</option>
+									<option value="married">Married</option>
+									<option value="divorced">Divorced</option>
+									<option value="widowed">Widowed</option>
+									<option value="legal_union">Legal Union</option>
+								</select>
+							</div>
+							<div>
+								<label for="occupation" class="font-label-sm text-secondary block mb-xs">Occupation</label>
+								<input id="occupation" name="occupation" type="text" class="w-full py-sm px-md border border-outline-variant bg-surface focus:border-primary focus:ring-0 font-body-md transition-all"/>
+							</div>
+							<div class="col-span-2">
+								<label for="address" class="font-label-sm text-secondary block mb-xs">Address</label>
+								<textarea id="address" name="address" rows="3" class="w-full block py-sm px-md border border-outline-variant bg-surface focus:border-primary focus:ring-0 font-body-md transition-all resize-y min-h-[80px]"></textarea>
+							</div>
+						</div>
+					</div>
+					<!-- Actions -->
+					<div class="flex justify-end gap-sm">
+						<a href="/customers" class="px-lg py-md border border-outline-variant bg-surface-container-lowest flex items-center font-label-sm text-secondary hover:bg-surface-container transition-colors">
+							Cancel
+						</a>
+						<button type="submit" class="px-lg py-md bg-primary text-on-primary font-body-md font-bold flex items-center gap-sm transition-opacity hover:opacity-90">
+							<span class="material-symbols-outlined text-[18px]">save</span>
+							Save Customer
+						</button>
+					</div>
+				</form>
+			</div>
+		</main>
+	}
+}

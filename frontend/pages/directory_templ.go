@@ -83,7 +83,7 @@ func Directory(customers []database.Customer) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"p-xl\"><div class=\"mb-lg flex justify-between items-end\"><div><h2 class=\"font-headline-lg text-headline-lg text-primary mb-xs\">Customer Directory</h2><p class=\"font-body-md text-secondary\">Manage and view all registered legal clients within the system.</p></div><div class=\"flex gap-sm\"><button class=\"px-md py-sm border border-outline-variant bg-surface-container-lowest flex items-center gap-xs font-label-sm text-secondary hover:bg-surface-container transition-colors\"><span class=\"material-symbols-outlined text-[18px]\">filter_list</span> Filter</button> <button class=\"px-md py-sm border border-outline-variant bg-surface-container-lowest flex items-center gap-xs font-label-sm text-secondary hover:bg-surface-container transition-colors\"><span class=\"material-symbols-outlined text-[18px]\">download</span> Export</button></div></div><!-- Customer Table --><div class=\"bg-surface-container-lowest border border-outline-variant shadow-[0px_4px_12px_rgba(0,0,0,0.03)] overflow-hidden\"><table class=\"w-full text-left border-collapse\"><thead class=\"bg-surface-container-low border-b border-outline-variant\"><tr><th class=\"px-lg py-md font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider\">Name</th><th class=\"px-lg py-md font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider\">Document ID</th><th class=\"px-lg py-md font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider\">Occupation</th><th class=\"px-lg py-md font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider\">Status</th><th class=\"px-lg py-md font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider text-right\">Actions</th></tr></thead> <tbody class=\"divide-y divide-outline-variant\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"p-xl\"><div class=\"mb-lg flex justify-between items-end\"><div><h2 class=\"font-headline-lg text-headline-lg text-primary mb-xs\">Customer Directory</h2><p class=\"font-body-md text-secondary\">Manage and view all registered legal clients within the system.</p></div><div class=\"flex gap-sm\"><a href=\"/customers/new\" class=\"px-md py-sm bg-primary text-on-primary flex items-center gap-xs font-label-sm font-bold hover:opacity-90 transition-opacity\"><span class=\"material-symbols-outlined text-[18px]\">add</span> New Customer</a> <button class=\"px-md py-sm border border-outline-variant bg-surface-container-lowest flex items-center gap-xs font-label-sm text-secondary hover:bg-surface-container transition-colors\"><span class=\"material-symbols-outlined text-[18px]\">filter_list</span> Filter</button> <button class=\"px-md py-sm border border-outline-variant bg-surface-container-lowest flex items-center gap-xs font-label-sm text-secondary hover:bg-surface-container transition-colors\"><span class=\"material-symbols-outlined text-[18px]\">download</span> Export</button></div></div><!-- Customer Table --><div class=\"bg-surface-container-lowest border border-outline-variant shadow-[0px_4px_12px_rgba(0,0,0,0.03)] overflow-hidden\"><table class=\"w-full text-left border-collapse\"><thead class=\"bg-surface-container-low border-b border-outline-variant\"><tr><th class=\"px-lg py-md font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider\">Name</th><th class=\"px-lg py-md font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider\">Document ID</th><th class=\"px-lg py-md font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider\">Occupation</th><th class=\"px-lg py-md font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider\">Status</th><th class=\"px-lg py-md font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider text-right\">Actions</th></tr></thead> <tbody class=\"divide-y divide-outline-variant\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -117,7 +117,7 @@ func Directory(customers []database.Customer) templ.Component {
 				var templ_7745c5c3_Var5 string
 				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(initials(c))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `frontend/pages/directory.templ`, Line: 73, Col: 25}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `frontend/pages/directory.templ`, Line: 77, Col: 25}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
@@ -130,7 +130,7 @@ func Directory(customers []database.Customer) templ.Component {
 				var templ_7745c5c3_Var6 string
 				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(c.FirstName)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `frontend/pages/directory.templ`, Line: 76, Col: 72}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `frontend/pages/directory.templ`, Line: 80, Col: 72}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 				if templ_7745c5c3_Err != nil {
@@ -143,7 +143,7 @@ func Directory(customers []database.Customer) templ.Component {
 				var templ_7745c5c3_Var7 string
 				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(c.LastName)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `frontend/pages/directory.templ`, Line: 76, Col: 87}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `frontend/pages/directory.templ`, Line: 80, Col: 87}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 				if templ_7745c5c3_Err != nil {
@@ -156,7 +156,7 @@ func Directory(customers []database.Customer) templ.Component {
 				var templ_7745c5c3_Var8 string
 				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(c.IDNumber)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `frontend/pages/directory.templ`, Line: 77, Col: 62}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `frontend/pages/directory.templ`, Line: 81, Col: 62}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 				if templ_7745c5c3_Err != nil {
@@ -169,7 +169,7 @@ func Directory(customers []database.Customer) templ.Component {
 				var templ_7745c5c3_Var9 string
 				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(c.IDNumber)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `frontend/pages/directory.templ`, Line: 81, Col: 92}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `frontend/pages/directory.templ`, Line: 85, Col: 92}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 				if templ_7745c5c3_Err != nil {
@@ -183,7 +183,7 @@ func Directory(customers []database.Customer) templ.Component {
 					var templ_7745c5c3_Var10 string
 					templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(c.Occupation.String)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `frontend/pages/directory.templ`, Line: 84, Col: 32}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `frontend/pages/directory.templ`, Line: 88, Col: 32}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 					if templ_7745c5c3_Err != nil {
@@ -202,7 +202,7 @@ func Directory(customers []database.Customer) templ.Component {
 				var templ_7745c5c3_Var11 templ.SafeURL
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("/customers/%d/profile", c.ID)))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `frontend/pages/directory.templ`, Line: 96, Col: 77}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `frontend/pages/directory.templ`, Line: 100, Col: 77}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 				if templ_7745c5c3_Err != nil {
@@ -220,7 +220,7 @@ func Directory(customers []database.Customer) templ.Component {
 			var templ_7745c5c3_Var12 string
 			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", len(customers)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `frontend/pages/directory.templ`, Line: 106, Col: 50}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `frontend/pages/directory.templ`, Line: 110, Col: 50}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 			if templ_7745c5c3_Err != nil {
@@ -233,7 +233,7 @@ func Directory(customers []database.Customer) templ.Component {
 			var templ_7745c5c3_Var13 string
 			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", len(customers)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `frontend/pages/directory.templ`, Line: 135, Col: 89}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `frontend/pages/directory.templ`, Line: 139, Col: 89}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
@@ -246,7 +246,7 @@ func Directory(customers []database.Customer) templ.Component {
 			var templ_7745c5c3_Var14 string
 			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", len(customers)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `frontend/pages/directory.templ`, Line: 156, Col: 49}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `frontend/pages/directory.templ`, Line: 160, Col: 49}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {

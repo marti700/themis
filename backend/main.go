@@ -96,6 +96,8 @@ func main() {
 
 	r := mux.NewRouter()
 	r.HandleFunc("/customers", customerHandler.Create).Methods(http.MethodPost)
+	r.HandleFunc("/customers/new", webHandler.CustomerRegisterForm).Methods(http.MethodGet)
+	r.HandleFunc("/customers/new", webHandler.CustomerCreate).Methods(http.MethodPost)
 	r.HandleFunc("/customers/{id}", customerHandler.Get).Methods(http.MethodGet)
 	r.HandleFunc("/customers", webHandler.CustomerDirectory).Methods(http.MethodGet)
 	r.HandleFunc("/customers/{id}/profile", webHandler.CustomerProfile).Methods(http.MethodGet)
