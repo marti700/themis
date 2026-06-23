@@ -41,7 +41,10 @@ templ CustomerRegister(formErr string) {
 							</div>
 							<div>
 								<label for="birthday" class="font-label-sm text-secondary block mb-xs">Date of Birth</label>
-								<input id="birthday" name="birthday" type="date" class="w-full py-sm px-md border border-outline-variant bg-surface focus:border-primary focus:ring-0 font-body-md transition-all"/>
+								<div class="relative">
+									<input id="birthday" name="birthday" type="text" autocomplete="off" placeholder="Select a date" class="w-full py-sm px-md pr-3xl border border-outline-variant bg-surface focus:border-primary focus:ring-0 font-body-md transition-all"/>
+									<span class="material-symbols-outlined absolute right-md top-1/2 -translate-y-1/2 text-outline text-[20px] pointer-events-none">calendar_month</span>
+								</div>
 							</div>
 							<div>
 								<label for="gender" class="font-label-sm text-secondary block mb-xs">Gender</label>
@@ -95,5 +98,17 @@ templ CustomerRegister(formErr string) {
 				</form>
 			</div>
 		</main>
+		<!-- flatpickr date picker for the birthday field -->
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"/>
+		<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+		<script>
+			flatpickr("#birthday", {
+				dateFormat: "Y-m-d",
+				altInput: true,
+				altFormat: "F j, Y",
+				maxDate: "today",
+				allowInput: true,
+			});
+		</script>
 	}
 }
