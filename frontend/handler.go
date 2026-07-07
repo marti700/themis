@@ -166,6 +166,54 @@ func (h *Handler) SellContractPreview(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type rentPreviewRequest struct {
+	Owners             []previewParty `json:"owners"`
+	Tenants            []previewParty `json:"tenants"`
+	OwnerDenomination  string         `json:"owner_denomination"`
+	TenantDenomination string         `json:"tenant_denomination"`
+}
+
+func (h *Handler) RentContractPreview(w http.ResponseWriter, r *http.Request) {
+	var req rentPreviewRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	toParty := func(p previewParty) pages.PartyPreview {
+		return pages.PartyPreview{
+			FirstName:     p.FirstName,
+			LastName:      p.LastName,
+			IDNumber:      p.IDNumber,
+			Address:       p.Address,
+			Nationality:   p.Nationality,
+			MaritalStatus: p.MaritalStatus,
+			Occupation:    p.Occupation,
+		}
+	}
+
+	owners := make([]pages.PartyPreview, len(req.Owners))
+	for i, o := range req.Owners {
+		owners[i] = toParty(o)
+	}
+	tenants := make([]pages.PartyPreview, len(req.Tenants))
+	for i, t := range req.Tenants {
+		tenants[i] = toParty(t)
+	}
+
+	data := pages.RentContractPreviewData{
+		Owners:             owners,
+		Tenants:            tenants,
+		OwnerDenomination:  req.OwnerDenomination,
+		TenantDenomination: req.TenantDenomination,
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if err := pages.RentContractPreview(data).Render(r.Context(), w); err != nil {
+		log.Printf("Error rendering rent contract preview: %v", err)
+	}
+}
+
 func (h *Handler) CustomerListJSON(w http.ResponseWriter, r *http.Request) {
 	customers, err := h.Queries.ListCustomers(r.Context())
 	if err != nil {

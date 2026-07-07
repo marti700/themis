@@ -22,13 +22,30 @@ type SellContractPreviewData struct {
 // SignerNames returns the upper-cased full names of every party in the document
 // (sellers followed by buyers), joined as "A, B y C". Empty if there are none.
 func (d SellContractPreviewData) SignerNames() string {
-	names := make([]string, 0, len(d.Sellers)+len(d.Buyers))
-	for _, p := range d.Sellers {
+	return signerNames(d.Sellers, d.Buyers)
+}
+
+type RentContractPreviewData struct {
+	Owners             []PartyPreview
+	Tenants            []PartyPreview
+	OwnerDenomination  string
+	TenantDenomination string
+}
+
+// SignerNames returns the upper-cased full names of every party in the document
+// (owners followed by tenants), joined as "A, B y C". Empty if there are none.
+func (d RentContractPreviewData) SignerNames() string {
+	return signerNames(d.Owners, d.Tenants)
+}
+
+func signerNames(a, b []PartyPreview) string {
+	names := make([]string, 0, len(a)+len(b))
+	for _, p := range a {
 		if full := strings.TrimSpace(p.FirstName + " " + p.LastName); full != "" {
 			names = append(names, strings.ToUpper(full))
 		}
 	}
-	for _, p := range d.Buyers {
+	for _, p := range b {
 		if full := strings.TrimSpace(p.FirstName + " " + p.LastName); full != "" {
 			names = append(names, strings.ToUpper(full))
 		}

@@ -94,14 +94,14 @@ templ Builder() {
 							<div class="bg-surface-container-lowest border border-outline-variant p-lg rounded-lg space-y-md">
 								<p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Group Labels</p>
 								<div>
-									<label class="font-label-sm text-secondary block mb-xs">Sellers denomination</label>
-									<input id="seller-denom" type="text" value="LOS VENDEDORES"
+									<label id="denom-a-label" class="font-label-sm text-secondary block mb-xs">Sellers denomination</label>
+									<input id="denom-a" type="text" value="LOS VENDEDORES"
 										class="w-full py-sm px-md border border-outline-variant bg-surface focus:border-primary focus:ring-0 font-body-md transition-all"
 										oninput="onDenomChange()"/>
 								</div>
 								<div>
-									<label class="font-label-sm text-secondary block mb-xs">Buyers denomination</label>
-									<input id="buyer-denom" type="text" value="LOS COMPRADORES"
+									<label id="denom-b-label" class="font-label-sm text-secondary block mb-xs">Buyers denomination</label>
+									<input id="denom-b" type="text" value="LOS COMPRADORES"
 										class="w-full py-sm px-md border border-outline-variant bg-surface focus:border-primary focus:ring-0 font-body-md transition-all"
 										oninput="onDenomChange()"/>
 								</div>
@@ -201,14 +201,83 @@ templ Builder() {
 		<script>
 const PYTHON_API = 'http://localhost:8001';
 
+// Per-contract-type configuration: role keys/labels, denomination defaults,
+// request field names, endpoints, and the extra (non-party, non-common) fields
+// that get mapped from the placeholder editor into the generation request.
+const CONTRACT_CONFIG = {
+  sell_contract: {
+    roleAKey: 'seller', roleBKey: 'buyer',
+    roleALabel: 'Vendedor', roleBLabel: 'Comprador',
+    denomALabel: 'Sellers denomination', denomBLabel: 'Buyers denomination',
+    denomADefault: 'LOS VENDEDORES', denomBDefault: 'LOS COMPRADORES',
+    partyAField: 'sellers', partyBField: 'buyers',
+    denomAField: 'seller_denomination', denomBField: 'buyer_denomination',
+    previewUrl: '/preview/sell_contract',
+    generateUrl: PYTHON_API + '/documents/sell_contract',
+    downloadName: 'sell_contract.docx',
+    extraFields: [
+      { label: 'DESCRIPCIÓN DEL INMUEBLE', key: 'property_description' },
+      { label: 'JUSTIFICACIÓN DE PROPIEDAD', key: 'property_justification' },
+      { label: 'PRECIO EN LETRAS', key: 'price_words' },
+      { label: 'PRECIO', key: 'price_rd' }
+    ]
+  },
+  rent_contract: {
+    roleAKey: 'owner', roleBKey: 'tenant',
+    roleALabel: 'Propietario', roleBLabel: 'Inquilino',
+    denomALabel: 'Owners denomination', denomBLabel: 'Tenants denomination',
+    denomADefault: 'EL PROPIETARIO', denomBDefault: 'EL INQUILINO',
+    partyAField: 'owners', partyBField: 'tenants',
+    denomAField: 'owner_denomination', denomBField: 'tenant_denomination',
+    previewUrl: '/preview/rent_contract',
+    generateUrl: PYTHON_API + '/documents/rent_contract',
+    downloadName: 'rent_contract.docx',
+    extraFields: [
+      { label: 'DESCRIPCIÓN DEL INMUEBLE', key: 'property_description' },
+      { label: 'USO DEL INMUEBLE', key: 'property_use' },
+      { label: 'PRECIO EN LETRAS', key: 'price_words' },
+      { label: 'PRECIO', key: 'price_rd' },
+      { label: 'DEPÓSITO EN LETRAS', key: 'deposit_words' },
+      { label: 'DEPÓSITO', key: 'deposit_rd' },
+      { label: 'DURACIÓN EN LETRAS', key: 'duration_words' },
+      { label: 'DURACIÓN', key: 'duration_number' },
+      { label: 'FECHA DE INICIO', key: 'start_date' },
+      { label: 'FECHA DE FIN', key: 'end_date' }
+    ]
+  }
+};
+
+// Fields shared verbatim by every contract type's preview/generation payload.
+const COMMON_FIELDS = [
+  { label: 'DOS', key: 'originals_count_words' },
+  { label: '2', key: 'originals_count' },
+  { label: 'CIUDAD', key: 'city' },
+  { label: 'PROVINCIA', key: 'province' },
+  { label: 'DÍA EN LETRAS', key: 'day_words' },
+  { label: 'DÍA', key: 'day_number' },
+  { label: 'MES', key: 'month' },
+  { label: 'AÑO EN LETRAS', key: 'year_words' },
+  { label: 'AÑO', key: 'year_number' },
+  { label: 'NOMBRE DEL BUFETE', key: 'firm_name' },
+  { label: 'SERVICIO DEL BUFETE', key: 'firm_service' },
+  { label: 'NOTARIO TÍTULO Y NOMBRE', key: 'notary_title_name' },
+  { label: 'TELÉFONO', key: 'notary_phone' },
+  { label: 'MUNICIPIO', key: 'notary_municipality' },
+  { label: 'MATRÍCULA', key: 'notary_registration' }
+];
+
+function cfg() {
+  return CONTRACT_CONFIG[state.contractType] || CONTRACT_CONFIG.sell_contract;
+}
+
 const state = {
   step: 1,
   contractType: null,
   customers: [],
   selected: new Set(),
   roles: {},
-  sellerDenomination: 'LOS VENDEDORES',
-  buyerDenomination: 'LOS COMPRADORES',
+  denomA: CONTRACT_CONFIG.sell_contract.denomADefault,
+  denomB: CONTRACT_CONFIG.sell_contract.denomBDefault,
   fieldValues: {}
 };
 
@@ -271,8 +340,11 @@ async function loadTemplates() {
 
 function selectType(type, el) {
   state.contractType = type;
-  document.querySelectorAll('.type-card').forEach(c => {
-    c.classList.remove('border-primary', 'bg-primary-fixed');
+  const c = cfg();
+  state.denomA = c.denomADefault;
+  state.denomB = c.denomBDefault;
+  document.querySelectorAll('.type-card').forEach(card => {
+    card.classList.remove('border-primary', 'bg-primary-fixed');
   });
   el.classList.add('border-primary', 'bg-primary-fixed');
   document.getElementById('step1-next').disabled = false;
@@ -325,7 +397,7 @@ function renderCustomerList(customers) {
 function toggleCustomer(id, checkbox) {
   if (checkbox.checked) {
     state.selected.add(id);
-    if (!state.roles[id]) state.roles[id] = 'seller';
+    if (!state.roles[id]) state.roles[id] = cfg().roleAKey;
   } else {
     state.selected.delete(id);
   }
@@ -363,25 +435,31 @@ function initials(c) { return ((c.first_name[0] || '') + (c.last_name[0] || ''))
 // ===== Step 3: Role Assignment =====
 
 function initStep3() {
-  const selected = state.customers.filter(c => state.selected.has(c.id));
-  document.getElementById('role-cards').innerHTML = selected.map(c => {
-    const ini = initials(c);
-    const color = avatarColor(c.id);
-    const role = state.roles[c.id] || 'seller';
+  const c = cfg();
+  document.getElementById('denom-a-label').textContent = c.denomALabel;
+  document.getElementById('denom-b-label').textContent = c.denomBLabel;
+  document.getElementById('denom-a').value = state.denomA;
+  document.getElementById('denom-b').value = state.denomB;
+
+  const selected = state.customers.filter(cu => state.selected.has(cu.id));
+  document.getElementById('role-cards').innerHTML = selected.map(cu => {
+    const ini = initials(cu);
+    const color = avatarColor(cu.id);
+    const role = state.roles[cu.id] || c.roleAKey;
     return `
       <div class="bg-surface-container-lowest border border-outline-variant p-lg rounded-lg flex items-center justify-between gap-md">
         <div class="flex items-center gap-md">
           <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold shrink-0 ${color}">${ini}</div>
           <div>
-            <p class="font-bold text-on-surface text-sm">${c.first_name} ${c.last_name}</p>
-            <p class="text-[11px] text-secondary font-mono">${c.id_number}</p>
+            <p class="font-bold text-on-surface text-sm">${cu.first_name} ${cu.last_name}</p>
+            <p class="text-[11px] text-secondary font-mono">${cu.id_number}</p>
           </div>
         </div>
         <div class="relative shrink-0">
           <select class="appearance-none bg-surface border border-outline-variant font-label-sm rounded px-md py-sm pr-3xl focus:ring-2 focus:ring-primary outline-none"
-                  onchange="assignRole(${c.id}, this.value)">
-            <option value="seller" ${role === 'seller' ? 'selected' : ''}>Vendedor</option>
-            <option value="buyer" ${role === 'buyer' ? 'selected' : ''}>Comprador</option>
+                  onchange="assignRole(${cu.id}, this.value)">
+            <option value="${c.roleAKey}" ${role === c.roleAKey ? 'selected' : ''}>${c.roleALabel}</option>
+            <option value="${c.roleBKey}" ${role === c.roleBKey ? 'selected' : ''}>${c.roleBLabel}</option>
           </select>
           <span class="material-symbols-outlined absolute right-sm top-1/2 -translate-y-1/2 pointer-events-none text-secondary text-[18px]">unfold_more</span>
         </div>
@@ -393,33 +471,35 @@ function initStep3() {
 function assignRole(id, role) { state.roles[id] = role; updateRoleSummary(); }
 
 function onDenomChange() {
-  state.sellerDenomination = document.getElementById('seller-denom').value || 'LOS VENDEDORES';
-  state.buyerDenomination  = document.getElementById('buyer-denom').value  || 'LOS COMPRADORES';
+  const c = cfg();
+  state.denomA = document.getElementById('denom-a').value || c.denomADefault;
+  state.denomB = document.getElementById('denom-b').value || c.denomBDefault;
   updateRoleSummary();
 }
 
 function updateRoleSummary() {
-  const selected = state.customers.filter(c => state.selected.has(c.id));
-  const sellers = selected.filter(c => state.roles[c.id] === 'seller');
-  const buyers  = selected.filter(c => state.roles[c.id] === 'buyer');
+  const c = cfg();
+  const selected = state.customers.filter(cu => state.selected.has(cu.id));
+  const partyA = selected.filter(cu => state.roles[cu.id] === c.roleAKey);
+  const partyB = selected.filter(cu => state.roles[cu.id] === c.roleBKey);
 
-  const partyHtml = (list, denom) => list.length
-    ? list.map(c => `
+  const partyHtml = list => list.length
+    ? list.map(cu => `
         <div class="flex items-center gap-sm py-sm border-b border-outline-variant/40">
-          <div class="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${avatarColor(c.id)}">${initials(c)}</div>
-          <p class="text-sm text-on-surface">${c.first_name} ${c.last_name}</p>
+          <div class="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${avatarColor(cu.id)}">${initials(cu)}</div>
+          <p class="text-sm text-on-surface">${cu.first_name} ${cu.last_name}</p>
         </div>`).join('')
     : '<p class="text-secondary text-sm italic py-sm">None assigned</p>';
 
   document.getElementById('role-summary').innerHTML = `
     <div class="space-y-lg">
       <div>
-        <p class="font-label-sm text-label-sm text-secondary uppercase tracking-wider mb-sm">${state.sellerDenomination}</p>
-        ${partyHtml(sellers)}
+        <p class="font-label-sm text-label-sm text-secondary uppercase tracking-wider mb-sm">${state.denomA}</p>
+        ${partyHtml(partyA)}
       </div>
       <div>
-        <p class="font-label-sm text-label-sm text-secondary uppercase tracking-wider mb-sm">${state.buyerDenomination}</p>
-        ${partyHtml(buyers)}
+        <p class="font-label-sm text-label-sm text-secondary uppercase tracking-wider mb-sm">${state.denomB}</p>
+        ${partyHtml(partyB)}
       </div>
     </div>`;
 }
@@ -427,12 +507,13 @@ function updateRoleSummary() {
 // ===== Step 4: Preview =====
 
 async function loadPreview() {
-  const sellers = getPartiesByRole('seller');
-  const buyers  = getPartiesByRole('buyer');
+  const c = cfg();
+  const partyA = getPartiesByRole(c.roleAKey);
+  const partyB = getPartiesByRole(c.roleBKey);
 
   // Populate side-panel party list
-  const all = [...sellers.map(s => ({...s, denom: state.sellerDenomination})),
-               ...buyers.map(b => ({...b, denom: state.buyerDenomination}))];
+  const all = [...partyA.map(p => ({...p, denom: state.denomA})),
+               ...partyB.map(p => ({...p, denom: state.denomB}))];
   document.getElementById('preview-party-list').innerHTML = all.map(p => `
     <div class="flex items-center gap-sm">
       <span class="material-symbols-outlined text-[16px] text-secondary">person</span>
@@ -443,15 +524,15 @@ async function loadPreview() {
     </div>`).join('');
 
   try {
-    const res = await fetch('/preview/sell_contract', {
+    const body = {};
+    body[c.partyAField] = partyA;
+    body[c.partyBField] = partyB;
+    body[c.denomAField] = state.denomA;
+    body[c.denomBField] = state.denomB;
+    const res = await fetch(c.previewUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        sellers,
-        buyers,
-        seller_denomination: state.sellerDenomination,
-        buyer_denomination:  state.buyerDenomination
-      })
+      body: JSON.stringify(body)
     });
     if (!res.ok) throw new Error('Server error ' + res.status);
     document.getElementById('preview-content').innerHTML = await res.text();
@@ -683,42 +764,28 @@ function enrichParties(parties) {
   }));
 }
 
-// Map the filled placeholders + parties onto the Python API's SellContractRequest.
+// Map the filled placeholders + parties onto the Python API's request shape
+// for the currently selected contract type.
 function buildDocRequest() {
-  const sellers = enrichParties(getPartiesByRole('seller'));
-  const buyers = enrichParties(getPartiesByRole('buyer'));
+  const c = cfg();
+  const partyA = enrichParties(getPartiesByRole(c.roleAKey));
+  const partyB = enrichParties(getPartiesByRole(c.roleBKey));
   const f = label => (state.fieldValues[label] || '').trim();
-  return {
-    sellers,
-    buyers,
-    seller_denomination: state.sellerDenomination,
-    buyer_denomination: state.buyerDenomination,
-    property_description: f('DESCRIPCIÓN DEL INMUEBLE'),
-    property_justification: f('JUSTIFICACIÓN DE PROPIEDAD'),
-    price_words: f('PRECIO EN LETRAS'),
-    price_rd: f('PRECIO'),
-    originals_count_words: f('DOS'),
-    originals_count: f('2'),
-    city: f('CIUDAD'),
-    province: f('PROVINCIA'),
-    day_words: f('DÍA EN LETRAS'),
-    day_number: f('DÍA'),
-    month: f('MES'),
-    year_words: f('AÑO EN LETRAS'),
-    year_number: f('AÑO'),
-    signers_list: computeSignersList(sellers, buyers),
-    firm_name: f('NOMBRE DEL BUFETE'),
-    firm_service: f('SERVICIO DEL BUFETE'),
-    notary_title_name: f('NOTARIO TÍTULO Y NOMBRE'),
-    notary_phone: f('TELÉFONO'),
-    notary_municipality: f('MUNICIPIO'),
-    notary_registration: f('MATRÍCULA')
-  };
+
+  const req = {};
+  req[c.partyAField] = partyA;
+  req[c.partyBField] = partyB;
+  req[c.denomAField] = state.denomA;
+  req[c.denomBField] = state.denomB;
+  req.signers_list = computeSignersList(partyA, partyB);
+  for (const { label, key } of c.extraFields) req[key] = f(label);
+  for (const { label, key } of COMMON_FIELDS) req[key] = f(label);
+  return req;
 }
 
 // Mirrors the Go SignerNames(): "A, B y C" of every party's upper-cased name.
-function computeSignersList(sellers, buyers) {
-  const names = [...sellers, ...buyers]
+function computeSignersList(partyA, partyB) {
+  const names = [...partyA, ...partyB]
     .map(p => (p.first_name + ' ' + p.last_name).trim().toUpperCase())
     .filter(Boolean);
   if (names.length <= 1) return names[0] || '';
@@ -741,7 +808,8 @@ async function generateDocument() {
   setGenerateStatus('', null);
 
   try {
-    const res = await fetch(PYTHON_API + '/documents/sell_contract', {
+    const c = cfg();
+    const res = await fetch(c.generateUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(buildDocRequest())
@@ -752,7 +820,7 @@ async function generateDocument() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'sell_contract.docx';
+    a.download = c.downloadName;
     document.body.appendChild(a);
     a.click();
     a.remove();

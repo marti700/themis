@@ -1,0 +1,168 @@
+package pages
+
+import "strings"
+
+templ RentContractPreview(d RentContractPreviewData) {
+	<div class="font-serif text-on-background text-[14px] space-y-md">
+		<!-- Firm / Notary Header -->
+		<div class="text-center space-y-xs border-b border-outline-variant pb-lg mb-lg">
+			<p class="font-bold text-[15px] uppercase tracking-widest">@ph("NOMBRE DEL BUFETE")</p>
+			<p class="text-secondary italic text-[13px]">@ph("SERVICIO DEL BUFETE")</p>
+			<p class="mt-sm">
+				@ph("Lic. NOMBRE DEL NOTARIO") · TEL.
+				@ph("TELÉFONO")
+			</p>
+			<p class="text-secondary text-[13px]">@ph("MUNICIPIO")</p>
+		</div>
+		<!-- Title -->
+		<div class="text-center mb-lg">
+			<h3 class="font-bold uppercase tracking-widest text-[15px] border-b-2 border-primary inline-block pb-xs">
+				Contrato de Alquiler
+			</h3>
+		</div>
+		<!-- Parties -->
+		<div class="space-y-sm">
+			if len(d.Owners) > 0 {
+				@partyBlock(d.Owners, d.OwnerDenomination, "Entre de una parte")
+			} else {
+				<p class="text-secondary italic text-[12px]">[Sin propietarios asignados]</p>
+			}
+			<p class="text-justify leading-relaxed">y de la otra parte:</p>
+			if len(d.Tenants) > 0 {
+				@partyBlock(d.Tenants, d.TenantDenomination, "")
+			} else {
+				<p class="text-secondary italic text-[12px]">[Sin inquilinos asignados]</p>
+			}
+			<p class="text-justify leading-relaxed">se ha convenido y pactado el siguiente contrato:</p>
+		</div>
+		<!-- Clause 1 -->
+		<div>
+			<p class="font-bold uppercase mt-md mb-xs">Primero:</p>
+			<p class="text-justify leading-relaxed">
+				<strong>{ d.OwnerDenomination }</strong> alquila a <strong>{ d.TenantDenomination }</strong>
+				quien acepta el inmueble que se describe a continuación:
+			</p>
+			<p class="text-justify leading-relaxed mt-sm pl-lg border-l-2 border-outline-variant">
+				@ph("DESCRIPCIÓN DEL INMUEBLE")
+			</p>
+			<p class="text-justify leading-relaxed mt-sm">
+				que ha sido vista, examinada y encontrada a su entera satisfacción por <strong>{ d.TenantDenomination }</strong>,
+				quien lo usará para
+				@ph("USO DEL INMUEBLE"),
+				no pudiendo dedicarlo a otro uso, ni cederlo, ni sub-alquilarlo, sin el consentimiento escrito de
+				<strong>{ d.OwnerDenomination }</strong>.
+			</p>
+		</div>
+		<!-- Clause 2 -->
+		<div>
+			<p class="font-bold uppercase mt-md mb-xs">Segundo:</p>
+			<p class="text-justify leading-relaxed">
+				<strong>{ d.TenantDenomination }</strong> se obliga a mantener en buen estado el inmueble alquilado, y se
+				compromete a no realizar cambios ni modificaciones sin la previa autorización escrita de
+				<strong>{ d.OwnerDenomination }</strong>.
+			</p>
+		</div>
+		<!-- Clause 3 -->
+		<div>
+			<p class="font-bold uppercase mt-md mb-xs">Tercero:</p>
+			<p class="text-justify leading-relaxed">
+				<strong>{ d.TenantDenomination }</strong> se obliga a pagar la suma de
+				@ph("PRECIO EN LETRAS"),
+				RD{ "$" } @ph("PRECIO") mensual, suma que deberá pagar mes por mes y sin retraso alguno. A falta de pago
+				del alquiler cinco (5) días después de vencido, este contrato quedará rescindido y se ejecutará el
+				desalojo sin la previa notificación de desahucio que prescribe el Art. 1736 del Código Civil.
+			</p>
+		</div>
+		<!-- Clause 4 -->
+		<div>
+			<p class="font-bold uppercase mt-md mb-xs">Cuarto:</p>
+			<p class="text-justify leading-relaxed">
+				Este contrato durará
+				@ph("DURACIÓN EN LETRAS"),
+				(
+				@ph("DURACIÓN"))
+				a contar del día
+				@ph("FECHA DE INICIO")
+				y terminará el día
+				@ph("FECHA DE FIN"){ "." }
+				Si al término de este tiempo ninguna de las partes lo hubiere denunciado, su duración se prorrogará
+				hasta que cualquiera de las partes contratantes avise con un mes de anticipación su deseo de rescindirlo.
+			</p>
+		</div>
+		<!-- Clause 5 -->
+		<div>
+			<p class="font-bold uppercase mt-md mb-xs">Quinto:</p>
+			<p class="text-justify leading-relaxed">
+				<strong>{ d.TenantDenomination }</strong> entrega en calidad de depósito la suma de
+				@ph("DEPÓSITO EN LETRAS"),
+				RD{ "$" } @ph("DEPÓSITO"), suma que responderá y podrá ser aplicada al pago de los alquileres
+				pendientes y a los gastos que ocasione el desalojo, si a ello hubiere lugar.
+			</p>
+		</div>
+		<!-- Clause 6 -->
+		<div>
+			<p class="font-bold uppercase mt-md mb-xs">Sexto:</p>
+			<p class="text-justify leading-relaxed">
+				Es entendido que el servicio de agua y luz es por cuenta de <strong>{ d.TenantDenomination }</strong>.
+				Para la ejecución de este contrato, <strong>{ d.TenantDenomination }</strong> elige domicilio en el
+				inmueble alquilado y <strong>{ d.OwnerDenomination }</strong> en su residencia.
+			</p>
+		</div>
+		<!-- Closing -->
+		<p class="text-justify leading-relaxed mt-md">
+			Hecho leído y firmado de buena fe, en
+			@ph("DOS"),
+			@ph("2")
+			originales del mismo contenido y efecto, una para cada parte. En la Ciudad de
+			@ph("CIUDAD"), Provincia
+			@ph("PROVINCIA"),
+			República Dominicana, a los
+			@ph("DÍA EN LETRAS"),
+			@ph("DÍA")
+			días del mes de
+			@ph("MES")
+			del año
+			@ph("AÑO EN LETRAS"),
+			@ph("AÑO"){ "." }
+		</p>
+		<!-- Signatures -->
+		<div class="grid grid-cols-2 gap-3xl mt-3xl pt-lg">
+			for _, o := range d.Owners {
+				<div class="text-center">
+					<div class="border-t-2 border-on-surface pt-md">
+						<p class="font-bold text-[13px] uppercase">{ strings.ToUpper(o.FirstName + " " + o.LastName) }</p>
+						<p class="text-secondary text-[12px] mt-xs">{ d.OwnerDenomination }</p>
+					</div>
+				</div>
+			}
+			for _, t := range d.Tenants {
+				<div class="text-center">
+					<div class="border-t-2 border-on-surface pt-md">
+						<p class="font-bold text-[13px] uppercase">{ strings.ToUpper(t.FirstName + " " + t.LastName) }</p>
+						<p class="text-secondary text-[12px] mt-xs">{ d.TenantDenomination }</p>
+					</div>
+				</div>
+			}
+		</div>
+		<!-- Notary -->
+		<div class="mt-3xl pt-lg border-t border-outline-variant space-y-sm">
+			<p class="text-justify leading-relaxed text-[13px]">
+				Yo,
+				@ph("NOTARIO TÍTULO Y NOMBRE"),
+				Notario Público de los del número de este municipio de
+				@ph("MUNICIPIO"),
+				con matrícula No.
+				@ph("MATRÍCULA"),
+				CERTIFICO Y DOY FE que las firmas que aparecen al pie del presente documento
+				fueron puestas libre y voluntariamente en mi presencia por los señores
+				if d.SignerNames() != "" {
+					<strong>{ d.SignerNames() }</strong>{ "." }
+				} else {
+					@ph("LISTA DE FIRMANTES"){ "." }
+				}
+			</p>
+			<p class="text-center font-bold uppercase text-[13px] mt-lg">@ph("NOTARIO TÍTULO Y NOMBRE")</p>
+			<p class="text-center text-secondary text-[12px]">Abogado - Notario</p>
+		</div>
+	</div>
+}

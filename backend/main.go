@@ -104,6 +104,7 @@ func main() {
 	r.HandleFunc("/api/customers", webHandler.CustomerListJSON).Methods(http.MethodGet, http.MethodOptions)
 	r.HandleFunc("/documents/builder", webHandler.DocumentBuilder).Methods(http.MethodGet)
 	r.HandleFunc("/preview/sell_contract", webHandler.SellContractPreview).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/preview/rent_contract", webHandler.RentContractPreview).Methods(http.MethodPost, http.MethodOptions)
 
 	// otelhttp.NewHandler wraps the entire router and automatically emits
 	// http_server_request_duration_seconds for every request — count, duration,
