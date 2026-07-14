@@ -116,6 +116,7 @@ type previewParty struct {
 	Nationality   string `json:"nationality"`
 	MaritalStatus string `json:"marital_status"`
 	Occupation    string `json:"occupation"`
+	Gender        string `json:"gender"`
 }
 
 func toParties(in []previewParty) []pages.PartyPreview {
@@ -129,6 +130,7 @@ func toParties(in []previewParty) []pages.PartyPreview {
 			Nationality:   p.Nationality,
 			MaritalStatus: p.MaritalStatus,
 			Occupation:    p.Occupation,
+			Gender:        p.Gender,
 		}
 	}
 	return out
@@ -157,6 +159,7 @@ func (h *Handler) SellContractPreview(w http.ResponseWriter, r *http.Request) {
 			Nationality:   p.Nationality,
 			MaritalStatus: p.MaritalStatus,
 			Occupation:    p.Occupation,
+			Gender:        p.Gender,
 		}
 	}
 
@@ -172,8 +175,8 @@ func (h *Handler) SellContractPreview(w http.ResponseWriter, r *http.Request) {
 	data := pages.SellContractPreviewData{
 		Sellers:            sellers,
 		Buyers:             buyers,
-		SellerDenomination: req.SellerDenomination,
-		BuyerDenomination:  req.BuyerDenomination,
+		SellerDenomination: pages.ResolveDenomination(req.SellerDenomination, "VENDEDOR", sellers),
+		BuyerDenomination:  pages.ResolveDenomination(req.BuyerDenomination, "COMPRADOR", buyers),
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -205,6 +208,7 @@ func (h *Handler) RentContractPreview(w http.ResponseWriter, r *http.Request) {
 			Nationality:   p.Nationality,
 			MaritalStatus: p.MaritalStatus,
 			Occupation:    p.Occupation,
+			Gender:        p.Gender,
 		}
 	}
 
@@ -220,8 +224,8 @@ func (h *Handler) RentContractPreview(w http.ResponseWriter, r *http.Request) {
 	data := pages.RentContractPreviewData{
 		Owners:             owners,
 		Tenants:            tenants,
-		OwnerDenomination:  req.OwnerDenomination,
-		TenantDenomination: req.TenantDenomination,
+		OwnerDenomination:  pages.ResolveDenomination(req.OwnerDenomination, "PROPIETARIO", owners),
+		TenantDenomination: pages.ResolveDenomination(req.TenantDenomination, "INQUILINO", tenants),
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -245,12 +249,14 @@ func (h *Handler) PoderEspecialPreview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	poderdantes := toParties(req.Poderdantes)
+	apoderados := toParties(req.Apoderados)
 	data := pages.PoderEspecialPreviewData{
-		Poderdantes:            toParties(req.Poderdantes),
-		Apoderados:             toParties(req.Apoderados),
+		Poderdantes:            poderdantes,
+		Apoderados:             apoderados,
 		Witnesses:              toParties(req.Witnesses),
-		PoderdanteDenomination: req.PoderdanteDenomination,
-		ApoderadoDenomination:  req.ApoderadoDenomination,
+		PoderdanteDenomination: pages.ResolveDenomination(req.PoderdanteDenomination, "PODERDANTE", poderdantes),
+		ApoderadoDenomination:  pages.ResolveDenomination(req.ApoderadoDenomination, "APODERADO", apoderados),
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -273,10 +279,11 @@ func (h *Handler) DeclaracionJuradaPreview(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	declarants := toParties(req.Declarants)
 	data := pages.DeclaracionJuradaPreviewData{
-		Declarants:            toParties(req.Declarants),
+		Declarants:            declarants,
 		Witnesses:             toParties(req.Witnesses),
-		DeclarantDenomination: req.DeclarantDenomination,
+		DeclarantDenomination: pages.ResolveDenomination(req.DeclarantDenomination, "COMPARECIENTE", declarants),
 		Clauses:               req.Clauses,
 	}
 
@@ -293,10 +300,11 @@ func (h *Handler) ActoNotoriedadPreview(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	declarants := toParties(req.Declarants)
 	data := pages.ActoNotoriedadPreviewData{
-		Declarants:            toParties(req.Declarants),
+		Declarants:            declarants,
 		Witnesses:             toParties(req.Witnesses),
-		DeclarantDenomination: req.DeclarantDenomination,
+		DeclarantDenomination: pages.ResolveDenomination(req.DeclarantDenomination, "COMPARECIENTE", declarants),
 		Clauses:               req.Clauses,
 	}
 
@@ -316,6 +324,7 @@ type heirPreviewInput struct {
 	Address       string `json:"address"`
 	BirthDate     string `json:"birth_date"`
 	BirthRecord   string `json:"birth_record"`
+	Gender        string `json:"gender"`
 }
 
 func toHeirs(in []heirPreviewInput) []pages.HeirPreview {
@@ -331,6 +340,7 @@ func toHeirs(in []heirPreviewInput) []pages.HeirPreview {
 			Address:       h.Address,
 			BirthDate:     h.BirthDate,
 			BirthRecord:   h.BirthRecord,
+			Gender:        h.Gender,
 		}
 	}
 	return out
@@ -351,10 +361,11 @@ func (h *Handler) DeterminacionHerederosPreview(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	declarants := toParties(req.Declarants)
 	data := pages.DeterminacionHerederosPreviewData{
-		Declarants:            toParties(req.Declarants),
+		Declarants:            declarants,
 		Witnesses:             toParties(req.Witnesses),
-		DeclarantDenomination: req.DeclarantDenomination,
+		DeclarantDenomination: pages.ResolveDenomination(req.DeclarantDenomination, "DECLARANTE", declarants),
 		Heirs:                 toHeirs(req.Heirs),
 		Clauses:               req.Clauses,
 	}
@@ -380,12 +391,14 @@ func (h *Handler) AutorizacionViajeMenorPreview(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	authorizers := toParties(req.Authorizers)
+	acceptors := toParties(req.Acceptors)
 	data := pages.AutorizacionViajeMenorPreviewData{
-		Authorizers:            toParties(req.Authorizers),
-		Acceptors:              toParties(req.Acceptors),
+		Authorizers:            authorizers,
+		Acceptors:              acceptors,
 		Witnesses:              toParties(req.Witnesses),
-		AuthorizerDenomination: req.AuthorizerDenomination,
-		AcceptorDenomination:   req.AcceptorDenomination,
+		AuthorizerDenomination: pages.ResolveDenomination(req.AuthorizerDenomination, "AUTORIZANTE", authorizers),
+		AcceptorDenomination:   pages.ResolveDenomination(req.AcceptorDenomination, "ACEPTANTE", acceptors),
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")

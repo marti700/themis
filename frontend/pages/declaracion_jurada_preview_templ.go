@@ -215,7 +215,20 @@ func DeclaracionJuradaPreview(d DeclaracionJuradaPreviewData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "; ha(n) comparecido libre y voluntariamente ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "; ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var3 string
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(haWord(len(d.Declarants)))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `frontend/pages/declaracion_jurada_preview.templ`, Line: 41, Col: 54}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, " comparecido libre y voluntariamente ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -225,7 +238,7 @@ func DeclaracionJuradaPreview(d DeclaracionJuradaPreviewData) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<span class=\"text-secondary italic text-[12px]\">[Sin comparecientes asignados]</span>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<span class=\"text-secondary italic text-[12px]\">[Sin comparecientes asignados]</span>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -234,7 +247,20 @@ func DeclaracionJuradaPreview(d DeclaracionJuradaPreviewData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "y me ha(n) declarado BAJO LA FE DEL JURAMENTO lo siguiente:</p><!-- Clauses -->")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "y me ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var4 string
+		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(haWord(len(d.Declarants)))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `frontend/pages/declaracion_jurada_preview.templ`, Line: 48, Col: 35}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, " declarado BAJO LA FE DEL JURAMENTO lo siguiente:</p><!-- Clauses -->")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -242,7 +268,7 @@ func DeclaracionJuradaPreview(d DeclaracionJuradaPreviewData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "<!-- Closing --><p class=\"text-justify leading-relaxed mt-md\">HECHO, LEÍDO Y PASADO en mi estudio profesional, el día, mes y año indicados en cabeza del presente acto, el cual he leído íntegramente en voz alta al/a los compareciente(s) en presencia de los testigos, quienes se mostraron conformes y en señal de aprobación procedieron a firmarlo ante mí y junto conmigo, NOTARIO PÚBLICO QUE CERTIFICO Y DOY FE.</p><!-- Signatures -->")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "<!-- Closing --><p class=\"text-justify leading-relaxed mt-md\">HECHO, LEÍDO Y PASADO en mi estudio profesional, el día, mes y año indicados en cabeza del presente acto, el cual he leído íntegramente en voz alta al/a los compareciente(s) en presencia de los testigos, quienes se mostraron conformes y en señal de aprobación procedieron a firmarlo ante mí y junto conmigo, NOTARIO PÚBLICO QUE CERTIFICO Y DOY FE.</p><!-- Signatures -->")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -250,7 +276,7 @@ func DeclaracionJuradaPreview(d DeclaracionJuradaPreviewData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "<!-- Notary signature --><div class=\"mt-3xl pt-lg border-t border-outline-variant space-y-sm\"><p class=\"text-center font-bold uppercase text-[13px]\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "<!-- Notary signature --><div class=\"mt-3xl pt-lg border-t border-outline-variant space-y-sm\"><p class=\"text-center font-bold uppercase text-[13px]\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -258,7 +284,7 @@ func DeclaracionJuradaPreview(d DeclaracionJuradaPreviewData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "</p><p class=\"text-center text-secondary text-[12px]\">Notario Público</p></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "</p><p class=\"text-center text-secondary text-[12px]\">Notario Público</p></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

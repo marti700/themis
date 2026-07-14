@@ -38,13 +38,13 @@ templ DeterminacionHerederosPreview(d DeterminacionHerederosPreviewData) {
 			@ph("NOTARIO CÉDULA"), con mi estudio profesional abierto en
 			@ph("NOTARIO ESTUDIO"),
 			@witnessBlock(d.Witnesses)
-			han Comparecido Libre y Voluntariamente los señores
+			{ haWord(len(d.Declarants)) } Comparecido Libre y Voluntariamente
 			if len(d.Declarants) > 0 {
 				@actPartyBlock(d.Declarants, d.DeclarantDenomination)
 			} else {
 				<span class="text-secondary italic text-[12px]">[Sin declarantes asignados]</span>
 			}
-			me han declarado los comparecientes, Bajo la Fe del Juramento, lo siguiente:
+			me { haWord(len(d.Declarants)) } declarado los comparecientes, Bajo la Fe del Juramento, lo siguiente:
 		</p>
 		<!-- Clause 1: deceased facts (fixed) -->
 		<div>

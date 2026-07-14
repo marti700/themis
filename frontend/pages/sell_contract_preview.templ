@@ -13,74 +13,41 @@ templ ph(label string) {
 }
 
 templ partyBlock(parties []PartyPreview, denomination string, connector string) {
-	if len(parties) == 1 {
+	for i, p := range parties {
 		<p class="text-justify leading-relaxed">
-			{ connector } <strong class="text-primary">{ strings.ToUpper(parties[0].FirstName + " " + parties[0].LastName) }</strong>,
+			if i == 0 && connector != "" {
+				{ connector }
+			}
+			<strong class="text-primary">{ strings.ToUpper(p.FirstName + " " + p.LastName) }</strong>,
 			de nacionalidad
-				if parties[0].Nationality != "" {
-					{ parties[0].Nationality },
-				} else {
-					@ph("NACIONALIDAD"),
-				}
-				mayor de edad,
-			if parties[0].MaritalStatus != "" {
-				{ parties[0].MaritalStatus },
+			if p.Nationality != "" {
+				{ p.Nationality },
+			} else {
+				@ph("NACIONALIDAD"),
+			}
+			mayor de edad,
+			if maritalStatusEs(p.MaritalStatus, p.Gender) != "" {
+				{ maritalStatusEs(p.MaritalStatus, p.Gender) },
 			} else {
 				@ph("ESTADO CIVIL"),
 			}
-			if parties[0].Occupation != "" {
-				{ parties[0].Occupation },
+			if p.Occupation != "" {
+				{ p.Occupation },
 			} else {
 				@ph("OCUPACIÓN"),
 			}
-			portador(a) de la cédula de Identidad y Electoral No. <strong>{ parties[0].IDNumber }</strong>,
-			domiciliado(a) y residente en
-			if parties[0].Address != "" {
-				{ parties[0].Address };
+			{ agree("portador", "portadora", p.Gender) } de la cédula de Identidad y Electoral No. <strong>{ p.IDNumber }</strong>,
+			{ agree("domiciliado", "domiciliada", p.Gender) } y residente en
+			if p.Address != "" {
+				{ p.Address };
 			} else {
 				@ph("DOMICILIO");
 			}
 		</p>
-		<p class="text-justify leading-relaxed">
-			quien en lo que sigue del presente contrato se denominará <strong>{ denomination }</strong>;
-		</p>
-	} else {
-		for i, p := range parties {
-			<p class="text-justify leading-relaxed">
-				if i == 0 && connector != "" {
-					{ connector }
-				}
-				<strong class="text-primary">{ strings.ToUpper(p.FirstName + " " + p.LastName) }</strong>,
-				de nacionalidad
-				if p.Nationality != "" {
-					{ p.Nationality },
-				} else {
-					@ph("NACIONALIDAD"),
-				}
-				mayor de edad,
-				if p.MaritalStatus != "" {
-					{ p.MaritalStatus },
-				} else {
-					@ph("ESTADO CIVIL"),
-				}
-				if p.Occupation != "" {
-					{ p.Occupation },
-				} else {
-					@ph("OCUPACIÓN"),
-				}
-				portador(a) de la cédula No. <strong>{ p.IDNumber }</strong>,
-				domiciliado(a) en
-				if p.Address != "" {
-					{ p.Address };
-				} else {
-					@ph("DOMICILIO");
-				}
-			</p>
-		}
-		<p class="text-justify leading-relaxed">
-			quienes en lo que sigue del presente contrato se denominarán <strong>{ denomination }</strong>;
-		</p>
 	}
+	<p class="text-justify leading-relaxed">
+		{ quienWord(len(parties)) } en lo que { sigueWord(len(parties)) } del presente contrato { denominarWord(len(parties)) } <strong>{ denomination }</strong>;
+	</p>
 }
 
 templ SellContractPreview(d SellContractPreviewData) {

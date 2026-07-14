@@ -780,7 +780,7 @@ const HEIR_FIELDS = [
 ];
 
 function emptyHeir() {
-  const h = { address: '' };
+  const h = { address: '', gender: '' };
   HEIR_FIELDS.forEach(f => { h[f.key] = ''; });
   return h;
 }
@@ -818,6 +818,11 @@ function renderHeirs() {
         ${HEIR_FIELDS.map(f => `
           <input placeholder="${escAttr(f.placeholder)}" value="${escAttr(h[f.key])}"
             oninput="updateHeirField(${i}, '${f.key}', this.value)" class="${inputCls}"/>`).join('')}
+        <select onchange="updateHeirField(${i}, 'gender', this.value)" class="${inputCls}">
+          <option value="" ${!h.gender ? 'selected' : ''}>Género...</option>
+          <option value="masculin" ${h.gender === 'masculin' ? 'selected' : ''}>Masculino</option>
+          <option value="femenin" ${h.gender === 'femenin' ? 'selected' : ''}>Femenino</option>
+        </select>
         <input placeholder="Domicilio" value="${escAttr(h.address)}"
           oninput="updateHeirField(${i}, 'address', this.value)" class="col-span-2 ${inputCls}"/>
       </div>
@@ -1031,7 +1036,8 @@ function getPartiesByRole(role) {
       address:        extractText(c.address),
       nationality:    extractText(c.nationality),
       marital_status: extractMaritalStatus(c.marital_status),
-      occupation:     extractText(c.occupation)
+      occupation:     extractText(c.occupation),
+      gender:         extractGender(c.gender)
     }));
 }
 
@@ -1045,6 +1051,12 @@ function extractMaritalStatus(ms) {
   if (!ms) return '';
   if (typeof ms === 'string') return ms;
   return ms.valid ? (ms.marital_status || '') : '';
+}
+
+function extractGender(g) {
+  if (!g) return null;
+  if (typeof g === 'string') return g;
+  return g.valid ? (g.gender || null) : null;
 }
 
 // ===== Step 4: Generate .docx =====

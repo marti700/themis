@@ -207,7 +207,16 @@ func DeterminacionHerederosPreview(d DeterminacionHerederosPreviewData) templ.Co
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "han Comparecido Libre y Voluntariamente los señores ")
+		var templ_7745c5c3_Var3 string
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(haWord(len(d.Declarants)))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `frontend/pages/determinacion_herederos_preview.templ`, Line: 41, Col: 30}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, " Comparecido Libre y Voluntariamente ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -222,7 +231,20 @@ func DeterminacionHerederosPreview(d DeterminacionHerederosPreviewData) templ.Co
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "me han declarado los comparecientes, Bajo la Fe del Juramento, lo siguiente:</p><!-- Clause 1: deceased facts (fixed) --><div><p class=\"font-bold uppercase mt-md mb-xs\">Primero:</p><p class=\"text-justify leading-relaxed\">Que en vida conocieron al hoy finado, <strong>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "me ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var4 string
+		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(haWord(len(d.Declarants)))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `frontend/pages/determinacion_herederos_preview.templ`, Line: 47, Col: 33}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, " declarado los comparecientes, Bajo la Fe del Juramento, lo siguiente:</p><!-- Clause 1: deceased facts (fixed) --><div><p class=\"font-bold uppercase mt-md mb-xs\">Primero:</p><p class=\"text-justify leading-relaxed\">Que en vida conocieron al hoy finado, <strong>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -230,7 +252,7 @@ func DeterminacionHerederosPreview(d DeterminacionHerederosPreviewData) templ.Co
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</strong>, de nacionalidad")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "</strong>, de nacionalidad")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -238,7 +260,7 @@ func DeterminacionHerederosPreview(d DeterminacionHerederosPreviewData) templ.Co
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, ", mayor de edad,")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, ", mayor de edad,")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -246,7 +268,7 @@ func DeterminacionHerederosPreview(d DeterminacionHerederosPreviewData) templ.Co
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, ",")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, ",")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -254,7 +276,7 @@ func DeterminacionHerederosPreview(d DeterminacionHerederosPreviewData) templ.Co
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, ", quien nació en fecha")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, ", quien nació en fecha")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -262,7 +284,7 @@ func DeterminacionHerederosPreview(d DeterminacionHerederosPreviewData) templ.Co
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, ", y falleció en fecha")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, ", y falleció en fecha")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -270,7 +292,7 @@ func DeterminacionHerederosPreview(d DeterminacionHerederosPreviewData) templ.Co
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, ", según")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, ", según")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -278,7 +300,7 @@ func DeterminacionHerederosPreview(d DeterminacionHerederosPreviewData) templ.Co
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, ", portador(a) de la cédula de identidad y electoral No.")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, ", portador(a) de la cédula de identidad y electoral No.")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -286,11 +308,11 @@ func DeterminacionHerederosPreview(d DeterminacionHerederosPreviewData) templ.Co
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, ", quien era oriundo(a) de")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, ", quien era oriundo(a) de")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Var3 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_Var5 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 			if !templ_7745c5c3_IsBuffer {
@@ -302,17 +324,17 @@ func DeterminacionHerederosPreview(d DeterminacionHerederosPreviewData) templ.Co
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "\".\" ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "\".\" ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = ph("DIFUNTO LUGAR DE ORIGEN").Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = ph("DIFUNTO LUGAR DE ORIGEN").Render(templ.WithChildren(ctx, templ_7745c5c3_Var5), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "</p></div><!-- Clause 2: heirs enumeration (fixed intro + injected list) --><div><p class=\"font-bold uppercase mt-md mb-xs\">Segundo:</p><p class=\"text-justify leading-relaxed\">Que al momento de su fallecimiento, <strong>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "</p></div><!-- Clause 2: heirs enumeration (fixed intro + injected list) --><div><p class=\"font-bold uppercase mt-md mb-xs\">Segundo:</p><p class=\"text-justify leading-relaxed\">Que al momento de su fallecimiento, <strong>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -320,7 +342,7 @@ func DeterminacionHerederosPreview(d DeterminacionHerederosPreviewData) templ.Co
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "</strong> había procreado con")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "</strong> había procreado con")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -328,7 +350,7 @@ func DeterminacionHerederosPreview(d DeterminacionHerederosPreviewData) templ.Co
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "los siguientes herederos:</p>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "los siguientes herederos:</p>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -336,7 +358,7 @@ func DeterminacionHerederosPreview(d DeterminacionHerederosPreviewData) templ.Co
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "</div><!-- Dynamic clauses continue at TERCERO -->")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "</div><!-- Dynamic clauses continue at TERCERO -->")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -344,7 +366,7 @@ func DeterminacionHerederosPreview(d DeterminacionHerederosPreviewData) templ.Co
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "<!-- Closing --><p class=\"text-justify leading-relaxed mt-md\">Los comparecientes hacen constar que sus declaraciones están apegadas a la verdad, por lo que Yo, Notario Público, he procedido a levantar el presente acto, dándole lectura al mismo en voz alta en presencia de los comparecientes y los testigos, quienes se mostraron conformes con el mismo y en señal de aprobación lo firmaron ante mí y junto conmigo, Notario Público que CERTIFICO Y DOY FE.</p><!-- Signatures -->")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "<!-- Closing --><p class=\"text-justify leading-relaxed mt-md\">Los comparecientes hacen constar que sus declaraciones están apegadas a la verdad, por lo que Yo, Notario Público, he procedido a levantar el presente acto, dándole lectura al mismo en voz alta en presencia de los comparecientes y los testigos, quienes se mostraron conformes con el mismo y en señal de aprobación lo firmaron ante mí y junto conmigo, Notario Público que CERTIFICO Y DOY FE.</p><!-- Signatures -->")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -352,7 +374,7 @@ func DeterminacionHerederosPreview(d DeterminacionHerederosPreviewData) templ.Co
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "<!-- Notary signature --><div class=\"mt-3xl pt-lg border-t border-outline-variant space-y-sm\"><p class=\"text-center font-bold uppercase text-[13px]\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "<!-- Notary signature --><div class=\"mt-3xl pt-lg border-t border-outline-variant space-y-sm\"><p class=\"text-center font-bold uppercase text-[13px]\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -360,7 +382,7 @@ func DeterminacionHerederosPreview(d DeterminacionHerederosPreviewData) templ.Co
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "</p><p class=\"text-center text-secondary text-[12px]\">Notario Público</p></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "</p><p class=\"text-center text-secondary text-[12px]\">Notario Público</p></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

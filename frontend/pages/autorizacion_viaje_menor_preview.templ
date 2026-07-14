@@ -26,14 +26,14 @@ templ AutorizacionViajeMenorPreview(d AutorizacionViajeMenorPreviewData) {
 			@ph("NOTARIO CÉDULA"), Notario Público de los del número de este Municipio de
 			@ph("MUNICIPIO"), miembro del Colegio Dominicano de Notarios con matrícula No.
 			@ph("MATRÍCULA"), con mi estudio profesional abierto en
-			@ph("NOTARIO ESTUDIO"); ha(n) comparecido libre y voluntariamente
+			@ph("NOTARIO ESTUDIO"); { haWord(len(d.Authorizers)) } comparecido libre y voluntariamente
 			if len(d.Authorizers) > 0 {
 				@actPartyBlock(d.Authorizers, d.AuthorizerDenomination)
 			} else {
 				<span class="text-secondary italic text-[12px]">[Sin autorizadores asignados]</span>
 			}
 			@witnessBlock(d.Witnesses)
-			y me ha(n) declarado Bajo la Fe del Juramento que por medio del presente acto da(n) Expresa
+			y me { haWord(len(d.Authorizers)) } declarado Bajo la Fe del Juramento que por medio del presente acto { pickWord(len(d.Authorizers), "da", "dan") } Expresa
 			Autorización a <strong>@ph("MENOR NOMBRE")</strong>, menor de edad, nacido(a) en fecha
 			@ph("MENOR FECHA NACIMIENTO"), según
 			@ph("MENOR ACTA NACIMIENTO"), portador(a) del pasaporte No.

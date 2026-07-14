@@ -12,6 +12,18 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
+from concordancia import (
+    agree,
+    denominar,
+    ha,
+    marital_status_es,
+    party_block,
+    pick,
+    quien,
+    resolve_denomination,
+    sigue,
+)
+
 app = FastAPI(title="Themis Document API")
 
 app.add_middleware(
@@ -54,6 +66,7 @@ class CustomerInfo(BaseModel):
     marital_status: str | None = None
     occupation: str | None = None
     nationality: str | None = None
+    gender: str | None = None
 
 
 class SellContractRequest(BaseModel):
@@ -187,6 +200,7 @@ class HeirInfo(BaseModel):
     address: str = ""
     birth_date: str = ""
     birth_record: str = ""
+    gender: str | None = None
 
 
 class DeterminacionHerederosRequest(NotaryActBase):
@@ -320,16 +334,20 @@ def inject_heirs(doc: Document, heirs: list[HeirInfo]):
         if h.nationality:
             details += f", {h.nationality}"
         details += ", mayor de edad"
-        if h.marital_status:
-            details += f", {h.marital_status}"
+        ms = marital_status_es(h.marital_status, h.gender)
+        if ms:
+            details += f", {ms}"
         if h.occupation:
             details += f", {h.occupation}"
         if h.id_number:
-            details += f", portador(a) de la cédula de identidad y electoral No. {h.id_number}"
+            portador = agree("portador", "portadora", h.gender)
+            details += f", {portador} de la cédula de identidad y electoral No. {h.id_number}"
         if h.address:
-            details += f", domiciliado(a) y residente en {h.address}"
+            domiciliado = agree("domiciliado", "domiciliada", h.gender)
+            details += f", {domiciliado} y residente en {h.address}"
         if h.birth_date:
-            details += f", nacido(a) en fecha {h.birth_date}"
+            nacido = agree("nacido", "nacida", h.gender)
+            details += f", {nacido} en fecha {h.birth_date}"
         if h.birth_record:
             details += f", según {h.birth_record}"
         details += ";"
@@ -337,20 +355,10 @@ def inject_heirs(doc: Document, heirs: list[HeirInfo]):
         target_paragraph._p.addnext(para._p)
 
 
-def _party_names(people: list[CustomerInfo]) -> str:
-    """Full names joined for a party sentence: 'A y B'."""
-    return " y ".join(f"{p.first_name} {p.last_name}" for p in people)
-
-
 def _bold_upper(text: str) -> RichText:
     """Party name for a `{{r VAR}}` placeholder: bold and upper-cased, as notarial
     acts render the parties' names in the body text."""
     return RichText(text.upper(), bold=True)
-
-
-def _join(values) -> str:
-    """Comma-join optional fields, dropping None."""
-    return ", ".join(v or "" for v in values)
 
 
 def _notary_context(req: NotaryActBase) -> dict:
@@ -368,12 +376,7 @@ def _notary_context(req: NotaryActBase) -> dict:
         "NOTARIO_ESTADO_CIVIL": req.notary_marital_status,
         "NOTARIO_CEDULA": req.notary_cedula,
         "NOTARIO_ESTUDIO": req.notary_office,
-        "TESTIGO_NOMBRES": _bold_upper(_party_names(req.witnesses)),
-        "TESTIGO_NACIONALIDAD": _join(w.nationality for w in req.witnesses),
-        "TESTIGO_ESTADO_CIVIL": _join(w.marital_status for w in req.witnesses),
-        "TESTIGO_OCUPACION": _join(w.occupation for w in req.witnesses),
-        "TESTIGO_CEDULAS": _join(w.id_number for w in req.witnesses),
-        "TESTIGO_DOMICILIO": _join(w.address for w in req.witnesses),
+        "TESTIGO_BLOQUE": party_block(req.witnesses),
         "CIUDAD_CONTRATO": req.city,
         "PROVINCIA_CONTRATO": req.province,
         "DIA_LETRAS": req.day_words,
@@ -391,14 +394,16 @@ def _notary_context(req: NotaryActBase) -> dict:
 def _clause_act_context(req: ClauseActRequest) -> dict:
     """Placeholders shared by Declaración Jurada and Acto de Notoriedad: the
     declarant/compareciente party block and the dynamic-clauses sentinel."""
+    n = len(req.declarants)
     return {
-        "COMPARECIENTE_NOMBRE": _bold_upper(_party_names(req.declarants)),
-        "COMPARECIENTE_NACIONALIDAD": _join(d.nationality for d in req.declarants),
-        "COMPARECIENTE_ESTADO_CIVIL": _join(d.marital_status for d in req.declarants),
-        "COMPARECIENTE_OCUPACION": _join(d.occupation for d in req.declarants),
-        "COMPARECIENTE_CEDULA": _join(d.id_number for d in req.declarants),
-        "COMPARECIENTE_DOMICILIO": _join(d.address for d in req.declarants),
-        "DENOMINACION_COMPARECIENTE": req.declarant_denomination,
+        "COMPARECIENTE_BLOQUE": party_block(req.declarants),
+        "COMPARECIENTE_HA": ha(n),
+        "COMPARECIENTE_QUIEN": quien(n),
+        "COMPARECIENTE_SIGUE": sigue(n),
+        "COMPARECIENTE_SE_DENOMINARA": denominar(n),
+        "DENOMINACION_COMPARECIENTE": resolve_denomination(
+            req.declarant_denomination, "COMPARECIENTE", req.declarants
+        ),
         "CLAUSULAS": _CLAUSES_SENTINEL,
     }
 
@@ -431,20 +436,16 @@ def generate_sell_contract(req: SellContractRequest):
         "NOTARIO_TELEFONO": req.notary_phone,
         "NOTARIO_MUNICIPIO": req.notary_municipality,
         "NOTARIO_MATRICULA": req.notary_registration,
-        "VENDEDOR_NOMBRE": " y ".join(f"{s.first_name} {s.last_name}" for s in req.sellers),
-        "VENDEDOR_NACIONALIDAD": ", ".join(s.nationality or "" for s in req.sellers),
-        "VENDEDOR_ESTADO_CIVIL": ", ".join(s.marital_status or "" for s in req.sellers),
-        "VENDEDOR_OCUPACION": ", ".join(s.occupation or "" for s in req.sellers),
-        "VENDEDOR_CEDULA": ", ".join(s.id_number for s in req.sellers),
-        "VENDEDOR_DOMICILIO": ", ".join(s.address or "" for s in req.sellers),
-        "COMPRADOR_NOMBRE": " y ".join(f"{b.first_name} {b.last_name}" for b in req.buyers),
-        "COMPRADOR_NACIONALIDAD": ", ".join(b.nationality or "" for b in req.buyers),
-        "COMPRADOR_ESTADO_CIVIL": ", ".join(b.marital_status or "" for b in req.buyers),
-        "COMPRADOR_OCUPACION": ", ".join(b.occupation or "" for b in req.buyers),
-        "COMPRADOR_CEDULA": ", ".join(b.id_number for b in req.buyers),
-        "COMPRADOR_DOMICILIO": ", ".join(b.address or "" for b in req.buyers),
-        "DENOMINACION_VENDEDORES": req.seller_denomination,
-        "DENOMINACION_COMPRADOR": req.buyer_denomination,
+        "VENDEDOR_BLOQUE": party_block(req.sellers),
+        "VENDEDOR_QUIEN": quien(len(req.sellers)),
+        "VENDEDOR_SIGUE": sigue(len(req.sellers)),
+        "VENDEDOR_SE_DENOMINARA": denominar(len(req.sellers)),
+        "DENOMINACION_VENDEDORES": resolve_denomination(req.seller_denomination, "VENDEDOR", req.sellers),
+        "COMPRADOR_BLOQUE": party_block(req.buyers),
+        "COMPRADOR_QUIEN": quien(len(req.buyers)),
+        "COMPRADOR_SIGUE": sigue(len(req.buyers)),
+        "COMPRADOR_SE_DENOMINARA": denominar(len(req.buyers)),
+        "DENOMINACION_COMPRADOR": resolve_denomination(req.buyer_denomination, "COMPRADOR", req.buyers),
         "DESCRIPCION_INMUEBLE": req.property_description,
         "JUSTIFICACION_PROPIEDAD": req.property_justification,
         "PRECIO_LETRAS": req.price_words,
@@ -504,20 +505,16 @@ def generate_rent_contract(req: RentContractRequest):
         "NOTARIO_TELEFONO": req.notary_phone,
         "NOTARIO_MUNICIPIO": req.notary_municipality,
         "NOTARIO_MATRICULA": req.notary_registration,
-        "PROPIETARIO_NOMBRE": " y ".join(f"{o.first_name} {o.last_name}" for o in req.owners),
-        "PROPIETARIO_NACIONALIDAD": ", ".join(o.nationality or "" for o in req.owners),
-        "PROPIETARIO_ESTADO_CIVIL": ", ".join(o.marital_status or "" for o in req.owners),
-        "PROPIETARIO_OCUPACION": ", ".join(o.occupation or "" for o in req.owners),
-        "PROPIETARIO_CEDULA": ", ".join(o.id_number for o in req.owners),
-        "PROPIETARIO_DOMICILIO": ", ".join(o.address or "" for o in req.owners),
-        "INQUILINO_NOMBRE": " y ".join(f"{t.first_name} {t.last_name}" for t in req.tenants),
-        "INQUILINO_NACIONALIDAD": ", ".join(t.nationality or "" for t in req.tenants),
-        "INQUILINO_ESTADO_CIVIL": ", ".join(t.marital_status or "" for t in req.tenants),
-        "INQUILINO_OCUPACION": ", ".join(t.occupation or "" for t in req.tenants),
-        "INQUILINO_CEDULA": ", ".join(t.id_number for t in req.tenants),
-        "INQUILINO_DOMICILIO": ", ".join(t.address or "" for t in req.tenants),
-        "DENOMINACION_PROPIETARIO": req.owner_denomination,
-        "DENOMINACION_INQUILINO": req.tenant_denomination,
+        "PROPIETARIO_BLOQUE": party_block(req.owners),
+        "PROPIETARIO_QUIEN": quien(len(req.owners)),
+        "PROPIETARIO_SIGUE": sigue(len(req.owners)),
+        "PROPIETARIO_SE_DENOMINARA": denominar(len(req.owners)),
+        "DENOMINACION_PROPIETARIO": resolve_denomination(req.owner_denomination, "PROPIETARIO", req.owners),
+        "INQUILINO_BLOQUE": party_block(req.tenants),
+        "INQUILINO_QUIEN": quien(len(req.tenants)),
+        "INQUILINO_SIGUE": sigue(len(req.tenants)),
+        "INQUILINO_SE_DENOMINARA": denominar(len(req.tenants)),
+        "DENOMINACION_INQUILINO": resolve_denomination(req.tenant_denomination, "INQUILINO", req.tenants),
         "DESCRIPCION_INMUEBLE": req.property_description,
         "USO_INMUEBLE": req.property_use,
         "PRECIO_LETRAS": req.price_words,
@@ -576,20 +573,22 @@ def generate_poder_especial(req: PoderEspecialRequest):
     context = _notary_context(req)
     context.update(
         {
-            "PODERDANTE_NOMBRE": _bold_upper(_party_names(req.poderdantes)),
-            "PODERDANTE_NACIONALIDAD": _join(p.nationality for p in req.poderdantes),
-            "PODERDANTE_ESTADO_CIVIL": _join(p.marital_status for p in req.poderdantes),
-            "PODERDANTE_OCUPACION": _join(p.occupation for p in req.poderdantes),
-            "PODERDANTE_CEDULA": _join(p.id_number for p in req.poderdantes),
-            "PODERDANTE_DOMICILIO": _join(p.address for p in req.poderdantes),
-            "DENOMINACION_PODERDANTE": req.poderdante_denomination,
-            "APODERADO_NOMBRE": _bold_upper(_party_names(req.apoderados)),
-            "APODERADO_NACIONALIDAD": _join(a.nationality for a in req.apoderados),
-            "APODERADO_ESTADO_CIVIL": _join(a.marital_status for a in req.apoderados),
-            "APODERADO_OCUPACION": _join(a.occupation for a in req.apoderados),
-            "APODERADO_CEDULA": _join(a.id_number for a in req.apoderados),
-            "APODERADO_DOMICILIO": _join(a.address for a in req.apoderados),
-            "DENOMINACION_APODERADO": req.apoderado_denomination,
+            "PODERDANTE_BLOQUE": party_block(req.poderdantes),
+            "PODERDANTE_HA": ha(len(req.poderdantes)),
+            "PODERDANTE_QUIEN": quien(len(req.poderdantes)),
+            "PODERDANTE_SIGUE": sigue(len(req.poderdantes)),
+            "PODERDANTE_SE_DENOMINARA": denominar(len(req.poderdantes)),
+            "PODERDANTE_OTORGA": pick(len(req.poderdantes), "otorga", "otorgan"),
+            "DENOMINACION_PODERDANTE": resolve_denomination(
+                req.poderdante_denomination, "PODERDANTE", req.poderdantes
+            ),
+            "APODERADO_BLOQUE": party_block(req.apoderados),
+            "APODERADO_QUIEN": quien(len(req.apoderados)),
+            "APODERADO_SIGUE": sigue(len(req.apoderados)),
+            "APODERADO_SE_DENOMINARA": denominar(len(req.apoderados)),
+            "DENOMINACION_APODERADO": resolve_denomination(
+                req.apoderado_denomination, "APODERADO", req.apoderados
+            ),
             "OBJETO_DEL_PODER": req.power_object,
         }
     )
@@ -671,13 +670,14 @@ def generate_determinacion_herederos(req: DeterminacionHerederosRequest):
     context = _notary_context(req)
     context.update(
         {
-            "COMPARECIENTE_NOMBRE": _bold_upper(_party_names(req.declarants)),
-            "COMPARECIENTE_NACIONALIDAD": _join(d.nationality for d in req.declarants),
-            "COMPARECIENTE_ESTADO_CIVIL": _join(d.marital_status for d in req.declarants),
-            "COMPARECIENTE_OCUPACION": _join(d.occupation for d in req.declarants),
-            "COMPARECIENTE_CEDULA": _join(d.id_number for d in req.declarants),
-            "COMPARECIENTE_DOMICILIO": _join(d.address for d in req.declarants),
-            "DENOMINACION_COMPARECIENTE": req.declarant_denomination,
+            "COMPARECIENTE_BLOQUE": party_block(req.declarants),
+            "COMPARECIENTE_HA": ha(len(req.declarants)),
+            "COMPARECIENTE_QUIEN": quien(len(req.declarants)),
+            "COMPARECIENTE_SIGUE": sigue(len(req.declarants)),
+            "COMPARECIENTE_SE_DENOMINARA": denominar(len(req.declarants)),
+            "DENOMINACION_COMPARECIENTE": resolve_denomination(
+                req.declarant_denomination, "DECLARANTE", req.declarants
+            ),
             "DIFUNTO_NOMBRE": _bold_upper(req.deceased_name),
             "DIFUNTO_NACIONALIDAD": req.deceased_nationality,
             "DIFUNTO_ESTADO_CIVIL": req.deceased_marital_status,
@@ -722,25 +722,28 @@ def generate_autorizacion_viaje_menor(req: AutorizacionViajeMenorRequest):
     context = _notary_context(req)
     context.update(
         {
-            "AUTORIZADOR_NOMBRE": _bold_upper(_party_names(req.authorizers)),
-            "AUTORIZADOR_NACIONALIDAD": _join(a.nationality for a in req.authorizers),
-            "AUTORIZADOR_ESTADO_CIVIL": _join(a.marital_status for a in req.authorizers),
-            "AUTORIZADOR_OCUPACION": _join(a.occupation for a in req.authorizers),
-            "AUTORIZADOR_CEDULA": _join(a.id_number for a in req.authorizers),
-            "AUTORIZADOR_DOMICILIO": _join(a.address for a in req.authorizers),
-            "DENOMINACION_AUTORIZADOR": req.authorizer_denomination,
+            "AUTORIZADOR_BLOQUE": party_block(req.authorizers),
+            "AUTORIZADOR_HA": ha(len(req.authorizers)),
+            "AUTORIZADOR_QUIEN": quien(len(req.authorizers)),
+            "AUTORIZADOR_SIGUE": sigue(len(req.authorizers)),
+            "AUTORIZADOR_SE_DENOMINARA": denominar(len(req.authorizers)),
+            "AUTORIZADOR_DA": pick(len(req.authorizers), "da", "dan"),
+            "DENOMINACION_AUTORIZADOR": resolve_denomination(
+                req.authorizer_denomination, "AUTORIZANTE", req.authorizers
+            ),
             "MENOR_NOMBRE": _bold_upper(req.minor_name),
             "MENOR_FECHA_NACIMIENTO": req.minor_birth_date,
             "MENOR_ACTA_NACIMIENTO": req.minor_birth_record,
             "MENOR_PASAPORTE": req.minor_passport,
             "PAIS_DESTINO": req.destination_country,
-            "ACEPTANTE_NOMBRE": _bold_upper(_party_names(req.acceptors)),
-            "ACEPTANTE_NACIONALIDAD": _join(a.nationality for a in req.acceptors),
-            "ACEPTANTE_ESTADO_CIVIL": _join(a.marital_status for a in req.acceptors),
-            "ACEPTANTE_OCUPACION": _join(a.occupation for a in req.acceptors),
-            "ACEPTANTE_CEDULA": _join(a.id_number for a in req.acceptors),
-            "ACEPTANTE_DOMICILIO": _join(a.address for a in req.acceptors),
-            "DENOMINACION_ACEPTANTE": req.acceptor_denomination,
+            "ACEPTANTE_BLOQUE": party_block(req.acceptors),
+            "ACEPTANTE_ACEPTA": pick(len(req.acceptors), "acepta", "aceptan"),
+            "ACEPTANTE_QUIEN": quien(len(req.acceptors)),
+            "ACEPTANTE_SIGUE": sigue(len(req.acceptors)),
+            "ACEPTANTE_SE_DENOMINARA": denominar(len(req.acceptors)),
+            "DENOMINACION_ACEPTANTE": resolve_denomination(
+                req.acceptor_denomination, "ACEPTANTE", req.acceptors
+            ),
         }
     )
     tpl.render(context)

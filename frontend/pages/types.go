@@ -13,6 +13,7 @@ type PartyPreview struct {
 	Nationality   string
 	MaritalStatus string
 	Occupation    string
+	Gender        string
 }
 
 type SellContractPreviewData struct {
@@ -126,6 +127,7 @@ type HeirPreview struct {
 	Address       string
 	BirthDate     string
 	BirthRecord   string
+	Gender        string
 }
 
 // DeterminacionHerederosPreviewData drives the Determinación de Herederos draft

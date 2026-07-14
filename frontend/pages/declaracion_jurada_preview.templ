@@ -38,14 +38,14 @@ templ DeclaracionJuradaPreview(d DeclaracionJuradaPreviewData) {
 			@ph("NOTARIO ESTADO CIVIL"), portador(a) de la cédula de identidad y electoral No.
 			@ph("NOTARIO CÉDULA"), miembro del Colegio Dominicano de Notarios con matrícula No.
 			@ph("MATRÍCULA"), con estudio profesional abierto en
-			@ph("NOTARIO ESTUDIO"); ha(n) comparecido libre y voluntariamente
+			@ph("NOTARIO ESTUDIO"); { haWord(len(d.Declarants)) } comparecido libre y voluntariamente
 			if len(d.Declarants) > 0 {
 				@actPartyBlock(d.Declarants, d.DeclarantDenomination)
 			} else {
 				<span class="text-secondary italic text-[12px]">[Sin comparecientes asignados]</span>
 			}
 			@witnessBlock(d.Witnesses)
-			y me ha(n) declarado BAJO LA FE DEL JURAMENTO lo siguiente:
+			y me { haWord(len(d.Declarants)) } declarado BAJO LA FE DEL JURAMENTO lo siguiente:
 		</p>
 		<!-- Clauses -->
 		@clauseList(d.Clauses)

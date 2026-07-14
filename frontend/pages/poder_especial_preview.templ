@@ -26,14 +26,14 @@ templ PoderEspecialPreview(d PoderEspecialPreviewData) {
 			@ph("NOTARIO CÉDULA"), Notario Público de los del número de este Municipio de
 			@ph("MUNICIPIO"), miembro activo del Colegio Dominicano de Notarios con matrícula No.
 			@ph("MATRÍCULA"), con estudio profesional abierto en
-			@ph("NOTARIO ESTUDIO"); ha(n) comparecido libre y voluntariamente
+			@ph("NOTARIO ESTUDIO"); { haWord(len(d.Poderdantes)) } comparecido libre y voluntariamente
 			if len(d.Poderdantes) > 0 {
 				@actPartyBlock(d.Poderdantes, d.PoderdanteDenomination)
 			} else {
 				<span class="text-secondary italic text-[12px]">[Sin poderdantes asignados]</span>
 			}
 			@witnessBlock(d.Witnesses)
-			y me ha(n) declarado que por medio del presente acto otorga(n) poder tan amplio y
+			y me { haWord(len(d.Poderdantes)) } declarado que por medio del presente acto { pickWord(len(d.Poderdantes), "otorga", "otorgan") } poder tan amplio y
 			suficiente como en derecho fuere necesario a favor de
 			if len(d.Apoderados) > 0 {
 				@actPartyBlock(d.Apoderados, d.ApoderadoDenomination)

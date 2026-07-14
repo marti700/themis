@@ -36,13 +36,13 @@ templ ActoNotoriedadPreview(d ActoNotoriedadPreviewData) {
 			@ph("MATRÍCULA"), con mi estudio profesional abierto en
 			@ph("NOTARIO ESTUDIO"),
 			@witnessBlock(d.Witnesses)
-			han Comparecido Libre y Voluntariamente los señores
+			{ haWord(len(d.Declarants)) } Comparecido Libre y Voluntariamente
 			if len(d.Declarants) > 0 {
 				@actPartyBlock(d.Declarants, d.DeclarantDenomination)
 			} else {
 				<span class="text-secondary italic text-[12px]">[Sin comparecientes asignados]</span>
 			}
-			quienes me han declarado BAJO LA FE DEL JURAMENTO lo siguiente:
+			{ quienWord(len(d.Declarants)) } me { haWord(len(d.Declarants)) } declarado BAJO LA FE DEL JURAMENTO lo siguiente:
 		</p>
 		<!-- Clauses -->
 		@clauseList(d.Clauses)

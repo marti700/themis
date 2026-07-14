@@ -181,7 +181,16 @@ func ActoNotoriedadPreview(d ActoNotoriedadPreviewData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "han Comparecido Libre y Voluntariamente los señores ")
+		var templ_7745c5c3_Var2 string
+		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(haWord(len(d.Declarants)))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `frontend/pages/acto_notoriedad_preview.templ`, Line: 39, Col: 30}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, " Comparecido Libre y Voluntariamente ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -196,7 +205,29 @@ func ActoNotoriedadPreview(d ActoNotoriedadPreviewData) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "quienes me han declarado BAJO LA FE DEL JURAMENTO lo siguiente:</p><!-- Clauses -->")
+		var templ_7745c5c3_Var3 string
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(quienWord(len(d.Declarants)))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `frontend/pages/acto_notoriedad_preview.templ`, Line: 45, Col: 33}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, " me ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var4 string
+		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(haWord(len(d.Declarants)))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `frontend/pages/acto_notoriedad_preview.templ`, Line: 45, Col: 66}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, " declarado BAJO LA FE DEL JURAMENTO lo siguiente:</p><!-- Clauses -->")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -204,7 +235,7 @@ func ActoNotoriedadPreview(d ActoNotoriedadPreviewData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<!-- Closing --><p class=\"text-justify leading-relaxed mt-md\">El presente acto ha sido hecho y pasado en mi estudio el mismo día, mes y año antes indicado, el cual ha sido leído íntegramente a los comparecientes y testigos, quienes después de aprobarlo lo firman y rubrican junto conmigo y ante mí, Notario Público que CERTIFICA Y DA FE.</p><!-- Signatures -->")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<!-- Closing --><p class=\"text-justify leading-relaxed mt-md\">El presente acto ha sido hecho y pasado en mi estudio el mismo día, mes y año antes indicado, el cual ha sido leído íntegramente a los comparecientes y testigos, quienes después de aprobarlo lo firman y rubrican junto conmigo y ante mí, Notario Público que CERTIFICA Y DA FE.</p><!-- Signatures -->")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -212,7 +243,7 @@ func ActoNotoriedadPreview(d ActoNotoriedadPreviewData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<!-- Notary signature --><div class=\"mt-3xl pt-lg border-t border-outline-variant space-y-sm\"><p class=\"text-center font-bold uppercase text-[13px]\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<!-- Notary signature --><div class=\"mt-3xl pt-lg border-t border-outline-variant space-y-sm\"><p class=\"text-center font-bold uppercase text-[13px]\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -220,7 +251,7 @@ func ActoNotoriedadPreview(d ActoNotoriedadPreviewData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</p><p class=\"text-center text-secondary text-[12px]\">Notario Público</p></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "</p><p class=\"text-center text-secondary text-[12px]\">Notario Público</p></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -7,7 +7,7 @@ import (
 
 // actPartyBlock renders the comparecientes/poderdantes generals inside an acto
 // auténtico, with @ph fallbacks for any party field missing from the customer record,
-// closing with the group denomination.
+// closing with the group denomination (gender/number-agreed via ResolveDenomination).
 templ actPartyBlock(parties []PartyPreview, denomination string) {
 	for i, p := range parties {
 		<span>
@@ -19,8 +19,8 @@ templ actPartyBlock(parties []PartyPreview, denomination string) {
 				@ph("NACIONALIDAD"),
 			}
 			mayor de edad,
-			if p.MaritalStatus != "" {
-				{ p.MaritalStatus },
+			if maritalStatusEs(p.MaritalStatus, p.Gender) != "" {
+				{ maritalStatusEs(p.MaritalStatus, p.Gender) },
 			} else {
 				@ph("ESTADO CIVIL"),
 			}
@@ -29,8 +29,8 @@ templ actPartyBlock(parties []PartyPreview, denomination string) {
 			} else {
 				@ph("OCUPACIÓN"),
 			}
-			portador(a) de la cédula de identidad y electoral No. <strong>{ p.IDNumber }</strong>,
-			domiciliado(a) y residente en
+			{ agree("portador", "portadora", p.Gender) } de la cédula de identidad y electoral No. <strong>{ p.IDNumber }</strong>,
+			{ agree("domiciliado", "domiciliada", p.Gender) } y residente en
 			if p.Address != "" {
 				{ p.Address }
 			} else {
@@ -41,7 +41,7 @@ templ actPartyBlock(parties []PartyPreview, denomination string) {
 			}
 		</span>
 	}
-	<span>, quien(es) en lo que sigue del presente acto se denominará(n) <strong>{ denomination }</strong>;</span>
+	<span>, { quienWord(len(parties)) } en lo que { sigueWord(len(parties)) } del presente acto { denominarWord(len(parties)) } <strong>{ denomination }</strong>;</span>
 }
 
 // witnessBlock renders the instrumental-witness sentence of an acto auténtico.
@@ -50,17 +50,36 @@ templ witnessBlock(witnesses []PartyPreview) {
 		<span>
 			en presencia de los testigos
 			for i, w := range witnesses {
-				<strong>{ strings.ToUpper(w.FirstName + " " + w.LastName) }</strong>
-				if i < len(witnesses)-1 {
-					{ " y " }
-				}
-			}
-			, dominicanos, mayores de edad, portadores de las cédulas de identidad y electoral Nos.
-			for i, w := range witnesses {
-				<strong>{ w.IDNumber }</strong>
-				if i < len(witnesses)-1 {
-					{ " y " }
-				}
+				<span>
+					<strong>{ strings.ToUpper(w.FirstName + " " + w.LastName) }</strong>,
+					de nacionalidad
+					if w.Nationality != "" {
+						{ w.Nationality },
+					} else {
+						@ph("NACIONALIDAD"),
+					}
+					mayor de edad,
+					if maritalStatusEs(w.MaritalStatus, w.Gender) != "" {
+						{ maritalStatusEs(w.MaritalStatus, w.Gender) },
+					} else {
+						@ph("ESTADO CIVIL"),
+					}
+					if w.Occupation != "" {
+						{ w.Occupation },
+					} else {
+						@ph("OCUPACIÓN"),
+					}
+					{ agree("portador", "portadora", w.Gender) } de la cédula de identidad y electoral No. <strong>{ w.IDNumber }</strong>,
+					{ agree("domiciliado", "domiciliada", w.Gender) } y residente en
+					if w.Address != "" {
+						{ w.Address }
+					} else {
+						@ph("DOMICILIO")
+					}
+					if i < len(witnesses)-1 {
+						{ "; " }
+					}
+				</span>
 			}
 			, testigos instrumentales requeridos al efecto, libres de tachas y excepciones exigidas por la ley;
 		</span>
@@ -103,20 +122,20 @@ templ heirList(heirs []HeirPreview) {
 					{ ", " + h.Nationality }
 				}
 				{ ", mayor de edad" }
-				if h.MaritalStatus != "" {
-					{ ", " + h.MaritalStatus }
+				if maritalStatusEs(h.MaritalStatus, h.Gender) != "" {
+					{ ", " + maritalStatusEs(h.MaritalStatus, h.Gender) }
 				}
 				if h.Occupation != "" {
 					{ ", " + h.Occupation }
 				}
 				if h.IDNumber != "" {
-					{ ", portador(a) de la cédula de identidad y electoral No. " + h.IDNumber }
+					{ ", " + agree("portador", "portadora", h.Gender) + " de la cédula de identidad y electoral No. " + h.IDNumber }
 				}
 				if h.Address != "" {
-					{ ", domiciliado(a) y residente en " + h.Address }
+					{ ", " + agree("domiciliado", "domiciliada", h.Gender) + " y residente en " + h.Address }
 				}
 				if h.BirthDate != "" {
-					{ ", nacido(a) en fecha " + h.BirthDate }
+					{ ", " + agree("nacido", "nacida", h.Gender) + " en fecha " + h.BirthDate }
 				}
 				if h.BirthRecord != "" {
 					{ ", según " + h.BirthRecord }
