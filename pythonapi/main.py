@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
-from docxtpl import DocxTemplate
+from docxtpl import DocxTemplate, RichText
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -29,6 +29,20 @@ STATIC_DIR = Path(__file__).parent / "static"
 def list_templates():
     return [f.stem for f in sorted(TEMPLATES_DIR.glob("*.docx"))]
 _SIG_SENTINEL = "__SIGNATURES__"
+_CLAUSES_SENTINEL = "__CLAUSES__"
+
+# Spanish ordinal words for auto-numbering notarial-act clauses (PRIMERO, SEGUNDO, …).
+_ORDINALS = [
+    "PRIMERO", "SEGUNDO", "TERCERO", "CUARTO", "QUINTO", "SEXTO", "SÉPTIMO",
+    "OCTAVO", "NOVENO", "DÉCIMO", "DÉCIMO PRIMERO", "DÉCIMO SEGUNDO",
+    "DÉCIMO TERCERO", "DÉCIMO CUARTO", "DÉCIMO QUINTO", "DÉCIMO SEXTO",
+    "DÉCIMO SÉPTIMO", "DÉCIMO OCTAVO", "DÉCIMO NOVENO", "VIGÉSIMO",
+]
+
+
+def ordinal_word(index: int) -> str:
+    """0-based clause index → Spanish ordinal label (falls back to 'N-ÉSIMO')."""
+    return _ORDINALS[index] if index < len(_ORDINALS) else f"{index + 1}-ÉSIMO"
 
 
 class CustomerInfo(BaseModel):
@@ -38,7 +52,7 @@ class CustomerInfo(BaseModel):
     address: str | None = None
     marital_status: str | None = None
     occupation: str | None = None
-    nationality: str | None = None  # not yet in customer DB model
+    nationality: str | None = None
 
 
 class SellContractRequest(BaseModel):
@@ -101,6 +115,54 @@ class RentContractRequest(BaseModel):
     notary_registration: str
 
 
+class NotaryActBase(BaseModel):
+    """Shared fields for actos auténticos where the notary is a party from the opening
+    sentence and instrumental witnesses (testigos) sign the act."""
+
+    # Firm / notary letterhead
+    firm_name: str
+    firm_service: str
+    notary_title_name: str
+    notary_phone: str
+    notary_municipality: str
+    notary_registration: str
+    # Notary as an auténtico party (opening "Por ante mí, …")
+    notary_nationality: str = ""
+    notary_marital_status: str = ""
+    notary_cedula: str = ""
+    notary_office: str = ""
+    # Instrumental witnesses (customer-picked, N)
+    witnesses: list[CustomerInfo] = []
+    # Place / date / closing
+    city: str
+    province: str
+    day_words: str
+    day_number: str
+    month: str
+    year_words: str
+    year_number: str
+    originals_count_words: str = "DOS"
+    originals_count: str = "2"
+    signers_list: str = ""
+
+
+class PoderEspecialRequest(NotaryActBase):
+    poderdantes: list[CustomerInfo]
+    poderdante_denomination: str = "EL PODERDANTE"
+    # Apoderado — the person receiving the power (customer-picked, N).
+    apoderados: list[CustomerInfo] = []
+    apoderado_denomination: str = "EL APODERADO"
+    power_object: str
+
+
+class DeclaracionJuradaRequest(NotaryActBase):
+    declarants: list[CustomerInfo]
+    declarant_denomination: str = "EL COMPARECIENTE"
+    act_number: str = ""
+    time: str = ""
+    clauses: list[str] = []
+
+
 def _set_table_borders_invisible(table):
     tbl = table._tbl
     tblPr = tbl.tblPr
@@ -149,6 +211,92 @@ def inject_signatures(doc: Document, parties: list[tuple[str, str]]):
 
         spacer = doc.add_paragraph()
         table._tbl.addnext(spacer._p)
+
+
+def inject_clauses(doc: Document, clauses: list[str]):
+    """Replace the __CLAUSES__ sentinel paragraph with one justified paragraph per
+    clause, each opening with a bold auto-numbered ordinal (PRIMERO:, SEGUNDO:, …)."""
+    target_paragraph = None
+    for paragraph in doc.paragraphs:
+        if _CLAUSES_SENTINEL in paragraph.text:
+            target_paragraph = paragraph
+            paragraph.text = ""
+            break
+
+    if target_paragraph is None:
+        return
+
+    items = [c.strip() for c in clauses if c and c.strip()]
+    # Insert in reverse so addnext() preserves PRIMERO → último order.
+    for index in reversed(range(len(items))):
+        para = doc.add_paragraph()
+        para.alignment = WD_PARAGRAPH_ALIGNMENT.JUSTIFY
+        ordinal_run = para.add_run(f"{ordinal_word(index)}: ")
+        ordinal_run.bold = True
+        para.add_run(items[index])
+        target_paragraph._p.addnext(para._p)
+
+
+def _party_names(people: list[CustomerInfo]) -> str:
+    """Full names joined for a party sentence: 'A y B'."""
+    return " y ".join(f"{p.first_name} {p.last_name}" for p in people)
+
+
+def _bold_upper(text: str) -> RichText:
+    """Party name for a `{{r VAR}}` placeholder: bold and upper-cased, as notarial
+    acts render the parties' names in the body text."""
+    return RichText(text.upper(), bold=True)
+
+
+def _join(values) -> str:
+    """Comma-join optional fields, dropping None."""
+    return ", ".join(v or "" for v in values)
+
+
+def _notary_context(req: NotaryActBase) -> dict:
+    """Placeholders shared by every acto auténtico (firm/notary letterhead, the notary
+    as opening party, witnesses, place/date, and the signature sentinel)."""
+    return {
+        "BUFETE_NOMBRE": req.firm_name,
+        "BUFETE_SERVICIO": req.firm_service,
+        "NOTARIO_TITULO_NOMBRE": req.notary_title_name,
+        "NOTARIO_TITULO_NOMBRE_MAYUS": req.notary_title_name.upper(),
+        "NOTARIO_TELEFONO": req.notary_phone,
+        "NOTARIO_MUNICIPIO": req.notary_municipality,
+        "NOTARIO_MATRICULA": req.notary_registration,
+        "NOTARIO_NACIONALIDAD": req.notary_nationality,
+        "NOTARIO_ESTADO_CIVIL": req.notary_marital_status,
+        "NOTARIO_CEDULA": req.notary_cedula,
+        "NOTARIO_ESTUDIO": req.notary_office,
+        "TESTIGO_NOMBRES": _bold_upper(_party_names(req.witnesses)),
+        "TESTIGO_NACIONALIDAD": _join(w.nationality for w in req.witnesses),
+        "TESTIGO_ESTADO_CIVIL": _join(w.marital_status for w in req.witnesses),
+        "TESTIGO_OCUPACION": _join(w.occupation for w in req.witnesses),
+        "TESTIGO_CEDULAS": _join(w.id_number for w in req.witnesses),
+        "TESTIGO_DOMICILIO": _join(w.address for w in req.witnesses),
+        "CIUDAD_CONTRATO": req.city,
+        "PROVINCIA_CONTRATO": req.province,
+        "DIA_LETRAS": req.day_words,
+        "DIA_NUM": req.day_number,
+        "MES": req.month,
+        "ANIO_LETRAS": req.year_words,
+        "ANIO_NUM": req.year_number,
+        "CANTIDAD_ORIGINALES_LETRAS": req.originals_count_words,
+        "CANTIDAD_ORIGINALES": req.originals_count,
+        "FIRMANTES_LISTA": req.signers_list,
+        "SIGNATURES": _SIG_SENTINEL,
+    }
+
+
+def _act_response(doc: Document, filename: str) -> StreamingResponse:
+    buf = BytesIO()
+    doc.save(buf)
+    buf.seek(0)
+    return StreamingResponse(
+        buf,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )
 
 
 @app.post("/documents/sell_contract")
@@ -301,6 +449,89 @@ def generate_rent_contract(req: RentContractRequest):
         media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         headers=headers,
     )
+
+
+@app.post("/documents/poder_especial")
+def generate_poder_especial(req: PoderEspecialRequest):
+    template_path = TEMPLATES_DIR / "poder_especial.docx"
+    if not template_path.exists():
+        raise HTTPException(status_code=404, detail="Template not found")
+
+    tpl = DocxTemplate(template_path)
+    context = _notary_context(req)
+    context.update(
+        {
+            "PODERDANTE_NOMBRE": _bold_upper(_party_names(req.poderdantes)),
+            "PODERDANTE_NACIONALIDAD": _join(p.nationality for p in req.poderdantes),
+            "PODERDANTE_ESTADO_CIVIL": _join(p.marital_status for p in req.poderdantes),
+            "PODERDANTE_OCUPACION": _join(p.occupation for p in req.poderdantes),
+            "PODERDANTE_CEDULA": _join(p.id_number for p in req.poderdantes),
+            "PODERDANTE_DOMICILIO": _join(p.address for p in req.poderdantes),
+            "DENOMINACION_PODERDANTE": req.poderdante_denomination,
+            "APODERADO_NOMBRE": _bold_upper(_party_names(req.apoderados)),
+            "APODERADO_NACIONALIDAD": _join(a.nationality for a in req.apoderados),
+            "APODERADO_ESTADO_CIVIL": _join(a.marital_status for a in req.apoderados),
+            "APODERADO_OCUPACION": _join(a.occupation for a in req.apoderados),
+            "APODERADO_CEDULA": _join(a.id_number for a in req.apoderados),
+            "APODERADO_DOMICILIO": _join(a.address for a in req.apoderados),
+            "DENOMINACION_APODERADO": req.apoderado_denomination,
+            "OBJETO_DEL_PODER": req.power_object,
+        }
+    )
+    tpl.render(context)
+    intermediate = BytesIO()
+    tpl.save(intermediate)
+    intermediate.seek(0)
+
+    doc = Document(intermediate)
+    parties = (
+        [(f"{p.first_name} {p.last_name}".upper(), "Poderdante") for p in req.poderdantes]
+        + [(f"{a.first_name} {a.last_name}".upper(), "Apoderado") for a in req.apoderados]
+        + [(f"{w.first_name} {w.last_name}".upper(), "Testigo Instrumental") for w in req.witnesses]
+        + [(req.notary_title_name.upper(), "Notario Público")]
+    )
+    inject_signatures(doc, parties)
+
+    return _act_response(doc, "poder_especial.docx")
+
+
+@app.post("/documents/declaracion_jurada")
+def generate_declaracion_jurada(req: DeclaracionJuradaRequest):
+    template_path = TEMPLATES_DIR / "declaracion_jurada.docx"
+    if not template_path.exists():
+        raise HTTPException(status_code=404, detail="Template not found")
+
+    tpl = DocxTemplate(template_path)
+    context = _notary_context(req)
+    context.update(
+        {
+            "ACTO_NUMERO": req.act_number,
+            "HORA": req.time,
+            "COMPARECIENTE_NOMBRE": _bold_upper(_party_names(req.declarants)),
+            "COMPARECIENTE_NACIONALIDAD": _join(d.nationality for d in req.declarants),
+            "COMPARECIENTE_ESTADO_CIVIL": _join(d.marital_status for d in req.declarants),
+            "COMPARECIENTE_OCUPACION": _join(d.occupation for d in req.declarants),
+            "COMPARECIENTE_CEDULA": _join(d.id_number for d in req.declarants),
+            "COMPARECIENTE_DOMICILIO": _join(d.address for d in req.declarants),
+            "DENOMINACION_COMPARECIENTE": req.declarant_denomination,
+            "CLAUSULAS": _CLAUSES_SENTINEL,
+        }
+    )
+    tpl.render(context)
+    intermediate = BytesIO()
+    tpl.save(intermediate)
+    intermediate.seek(0)
+
+    doc = Document(intermediate)
+    inject_clauses(doc, req.clauses)
+    parties = (
+        [(f"{d.first_name} {d.last_name}".upper(), "Compareciente") for d in req.declarants]
+        + [(f"{w.first_name} {w.last_name}".upper(), "Testigo Instrumental") for w in req.witnesses]
+        + [(req.notary_title_name.upper(), "Notario Público")]
+    )
+    inject_signatures(doc, parties)
+
+    return _act_response(doc, "declaracion_jurada.docx")
 
 
 # Static files last so API routes take precedence

@@ -1,0 +1,68 @@
+package pages
+
+templ PoderEspecialPreview(d PoderEspecialPreviewData) {
+	<div class="font-serif text-on-background text-[14px] space-y-md">
+		<!-- Firm / Notary Header -->
+		<div class="text-center space-y-xs border-b border-outline-variant pb-lg mb-lg">
+			<p class="font-bold text-[15px] uppercase tracking-widest">@ph("NOMBRE DEL BUFETE")</p>
+			<p class="text-secondary italic text-[13px]">@ph("SERVICIO DEL BUFETE")</p>
+			<p class="mt-sm">
+				@ph("NOTARIO TÍTULO Y NOMBRE") · TEL.
+				@ph("TELÉFONO")
+			</p>
+			<p class="text-secondary text-[13px]">@ph("MUNICIPIO")</p>
+		</div>
+		<!-- Title -->
+		<div class="text-center mb-lg">
+			<h3 class="font-bold uppercase tracking-widest text-[15px] border-b-2 border-primary inline-block pb-xs">
+				Poder Especial
+			</h3>
+		</div>
+		<!-- Body -->
+		<p class="text-justify leading-relaxed">
+			Por ante mí, <strong>@ph("NOTARIO TÍTULO Y NOMBRE")</strong>,
+			@ph("NOTARIO NACIONALIDAD"), mayor de edad,
+			@ph("NOTARIO ESTADO CIVIL"), portador(a) de la cédula de identidad y electoral No.
+			@ph("NOTARIO CÉDULA"), Notario Público de los del número de este Municipio de
+			@ph("MUNICIPIO"), miembro activo del Colegio Dominicano de Notarios con matrícula No.
+			@ph("MATRÍCULA"), con estudio profesional abierto en
+			@ph("NOTARIO ESTUDIO"); ha(n) comparecido libre y voluntariamente
+			if len(d.Poderdantes) > 0 {
+				@actPartyBlock(d.Poderdantes, d.PoderdanteDenomination)
+			} else {
+				<span class="text-secondary italic text-[12px]">[Sin poderdantes asignados]</span>
+			}
+			@witnessBlock(d.Witnesses)
+			y me ha(n) declarado que por medio del presente acto otorga(n) poder tan amplio y
+			suficiente como en derecho fuere necesario a favor de
+			if len(d.Apoderados) > 0 {
+				@actPartyBlock(d.Apoderados, d.ApoderadoDenomination)
+			} else {
+				<span class="text-secondary italic text-[12px]">[Sin apoderado asignado]</span>
+			}
+			para que
+			@ph("OBJETO DEL PODER"){ "." }
+		</p>
+		<!-- Date / place -->
+		<p class="text-justify leading-relaxed mt-md">
+			En la Ciudad y Municipio de
+			@ph("CIUDAD"), Provincia
+			@ph("PROVINCIA"),
+			República Dominicana, a los
+			@ph("DÍA EN LETRAS"),
+			@ph("DÍA")
+			días del mes de
+			@ph("MES")
+			del año
+			@ph("AÑO EN LETRAS"),
+			@ph("AÑO"){ "." }
+		</p>
+		<!-- Signatures -->
+		@signatureBlock(d.Signatures())
+		<!-- Notary signature -->
+		<div class="mt-3xl pt-lg border-t border-outline-variant space-y-sm">
+			<p class="text-center font-bold uppercase text-[13px]">@ph("NOTARIO TÍTULO Y NOMBRE")</p>
+			<p class="text-center text-secondary text-[12px]">Notario Público</p>
+		</div>
+	</div>
+}

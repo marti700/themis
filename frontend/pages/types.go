@@ -1,6 +1,9 @@
 package pages
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 type PartyPreview struct {
 	FirstName     string
@@ -36,6 +39,74 @@ type RentContractPreviewData struct {
 // (owners followed by tenants), joined as "A, B y C". Empty if there are none.
 func (d RentContractPreviewData) SignerNames() string {
 	return signerNames(d.Owners, d.Tenants)
+}
+
+// clauseOrdinals mirrors pythonapi's _ORDINALS so preview numbering matches the docx.
+var clauseOrdinals = []string{
+	"PRIMERO", "SEGUNDO", "TERCERO", "CUARTO", "QUINTO", "SEXTO", "SÉPTIMO", "OCTAVO",
+	"NOVENO", "DÉCIMO", "DÉCIMO PRIMERO", "DÉCIMO SEGUNDO", "DÉCIMO TERCERO",
+	"DÉCIMO CUARTO", "DÉCIMO QUINTO", "DÉCIMO SEXTO", "DÉCIMO SÉPTIMO", "DÉCIMO OCTAVO",
+	"DÉCIMO NOVENO", "VIGÉSIMO",
+}
+
+func ordinalWord(i int) string {
+	if i >= 0 && i < len(clauseOrdinals) {
+		return clauseOrdinals[i]
+	}
+	return fmt.Sprintf("%dº", i+1)
+}
+
+// SignatureLine is one signer rendered in a notarial act's signature grid.
+type SignatureLine struct {
+	Name string
+	Role string
+}
+
+// appendSigners adds each named party to lines under the given role label.
+func appendSigners(lines []SignatureLine, parties []PartyPreview, role string) []SignatureLine {
+	for _, p := range parties {
+		if full := strings.TrimSpace(p.FirstName + " " + p.LastName); full != "" {
+			lines = append(lines, SignatureLine{Name: strings.ToUpper(full), Role: role})
+		}
+	}
+	return lines
+}
+
+// PoderEspecialPreviewData drives the Poder Especial draft preview.
+type PoderEspecialPreviewData struct {
+	Poderdantes            []PartyPreview
+	Apoderados             []PartyPreview
+	Witnesses              []PartyPreview
+	PoderdanteDenomination string
+	ApoderadoDenomination  string
+}
+
+func (d PoderEspecialPreviewData) SignerNames() string {
+	principals := append(append([]PartyPreview{}, d.Poderdantes...), d.Apoderados...)
+	return signerNames(principals, d.Witnesses)
+}
+
+func (d PoderEspecialPreviewData) Signatures() []SignatureLine {
+	lines := appendSigners(nil, d.Poderdantes, "Poderdante")
+	lines = appendSigners(lines, d.Apoderados, "Apoderado")
+	return appendSigners(lines, d.Witnesses, "Testigo Instrumental")
+}
+
+// DeclaracionJuradaPreviewData drives the Declaración Jurada draft preview.
+type DeclaracionJuradaPreviewData struct {
+	Declarants            []PartyPreview
+	Witnesses             []PartyPreview
+	DeclarantDenomination string
+	Clauses               []string
+}
+
+func (d DeclaracionJuradaPreviewData) SignerNames() string {
+	return signerNames(d.Declarants, d.Witnesses)
+}
+
+func (d DeclaracionJuradaPreviewData) Signatures() []SignatureLine {
+	lines := appendSigners(nil, d.Declarants, "Compareciente")
+	return appendSigners(lines, d.Witnesses, "Testigo Instrumental")
 }
 
 func signerNames(a, b []PartyPreview) string {

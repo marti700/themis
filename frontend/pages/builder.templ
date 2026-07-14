@@ -90,21 +90,10 @@ templ Builder() {
 								<h2 class="font-headline-lg text-headline-lg text-primary mb-xs">Assign Roles</h2>
 								<p class="font-body-md text-secondary">Define each party's legal role in this agreement.</p>
 							</div>
-							<!-- Denomination inputs -->
+							<!-- Denomination inputs (one per role that has a group label) -->
 							<div class="bg-surface-container-lowest border border-outline-variant p-lg rounded-lg space-y-md">
 								<p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Group Labels</p>
-								<div>
-									<label id="denom-a-label" class="font-label-sm text-secondary block mb-xs">Sellers denomination</label>
-									<input id="denom-a" type="text" value="LOS VENDEDORES"
-										class="w-full py-sm px-md border border-outline-variant bg-surface focus:border-primary focus:ring-0 font-body-md transition-all"
-										oninput="onDenomChange()"/>
-								</div>
-								<div>
-									<label id="denom-b-label" class="font-label-sm text-secondary block mb-xs">Buyers denomination</label>
-									<input id="denom-b" type="text" value="LOS COMPRADORES"
-										class="w-full py-sm px-md border border-outline-variant bg-surface focus:border-primary focus:ring-0 font-body-md transition-all"
-										oninput="onDenomChange()"/>
-								</div>
+								<div id="denom-inputs" class="space-y-md"></div>
 							</div>
 							<!-- Role cards -->
 							<div id="role-cards" class="space-y-md"></div>
@@ -141,6 +130,19 @@ templ Builder() {
 							<div class="bg-surface-container-lowest border border-outline-variant p-lg rounded-lg space-y-md">
 								<p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Parties</p>
 								<div id="preview-party-list" class="space-y-sm text-sm"></div>
+							</div>
+							<!-- Clause editor (only for document types with a dynamic clause body) -->
+							<div id="clause-panel" class="hidden bg-surface-container-lowest border border-outline-variant p-lg rounded-lg space-y-md">
+								<div class="flex items-center justify-between">
+									<p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Cláusulas</p>
+									<span id="clause-count" class="font-label-sm text-[11px] text-secondary tabular-nums">0</span>
+								</div>
+								<div id="clause-list" class="space-y-sm"></div>
+								<button type="button" onclick="addClause()"
+									class="w-full flex items-center justify-center gap-sm text-primary font-bold py-sm border border-dashed border-outline-variant rounded-lg hover:border-primary hover:bg-primary/5 transition-all">
+									<span class="material-symbols-outlined text-[18px]">add</span>
+									<span class="font-label-sm text-[12px]">Agregar cláusula</span>
+								</button>
 							</div>
 							<!-- Placeholder checklist -->
 							<div id="ph-panel" class="bg-surface-container-lowest border border-outline-variant p-lg rounded-lg space-y-md">
@@ -201,17 +203,28 @@ templ Builder() {
 		<script>
 const PYTHON_API = 'http://localhost:8001';
 
-// Per-contract-type configuration: role keys/labels, denomination defaults,
-// request field names, endpoints, and the extra (non-party, non-common) fields
-// that get mapped from the placeholder editor into the generation request.
+// Notary-as-party fields for actos auténticos (the notary appears in the opening
+// "Por ante mí, …" sentence), shared by every act type but not by the sell/rent
+// contracts. Spread into each act type's extraFields.
+const ACT_NOTARY_FIELDS = [
+  { label: 'NOTARIO NACIONALIDAD', key: 'notary_nationality' },
+  { label: 'NOTARIO ESTADO CIVIL', key: 'notary_marital_status' },
+  { label: 'NOTARIO CÉDULA', key: 'notary_cedula' },
+  { label: 'NOTARIO ESTUDIO', key: 'notary_office' }
+];
+
+// Per-document-type configuration. `roles` is an ordered list of party roles; each
+// customer picked in step 2 is assigned one role's `key` in step 3 and sent to the
+// backend under that role's `field`. Roles with a `denomField` also get a group
+// denomination input; `isWitness` roles are instrumental witnesses (no denomination).
+// `hasClauses` enables the dynamic numbered-clause editor. `extraFields` map the
+// placeholder editor's labels onto the generation request's keys.
 const CONTRACT_CONFIG = {
   sell_contract: {
-    roleAKey: 'seller', roleBKey: 'buyer',
-    roleALabel: 'Vendedor', roleBLabel: 'Comprador',
-    denomALabel: 'Sellers denomination', denomBLabel: 'Buyers denomination',
-    denomADefault: 'LOS VENDEDORES', denomBDefault: 'LOS COMPRADORES',
-    partyAField: 'sellers', partyBField: 'buyers',
-    denomAField: 'seller_denomination', denomBField: 'buyer_denomination',
+    roles: [
+      { key: 'seller', label: 'Vendedor', field: 'sellers', denomField: 'seller_denomination', denomLabel: 'Sellers denomination', denomDefault: 'LOS VENDEDORES' },
+      { key: 'buyer', label: 'Comprador', field: 'buyers', denomField: 'buyer_denomination', denomLabel: 'Buyers denomination', denomDefault: 'LOS COMPRADORES' }
+    ],
     previewUrl: '/preview/sell_contract',
     generateUrl: PYTHON_API + '/documents/sell_contract',
     downloadName: 'sell_contract.docx',
@@ -223,12 +236,10 @@ const CONTRACT_CONFIG = {
     ]
   },
   rent_contract: {
-    roleAKey: 'owner', roleBKey: 'tenant',
-    roleALabel: 'Propietario', roleBLabel: 'Inquilino',
-    denomALabel: 'Owners denomination', denomBLabel: 'Tenants denomination',
-    denomADefault: 'EL PROPIETARIO', denomBDefault: 'EL INQUILINO',
-    partyAField: 'owners', partyBField: 'tenants',
-    denomAField: 'owner_denomination', denomBField: 'tenant_denomination',
+    roles: [
+      { key: 'owner', label: 'Propietario', field: 'owners', denomField: 'owner_denomination', denomLabel: 'Owners denomination', denomDefault: 'EL PROPIETARIO' },
+      { key: 'tenant', label: 'Inquilino', field: 'tenants', denomField: 'tenant_denomination', denomLabel: 'Tenants denomination', denomDefault: 'EL INQUILINO' }
+    ],
     previewUrl: '/preview/rent_contract',
     generateUrl: PYTHON_API + '/documents/rent_contract',
     downloadName: 'rent_contract.docx',
@@ -244,10 +255,39 @@ const CONTRACT_CONFIG = {
       { label: 'FECHA DE INICIO', key: 'start_date' },
       { label: 'FECHA DE FIN', key: 'end_date' }
     ]
+  },
+  poder_especial: {
+    roles: [
+      { key: 'poderdante', label: 'Poderdante', field: 'poderdantes', denomField: 'poderdante_denomination', denomLabel: 'Poderdante denomination', denomDefault: 'EL PODERDANTE' },
+      { key: 'apoderado', label: 'Apoderado', field: 'apoderados', denomField: 'apoderado_denomination', denomLabel: 'Apoderado denomination', denomDefault: 'EL APODERADO' },
+      { key: 'testigo', label: 'Testigo', field: 'witnesses', isWitness: true }
+    ],
+    previewUrl: '/preview/poder_especial',
+    generateUrl: PYTHON_API + '/documents/poder_especial',
+    downloadName: 'poder_especial.docx',
+    extraFields: [
+      ...ACT_NOTARY_FIELDS,
+      { label: 'OBJETO DEL PODER', key: 'power_object' }
+    ]
+  },
+  declaracion_jurada: {
+    roles: [
+      { key: 'compareciente', label: 'Compareciente', field: 'declarants', denomField: 'declarant_denomination', denomLabel: 'Comparecientes denomination', denomDefault: 'EL COMPARECIENTE' },
+      { key: 'testigo', label: 'Testigo', field: 'witnesses', isWitness: true }
+    ],
+    hasClauses: true,
+    previewUrl: '/preview/declaracion_jurada',
+    generateUrl: PYTHON_API + '/documents/declaracion_jurada',
+    downloadName: 'declaracion_jurada.docx',
+    extraFields: [
+      ...ACT_NOTARY_FIELDS,
+      { label: 'ACTO NÚMERO', key: 'act_number' },
+      { label: 'HORA', key: 'time' }
+    ]
   }
 };
 
-// Fields shared verbatim by every contract type's preview/generation payload.
+// Fields shared verbatim by every document type's preview/generation payload.
 const COMMON_FIELDS = [
   { label: 'DOS', key: 'originals_count_words' },
   { label: '2', key: 'originals_count' },
@@ -266,8 +306,27 @@ const COMMON_FIELDS = [
   { label: 'MATRÍCULA', key: 'notary_registration' }
 ];
 
+// Spanish ordinal labels for numbering clauses (mirrors pythonapi ordinal_word()).
+const CLAUSE_ORDINALS = [
+  'PRIMERO', 'SEGUNDO', 'TERCERO', 'CUARTO', 'QUINTO', 'SEXTO', 'SÉPTIMO', 'OCTAVO',
+  'NOVENO', 'DÉCIMO', 'DÉCIMO PRIMERO', 'DÉCIMO SEGUNDO', 'DÉCIMO TERCERO',
+  'DÉCIMO CUARTO', 'DÉCIMO QUINTO', 'DÉCIMO SEXTO', 'DÉCIMO SÉPTIMO', 'DÉCIMO OCTAVO',
+  'DÉCIMO NOVENO', 'VIGÉSIMO'
+];
+function ordinalEs(i) { return CLAUSE_ORDINALS[i] || (i + 1) + 'º'; }
+
 function cfg() {
   return CONTRACT_CONFIG[state.contractType] || CONTRACT_CONFIG.sell_contract;
+}
+
+// The group denomination currently chosen for a role (falls back to its default).
+function denomOf(role) {
+  return state.denoms[role.key] != null ? state.denoms[role.key] : role.denomDefault;
+}
+
+// Default role for a newly-selected customer: the first non-witness role.
+function defaultRoleKey(c) {
+  return (c.roles.find(r => !r.isWitness) || c.roles[0]).key;
 }
 
 const state = {
@@ -276,8 +335,8 @@ const state = {
   customers: [],
   selected: new Set(),
   roles: {},
-  denomA: CONTRACT_CONFIG.sell_contract.denomADefault,
-  denomB: CONTRACT_CONFIG.sell_contract.denomBDefault,
+  denoms: {},
+  clauses: [],
   fieldValues: {}
 };
 
@@ -341,8 +400,10 @@ async function loadTemplates() {
 function selectType(type, el) {
   state.contractType = type;
   const c = cfg();
-  state.denomA = c.denomADefault;
-  state.denomB = c.denomBDefault;
+  state.denoms = {};
+  c.roles.forEach(r => { if (r.denomField) state.denoms[r.key] = r.denomDefault; });
+  state.roles = {};
+  state.clauses = [];
   document.querySelectorAll('.type-card').forEach(card => {
     card.classList.remove('border-primary', 'bg-primary-fixed');
   });
@@ -397,7 +458,7 @@ function renderCustomerList(customers) {
 function toggleCustomer(id, checkbox) {
   if (checkbox.checked) {
     state.selected.add(id);
-    if (!state.roles[id]) state.roles[id] = cfg().roleAKey;
+    if (!state.roles[id]) state.roles[id] = defaultRoleKey(cfg());
   } else {
     state.selected.delete(id);
   }
@@ -436,16 +497,25 @@ function initials(c) { return ((c.first_name[0] || '') + (c.last_name[0] || ''))
 
 function initStep3() {
   const c = cfg();
-  document.getElementById('denom-a-label').textContent = c.denomALabel;
-  document.getElementById('denom-b-label').textContent = c.denomBLabel;
-  document.getElementById('denom-a').value = state.denomA;
-  document.getElementById('denom-b').value = state.denomB;
+
+  // Denomination inputs — one per role that carries a group label.
+  const denomRoles = c.roles.filter(r => r.denomField);
+  document.getElementById('denom-inputs').innerHTML = denomRoles.map(r => `
+    <div>
+      <label class="font-label-sm text-secondary block mb-xs">${escHtml(r.denomLabel || r.label)}</label>
+      <input type="text" value="${escHtml(denomOf(r))}"
+        class="w-full py-sm px-md border border-outline-variant bg-surface focus:border-primary focus:ring-0 font-body-md transition-all"
+        oninput="onDenomChange('${escAttr(r.key)}', this.value)"/>
+    </div>`).join('');
 
   const selected = state.customers.filter(cu => state.selected.has(cu.id));
   document.getElementById('role-cards').innerHTML = selected.map(cu => {
     const ini = initials(cu);
     const color = avatarColor(cu.id);
-    const role = state.roles[cu.id] || c.roleAKey;
+    const role = state.roles[cu.id] || defaultRoleKey(c);
+    const options = c.roles.map(r =>
+      `<option value="${escAttr(r.key)}" ${role === r.key ? 'selected' : ''}>${escHtml(r.label)}</option>`
+    ).join('');
     return `
       <div class="bg-surface-container-lowest border border-outline-variant p-lg rounded-lg flex items-center justify-between gap-md">
         <div class="flex items-center gap-md">
@@ -458,8 +528,7 @@ function initStep3() {
         <div class="relative shrink-0">
           <select class="appearance-none bg-surface border border-outline-variant font-label-sm rounded px-md py-sm pr-3xl focus:ring-2 focus:ring-primary outline-none"
                   onchange="assignRole(${cu.id}, this.value)">
-            <option value="${c.roleAKey}" ${role === c.roleAKey ? 'selected' : ''}>${c.roleALabel}</option>
-            <option value="${c.roleBKey}" ${role === c.roleBKey ? 'selected' : ''}>${c.roleBLabel}</option>
+            ${options}
           </select>
           <span class="material-symbols-outlined absolute right-sm top-1/2 -translate-y-1/2 pointer-events-none text-secondary text-[18px]">unfold_more</span>
         </div>
@@ -470,18 +539,15 @@ function initStep3() {
 
 function assignRole(id, role) { state.roles[id] = role; updateRoleSummary(); }
 
-function onDenomChange() {
-  const c = cfg();
-  state.denomA = document.getElementById('denom-a').value || c.denomADefault;
-  state.denomB = document.getElementById('denom-b').value || c.denomBDefault;
+function onDenomChange(key, value) {
+  const role = cfg().roles.find(r => r.key === key);
+  state.denoms[key] = value || (role ? role.denomDefault : '');
   updateRoleSummary();
 }
 
 function updateRoleSummary() {
   const c = cfg();
   const selected = state.customers.filter(cu => state.selected.has(cu.id));
-  const partyA = selected.filter(cu => state.roles[cu.id] === c.roleAKey);
-  const partyB = selected.filter(cu => state.roles[cu.id] === c.roleBKey);
 
   const partyHtml = list => list.length
     ? list.map(cu => `
@@ -491,29 +557,30 @@ function updateRoleSummary() {
         </div>`).join('')
     : '<p class="text-secondary text-sm italic py-sm">None assigned</p>';
 
-  document.getElementById('role-summary').innerHTML = `
-    <div class="space-y-lg">
+  const groups = c.roles.map(r => {
+    const members = selected.filter(cu => (state.roles[cu.id] || defaultRoleKey(c)) === r.key);
+    const heading = r.denomField ? denomOf(r) : r.label;
+    return `
       <div>
-        <p class="font-label-sm text-label-sm text-secondary uppercase tracking-wider mb-sm">${state.denomA}</p>
-        ${partyHtml(partyA)}
-      </div>
-      <div>
-        <p class="font-label-sm text-label-sm text-secondary uppercase tracking-wider mb-sm">${state.denomB}</p>
-        ${partyHtml(partyB)}
-      </div>
-    </div>`;
+        <p class="font-label-sm text-label-sm text-secondary uppercase tracking-wider mb-sm">${escHtml(heading)}</p>
+        ${partyHtml(members)}
+      </div>`;
+  }).join('');
+
+  document.getElementById('role-summary').innerHTML = `<div class="space-y-lg">${groups}</div>`;
 }
 
 // ===== Step 4: Preview =====
 
-async function loadPreview() {
+function loadPreview() {
   const c = cfg();
-  const partyA = getPartiesByRole(c.roleAKey);
-  const partyB = getPartiesByRole(c.roleBKey);
 
-  // Populate side-panel party list
-  const all = [...partyA.map(p => ({...p, denom: state.denomA})),
-               ...partyB.map(p => ({...p, denom: state.denomB}))];
+  // Populate side-panel party list across every role, in declared order.
+  const all = [];
+  c.roles.forEach(r => {
+    const label = r.denomField ? denomOf(r) : r.label;
+    getPartiesByRole(r.key).forEach(p => all.push({ ...p, denom: label }));
+  });
   document.getElementById('preview-party-list').innerHTML = all.map(p => `
     <div class="flex items-center gap-sm">
       <span class="material-symbols-outlined text-[16px] text-secondary">person</span>
@@ -523,16 +590,29 @@ async function loadPreview() {
       </div>
     </div>`).join('');
 
+  renderClausePanel();
+  fetchPreview();
+}
+
+// Build the preview (Go) request body from the current roles + clauses.
+function buildPreviewBody() {
+  const c = cfg();
+  const body = {};
+  c.roles.forEach(r => {
+    body[r.field] = getPartiesByRole(r.key);
+    if (r.denomField) body[r.denomField] = denomOf(r);
+  });
+  if (c.hasClauses) body.clauses = state.clauses.map(x => x.trim()).filter(Boolean);
+  return body;
+}
+
+async function fetchPreview() {
+  const c = cfg();
   try {
-    const body = {};
-    body[c.partyAField] = partyA;
-    body[c.partyBField] = partyB;
-    body[c.denomAField] = state.denomA;
-    body[c.denomBField] = state.denomB;
     const res = await fetch(c.previewUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
+      body: JSON.stringify(buildPreviewBody())
     });
     if (!res.ok) throw new Error('Server error ' + res.status);
     document.getElementById('preview-content').innerHTML = await res.text();
@@ -541,6 +621,79 @@ async function loadPreview() {
     document.getElementById('preview-content').innerHTML =
       `<p class="text-error text-sm">Failed to load preview: ${e.message}</p>`;
   }
+}
+
+let _previewTimer = null;
+function schedulePreview() {
+  clearTimeout(_previewTimer);
+  _previewTimer = setTimeout(fetchPreview, 400);
+}
+
+// ===== Step 4: Dynamic clause editor =====
+
+function renderClausePanel() {
+  const panel = document.getElementById('clause-panel');
+  if (!cfg().hasClauses) { panel.classList.add('hidden'); return; }
+  panel.classList.remove('hidden');
+  renderClauses();
+}
+
+// Rebuilds the clause list HTML from state. Called on structural changes only
+// (add/remove/move) so typing in a textarea doesn't lose focus.
+function renderClauses() {
+  const list = document.getElementById('clause-list');
+  document.getElementById('clause-count').textContent = String(state.clauses.length);
+  if (!state.clauses.length) {
+    list.innerHTML = '<p class="font-label-sm text-secondary text-[11px] italic py-sm">Aún no hay cláusulas. Agrega la primera.</p>';
+    return;
+  }
+  const last = state.clauses.length - 1;
+  list.innerHTML = state.clauses.map((text, i) => `
+    <div class="border border-outline-variant rounded-lg p-sm space-y-xs">
+      <div class="flex items-center justify-between">
+        <span class="font-label-sm text-[11px] font-bold text-primary">${ordinalEs(i)}</span>
+        <div class="flex items-center gap-xs">
+          <button type="button" title="Subir" onclick="moveClause(${i}, -1)" ${i === 0 ? 'disabled' : ''}
+            class="text-secondary hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed">
+            <span class="material-symbols-outlined text-[16px]">arrow_upward</span></button>
+          <button type="button" title="Bajar" onclick="moveClause(${i}, 1)" ${i === last ? 'disabled' : ''}
+            class="text-secondary hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed">
+            <span class="material-symbols-outlined text-[16px]">arrow_downward</span></button>
+          <button type="button" title="Eliminar" onclick="removeClause(${i})"
+            class="text-secondary hover:text-error">
+            <span class="material-symbols-outlined text-[16px]">delete</span></button>
+        </div>
+      </div>
+      <textarea rows="3" oninput="updateClause(${i}, this.value)" placeholder="Texto de la cláusula..."
+        class="w-full block py-xs px-sm border border-outline-variant bg-surface focus:border-primary focus:ring-0 text-body-md text-[12px] resize-y leading-snug">${escHtml(text)}</textarea>
+    </div>`).join('');
+}
+
+function addClause() {
+  state.clauses.push('');
+  renderClauses();
+  const areas = document.querySelectorAll('#clause-list textarea');
+  if (areas.length) areas[areas.length - 1].focus();
+  schedulePreview();
+}
+
+function updateClause(i, val) {
+  state.clauses[i] = val;
+  schedulePreview();
+}
+
+function removeClause(i) {
+  state.clauses.splice(i, 1);
+  renderClauses();
+  schedulePreview();
+}
+
+function moveClause(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= state.clauses.length) return;
+  [state.clauses[i], state.clauses[j]] = [state.clauses[j], state.clauses[i]];
+  renderClauses();
+  schedulePreview();
 }
 
 // ===== Step 4: Placeholder filling =====
@@ -765,27 +918,29 @@ function enrichParties(parties) {
 }
 
 // Map the filled placeholders + parties onto the Python API's request shape
-// for the currently selected contract type.
+// for the currently selected document type.
 function buildDocRequest() {
   const c = cfg();
-  const partyA = enrichParties(getPartiesByRole(c.roleAKey));
-  const partyB = enrichParties(getPartiesByRole(c.roleBKey));
   const f = label => (state.fieldValues[label] || '').trim();
 
   const req = {};
-  req[c.partyAField] = partyA;
-  req[c.partyBField] = partyB;
-  req[c.denomAField] = state.denomA;
-  req[c.denomBField] = state.denomB;
-  req.signers_list = computeSignersList(partyA, partyB);
+  const allParties = [];
+  c.roles.forEach(r => {
+    const parties = enrichParties(getPartiesByRole(r.key));
+    req[r.field] = parties;
+    if (r.denomField) req[r.denomField] = denomOf(r);
+    allParties.push(...parties);
+  });
+  req.signers_list = computeSignersList(allParties);
+  if (c.hasClauses) req.clauses = state.clauses.map(x => x.trim()).filter(Boolean);
   for (const { label, key } of c.extraFields) req[key] = f(label);
   for (const { label, key } of COMMON_FIELDS) req[key] = f(label);
   return req;
 }
 
 // Mirrors the Go SignerNames(): "A, B y C" of every party's upper-cased name.
-function computeSignersList(partyA, partyB) {
-  const names = [...partyA, ...partyB]
+function computeSignersList(parties) {
+  const names = parties
     .map(p => (p.first_name + ' ' + p.last_name).trim().toUpperCase())
     .filter(Boolean);
   if (names.length <= 1) return names[0] || '';

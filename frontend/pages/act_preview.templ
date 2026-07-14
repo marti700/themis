@@ -1,0 +1,95 @@
+package pages
+
+import "strings"
+
+// actPartyBlock renders the comparecientes/poderdantes generals inside an acto
+// auténtico, with @ph fallbacks for any party field missing from the customer record,
+// closing with the group denomination.
+templ actPartyBlock(parties []PartyPreview, denomination string) {
+	for i, p := range parties {
+		<span>
+			<strong class="text-primary">{ strings.ToUpper(p.FirstName + " " + p.LastName) }</strong>,
+			de nacionalidad
+			if p.Nationality != "" {
+				{ p.Nationality },
+			} else {
+				@ph("NACIONALIDAD"),
+			}
+			mayor de edad,
+			if p.MaritalStatus != "" {
+				{ p.MaritalStatus },
+			} else {
+				@ph("ESTADO CIVIL"),
+			}
+			if p.Occupation != "" {
+				{ p.Occupation },
+			} else {
+				@ph("OCUPACIÓN"),
+			}
+			portador(a) de la cédula de identidad y electoral No. <strong>{ p.IDNumber }</strong>,
+			domiciliado(a) y residente en
+			if p.Address != "" {
+				{ p.Address }
+			} else {
+				@ph("DOMICILIO")
+			}
+			if i < len(parties)-1 {
+				{ "; " }
+			}
+		</span>
+	}
+	<span>, quien(es) en lo que sigue del presente acto se denominará(n) <strong>{ denomination }</strong>;</span>
+}
+
+// witnessBlock renders the instrumental-witness sentence of an acto auténtico.
+templ witnessBlock(witnesses []PartyPreview) {
+	if len(witnesses) > 0 {
+		<span>
+			en presencia de los testigos
+			for i, w := range witnesses {
+				<strong>{ strings.ToUpper(w.FirstName + " " + w.LastName) }</strong>
+				if i < len(witnesses)-1 {
+					{ " y " }
+				}
+			}
+			, dominicanos, mayores de edad, portadores de las cédulas de identidad y electoral Nos.
+			for i, w := range witnesses {
+				<strong>{ w.IDNumber }</strong>
+				if i < len(witnesses)-1 {
+					{ " y " }
+				}
+			}
+			, testigos instrumentales requeridos al efecto, libres de tachas y excepciones exigidas por la ley;
+		</span>
+	} else {
+		<span class="text-secondary italic text-[12px]">[Sin testigos asignados]</span>
+	}
+}
+
+// clauseList renders the dynamic numbered clauses (PRIMERO, SEGUNDO, …) of the act.
+templ clauseList(clauses []string) {
+	if len(clauses) > 0 {
+		for i, cl := range clauses {
+			<div>
+				<p class="font-bold uppercase mt-md mb-xs">{ ordinalWord(i) }:</p>
+				<p class="text-justify leading-relaxed">{ cl }</p>
+			</div>
+		}
+	} else {
+		<p class="text-secondary italic text-[12px]">[Agrega cláusulas en el panel de la izquierda]</p>
+	}
+}
+
+// signatureBlock renders the two-column signature grid of an acto auténtico.
+templ signatureBlock(lines []SignatureLine) {
+	<div class="grid grid-cols-2 gap-3xl mt-3xl pt-lg">
+		for _, s := range lines {
+			<div class="text-center">
+				<div class="border-t-2 border-on-surface pt-md">
+					<p class="font-bold text-[13px] uppercase">{ s.Name }</p>
+					<p class="text-secondary text-[12px] mt-xs">{ s.Role }</p>
+				</div>
+			</div>
+		}
+	</div>
+}

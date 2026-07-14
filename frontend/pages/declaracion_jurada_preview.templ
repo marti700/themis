@@ -1,0 +1,67 @@
+package pages
+
+templ DeclaracionJuradaPreview(d DeclaracionJuradaPreviewData) {
+	<div class="font-serif text-on-background text-[14px] space-y-md">
+		<!-- Firm / Notary Header -->
+		<div class="text-center space-y-xs border-b border-outline-variant pb-lg mb-lg">
+			<p class="font-bold text-[15px] uppercase tracking-widest">@ph("NOMBRE DEL BUFETE")</p>
+			<p class="text-secondary italic text-[13px]">@ph("SERVICIO DEL BUFETE")</p>
+			<p class="mt-sm">
+				@ph("NOTARIO TÍTULO Y NOMBRE") · TEL.
+				@ph("TELÉFONO")
+			</p>
+			<p class="text-secondary text-[13px]">@ph("MUNICIPIO")</p>
+		</div>
+		<!-- Title -->
+		<div class="text-center mb-lg">
+			<h3 class="font-bold uppercase tracking-widest text-[15px] border-b-2 border-primary inline-block pb-xs">
+				Acto Auténtico de Declaración Jurada
+			</h3>
+		</div>
+		<!-- Body intro -->
+		<p class="text-justify leading-relaxed">
+			REPÚBLICA DOMINICANA – (Acto No.
+			@ph("ACTO NÚMERO")). En la ciudad y Municipio de
+			@ph("CIUDAD"), Provincia
+			@ph("PROVINCIA"), a los
+			@ph("DÍA EN LETRAS"),
+			@ph("DÍA")
+			días del mes de
+			@ph("MES")
+			del año
+			@ph("AÑO EN LETRAS"),
+			@ph("AÑO"), siendo las
+			@ph("HORA"){ ". " }Por ante mí, <strong>@ph("NOTARIO TÍTULO Y NOMBRE")</strong>,
+			Notario Público de los del número de este Municipio de
+			@ph("MUNICIPIO"),
+			@ph("NOTARIO NACIONALIDAD"), mayor de edad,
+			@ph("NOTARIO ESTADO CIVIL"), portador(a) de la cédula de identidad y electoral No.
+			@ph("NOTARIO CÉDULA"), miembro del Colegio Dominicano de Notarios con matrícula No.
+			@ph("MATRÍCULA"), con estudio profesional abierto en
+			@ph("NOTARIO ESTUDIO"); ha(n) comparecido libre y voluntariamente
+			if len(d.Declarants) > 0 {
+				@actPartyBlock(d.Declarants, d.DeclarantDenomination)
+			} else {
+				<span class="text-secondary italic text-[12px]">[Sin comparecientes asignados]</span>
+			}
+			@witnessBlock(d.Witnesses)
+			y me ha(n) declarado BAJO LA FE DEL JURAMENTO lo siguiente:
+		</p>
+		<!-- Clauses -->
+		@clauseList(d.Clauses)
+		<!-- Closing -->
+		<p class="text-justify leading-relaxed mt-md">
+			HECHO, LEÍDO Y PASADO en mi estudio profesional, el día, mes y año indicados en cabeza del
+			presente acto, el cual he leído íntegramente en voz alta al/a los compareciente(s) en
+			presencia de los testigos, quienes se mostraron conformes y en señal de aprobación
+			procedieron a firmarlo ante mí y junto conmigo, NOTARIO PÚBLICO QUE CERTIFICO Y DOY FE.
+		</p>
+		<!-- Signatures -->
+		@signatureBlock(d.Signatures())
+		<!-- Notary signature -->
+		<div class="mt-3xl pt-lg border-t border-outline-variant space-y-sm">
+			<p class="text-center font-bold uppercase text-[13px]">@ph("NOTARIO TÍTULO Y NOMBRE")</p>
+			<p class="text-center text-secondary text-[12px]">Notario Público</p>
+		</div>
+	</div>
+}

@@ -118,6 +118,22 @@ type previewParty struct {
 	Occupation    string `json:"occupation"`
 }
 
+func toParties(in []previewParty) []pages.PartyPreview {
+	out := make([]pages.PartyPreview, len(in))
+	for i, p := range in {
+		out[i] = pages.PartyPreview{
+			FirstName:     p.FirstName,
+			LastName:      p.LastName,
+			IDNumber:      p.IDNumber,
+			Address:       p.Address,
+			Nationality:   p.Nationality,
+			MaritalStatus: p.MaritalStatus,
+			Occupation:    p.Occupation,
+		}
+	}
+	return out
+}
+
 type previewRequest struct {
 	Sellers            []previewParty `json:"sellers"`
 	Buyers             []previewParty `json:"buyers"`
@@ -211,6 +227,62 @@ func (h *Handler) RentContractPreview(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if err := pages.RentContractPreview(data).Render(r.Context(), w); err != nil {
 		log.Printf("Error rendering rent contract preview: %v", err)
+	}
+}
+
+type poderPreviewRequest struct {
+	Poderdantes            []previewParty `json:"poderdantes"`
+	Apoderados             []previewParty `json:"apoderados"`
+	Witnesses              []previewParty `json:"witnesses"`
+	PoderdanteDenomination string         `json:"poderdante_denomination"`
+	ApoderadoDenomination  string         `json:"apoderado_denomination"`
+}
+
+func (h *Handler) PoderEspecialPreview(w http.ResponseWriter, r *http.Request) {
+	var req poderPreviewRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	data := pages.PoderEspecialPreviewData{
+		Poderdantes:            toParties(req.Poderdantes),
+		Apoderados:             toParties(req.Apoderados),
+		Witnesses:              toParties(req.Witnesses),
+		PoderdanteDenomination: req.PoderdanteDenomination,
+		ApoderadoDenomination:  req.ApoderadoDenomination,
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if err := pages.PoderEspecialPreview(data).Render(r.Context(), w); err != nil {
+		log.Printf("Error rendering poder especial preview: %v", err)
+	}
+}
+
+type declaracionPreviewRequest struct {
+	Declarants            []previewParty `json:"declarants"`
+	Witnesses             []previewParty `json:"witnesses"`
+	DeclarantDenomination string         `json:"declarant_denomination"`
+	Clauses               []string       `json:"clauses"`
+}
+
+func (h *Handler) DeclaracionJuradaPreview(w http.ResponseWriter, r *http.Request) {
+	var req declaracionPreviewRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	data := pages.DeclaracionJuradaPreviewData{
+		Declarants:            toParties(req.Declarants),
+		Witnesses:             toParties(req.Witnesses),
+		DeclarantDenomination: req.DeclarantDenomination,
+		Clauses:               req.Clauses,
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if err := pages.DeclaracionJuradaPreview(data).Render(r.Context(), w); err != nil {
+		log.Printf("Error rendering declaracion jurada preview: %v", err)
 	}
 }
 
