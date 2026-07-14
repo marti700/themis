@@ -109,6 +109,65 @@ func (d DeclaracionJuradaPreviewData) Signatures() []SignatureLine {
 	return appendSigners(lines, d.Witnesses, "Testigo Instrumental")
 }
 
+// ActoNotoriedadPreviewData drives the Acto de Notoriedad draft preview — it is
+// structurally identical to Declaración Jurada (N declarants + witnesses + a
+// dynamic clause body), so the two share this type rather than duplicating it.
+type ActoNotoriedadPreviewData = DeclaracionJuradaPreviewData
+
+// HeirPreview is one heir row in a Determinación de Herederos preview — richer
+// than PartyPreview because the act must state each heir's filiation (birth data).
+type HeirPreview struct {
+	FirstName     string
+	LastName      string
+	IDNumber      string
+	Nationality   string
+	MaritalStatus string
+	Occupation    string
+	Address       string
+	BirthDate     string
+	BirthRecord   string
+}
+
+// DeterminacionHerederosPreviewData drives the Determinación de Herederos draft
+// preview.
+type DeterminacionHerederosPreviewData struct {
+	Declarants            []PartyPreview
+	Witnesses             []PartyPreview
+	DeclarantDenomination string
+	Heirs                 []HeirPreview
+	Clauses               []string
+}
+
+func (d DeterminacionHerederosPreviewData) SignerNames() string {
+	return signerNames(d.Declarants, d.Witnesses)
+}
+
+func (d DeterminacionHerederosPreviewData) Signatures() []SignatureLine {
+	lines := appendSigners(nil, d.Declarants, "Compareciente")
+	return appendSigners(lines, d.Witnesses, "Testigo Instrumental")
+}
+
+// AutorizacionViajeMenorPreviewData drives the Autorización para Viaje de Menor
+// draft preview.
+type AutorizacionViajeMenorPreviewData struct {
+	Authorizers            []PartyPreview
+	Acceptors              []PartyPreview
+	Witnesses              []PartyPreview
+	AuthorizerDenomination string
+	AcceptorDenomination   string
+}
+
+func (d AutorizacionViajeMenorPreviewData) SignerNames() string {
+	principals := append(append([]PartyPreview{}, d.Authorizers...), d.Acceptors...)
+	return signerNames(principals, d.Witnesses)
+}
+
+func (d AutorizacionViajeMenorPreviewData) Signatures() []SignatureLine {
+	lines := appendSigners(nil, d.Authorizers, "Autorizador")
+	lines = appendSigners(lines, d.Acceptors, "Aceptante")
+	return appendSigners(lines, d.Witnesses, "Testigo Instrumental")
+}
+
 func signerNames(a, b []PartyPreview) string {
 	names := make([]string, 0, len(a)+len(b))
 	for _, p := range a {

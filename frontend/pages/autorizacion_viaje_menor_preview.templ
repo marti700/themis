@@ -1,0 +1,74 @@
+package pages
+
+templ AutorizacionViajeMenorPreview(d AutorizacionViajeMenorPreviewData) {
+	<div class="font-serif text-on-background text-[14px] space-y-md">
+		<!-- Firm / Notary Header -->
+		<div class="text-center space-y-xs border-b border-outline-variant pb-lg mb-lg">
+			<p class="font-bold text-[15px] uppercase tracking-widest">@ph("NOMBRE DEL BUFETE")</p>
+			<p class="text-secondary italic text-[13px]">@ph("SERVICIO DEL BUFETE")</p>
+			<p class="mt-sm">
+				@ph("NOTARIO TÍTULO Y NOMBRE") · TEL.
+				@ph("TELÉFONO")
+			</p>
+			<p class="text-secondary text-[13px]">@ph("MUNICIPIO")</p>
+		</div>
+		<!-- Title -->
+		<div class="text-center mb-lg">
+			<h3 class="font-bold uppercase tracking-widest text-[15px] border-b-2 border-primary inline-block pb-xs">
+				Autorización para Viaje de Menor
+			</h3>
+		</div>
+		<!-- Body -->
+		<p class="text-justify leading-relaxed">
+			Por ante mí, <strong>@ph("NOTARIO TÍTULO Y NOMBRE")</strong>,
+			@ph("NOTARIO NACIONALIDAD"), mayor de edad,
+			@ph("NOTARIO ESTADO CIVIL"), portador(a) de la cédula de identidad y electoral No.
+			@ph("NOTARIO CÉDULA"), Notario Público de los del número de este Municipio de
+			@ph("MUNICIPIO"), miembro del Colegio Dominicano de Notarios con matrícula No.
+			@ph("MATRÍCULA"), con mi estudio profesional abierto en
+			@ph("NOTARIO ESTUDIO"); ha(n) comparecido libre y voluntariamente
+			if len(d.Authorizers) > 0 {
+				@actPartyBlock(d.Authorizers, d.AuthorizerDenomination)
+			} else {
+				<span class="text-secondary italic text-[12px]">[Sin autorizadores asignados]</span>
+			}
+			@witnessBlock(d.Witnesses)
+			y me ha(n) declarado Bajo la Fe del Juramento que por medio del presente acto da(n) Expresa
+			Autorización a <strong>@ph("MENOR NOMBRE")</strong>, menor de edad, nacido(a) en fecha
+			@ph("MENOR FECHA NACIMIENTO"), según
+			@ph("MENOR ACTA NACIMIENTO"), portador(a) del pasaporte No.
+			@ph("MENOR PASAPORTE"), para que pueda viajar al país de
+			@ph("PAÍS DESTINO"), y cualquier otra parte del mundo que fuese necesario, junto a
+			if len(d.Acceptors) > 0 {
+				@actPartyBlock(d.Acceptors, d.AcceptorDenomination)
+			} else {
+				<span class="text-secondary italic text-[12px]">[Sin aceptante asignado]</span>
+			}
+			En fe de lo cual he redactado el presente acto al cual di lectura en voz alta ante los
+			comparecientes y los testigos, quienes se mostraron conformes con el contenido del mismo y
+			en señal de aprobación procedieron a firmarlo ante mí y junto conmigo, Notario Público que
+			CERTIFICO Y DOY FE.
+		</p>
+		<!-- Date / place -->
+		<p class="text-justify leading-relaxed mt-md">
+			En la Ciudad y Municipio de
+			@ph("CIUDAD"), Provincia
+			@ph("PROVINCIA"),
+			República Dominicana, a los
+			@ph("DÍA EN LETRAS"),
+			@ph("DÍA")
+			días del mes de
+			@ph("MES")
+			del año
+			@ph("AÑO EN LETRAS"),
+			@ph("AÑO"){ "." }
+		</p>
+		<!-- Signatures -->
+		@signatureBlock(d.Signatures())
+		<!-- Notary signature -->
+		<div class="mt-3xl pt-lg border-t border-outline-variant space-y-sm">
+			<p class="text-center font-bold uppercase text-[13px]">@ph("NOTARIO TÍTULO Y NOMBRE")</p>
+			<p class="text-center text-secondary text-[12px]">Notario Público</p>
+		</div>
+	</div>
+}

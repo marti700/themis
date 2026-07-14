@@ -131,6 +131,19 @@ templ Builder() {
 								<p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Parties</p>
 								<div id="preview-party-list" class="space-y-sm text-sm"></div>
 							</div>
+							<!-- Heir editor (only for document types with a structured heir list) -->
+							<div id="heir-panel" class="hidden bg-surface-container-lowest border border-outline-variant p-lg rounded-lg space-y-md">
+								<div class="flex items-center justify-between">
+									<p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Herederos</p>
+									<span id="heir-count" class="font-label-sm text-[11px] text-secondary tabular-nums">0</span>
+								</div>
+								<div id="heir-list" class="space-y-sm"></div>
+								<button type="button" onclick="addHeir()"
+									class="w-full flex items-center justify-center gap-sm text-primary font-bold py-sm border border-dashed border-outline-variant rounded-lg hover:border-primary hover:bg-primary/5 transition-all">
+									<span class="material-symbols-outlined text-[18px]">add</span>
+									<span class="font-label-sm text-[12px]">Agregar heredero</span>
+								</button>
+							</div>
 							<!-- Clause editor (only for document types with a dynamic clause body) -->
 							<div id="clause-panel" class="hidden bg-surface-container-lowest border border-outline-variant p-lg rounded-lg space-y-md">
 								<div class="flex items-center justify-between">
@@ -284,6 +297,59 @@ const CONTRACT_CONFIG = {
       { label: 'ACTO NÚMERO', key: 'act_number' },
       { label: 'HORA', key: 'time' }
     ]
+  },
+  acto_notoriedad: {
+    roles: [
+      { key: 'compareciente', label: 'Compareciente', field: 'declarants', denomField: 'declarant_denomination', denomLabel: 'Comparecientes denomination', denomDefault: 'LOS COMPARECIENTES' },
+      { key: 'testigo', label: 'Testigo', field: 'witnesses', isWitness: true }
+    ],
+    hasClauses: true,
+    previewUrl: '/preview/acto_notoriedad',
+    generateUrl: PYTHON_API + '/documents/acto_notoriedad',
+    downloadName: 'acto_notoriedad.docx',
+    extraFields: [...ACT_NOTARY_FIELDS]
+  },
+  determinacion_herederos: {
+    roles: [
+      { key: 'compareciente', label: 'Declarante', field: 'declarants', denomField: 'declarant_denomination', denomLabel: 'Declarantes denomination', denomDefault: 'LOS DECLARANTES' },
+      { key: 'testigo', label: 'Testigo', field: 'witnesses', isWitness: true }
+    ],
+    hasClauses: true,
+    hasHeirs: true,
+    previewUrl: '/preview/determinacion_herederos',
+    generateUrl: PYTHON_API + '/documents/determinacion_herederos',
+    downloadName: 'determinacion_herederos.docx',
+    extraFields: [
+      ...ACT_NOTARY_FIELDS,
+      { label: 'DIFUNTO NOMBRE', key: 'deceased_name' },
+      { label: 'DIFUNTO NACIONALIDAD', key: 'deceased_nationality' },
+      { label: 'DIFUNTO ESTADO CIVIL', key: 'deceased_marital_status' },
+      { label: 'DIFUNTO OCUPACIÓN', key: 'deceased_occupation' },
+      { label: 'DIFUNTO CÉDULA', key: 'deceased_id_number' },
+      { label: 'DIFUNTO FECHA NACIMIENTO', key: 'deceased_birth_date' },
+      { label: 'DIFUNTO FECHA DEFUNCIÓN', key: 'deceased_death_date' },
+      { label: 'DIFUNTO ACTA DEFUNCIÓN', key: 'deceased_death_record' },
+      { label: 'DIFUNTO LUGAR DE ORIGEN', key: 'deceased_origin_place' },
+      { label: 'DIFUNTO CÓNYUGE', key: 'deceased_spouse_name' }
+    ]
+  },
+  autorizacion_viaje_menor: {
+    roles: [
+      { key: 'autorizador', label: 'Autorizador', field: 'authorizers', denomField: 'authorizer_denomination', denomLabel: 'Autorizador denomination', denomDefault: 'EL AUTORIZANTE' },
+      { key: 'aceptante', label: 'Aceptante', field: 'acceptors', denomField: 'acceptor_denomination', denomLabel: 'Aceptante denomination', denomDefault: 'EL ACEPTANTE' },
+      { key: 'testigo', label: 'Testigo', field: 'witnesses', isWitness: true }
+    ],
+    previewUrl: '/preview/autorizacion_viaje_menor',
+    generateUrl: PYTHON_API + '/documents/autorizacion_viaje_menor',
+    downloadName: 'autorizacion_viaje_menor.docx',
+    extraFields: [
+      ...ACT_NOTARY_FIELDS,
+      { label: 'MENOR NOMBRE', key: 'minor_name' },
+      { label: 'MENOR FECHA NACIMIENTO', key: 'minor_birth_date' },
+      { label: 'MENOR ACTA NACIMIENTO', key: 'minor_birth_record' },
+      { label: 'MENOR PASAPORTE', key: 'minor_passport' },
+      { label: 'PAÍS DESTINO', key: 'destination_country' }
+    ]
   }
 };
 
@@ -337,6 +403,7 @@ const state = {
   roles: {},
   denoms: {},
   clauses: [],
+  heirs: [],
   fieldValues: {}
 };
 
@@ -404,6 +471,7 @@ function selectType(type, el) {
   c.roles.forEach(r => { if (r.denomField) state.denoms[r.key] = r.denomDefault; });
   state.roles = {};
   state.clauses = [];
+  state.heirs = [];
   document.querySelectorAll('.type-card').forEach(card => {
     card.classList.remove('border-primary', 'bg-primary-fixed');
   });
@@ -591,6 +659,7 @@ function loadPreview() {
     </div>`).join('');
 
   renderClausePanel();
+  renderHeirPanel();
   fetchPreview();
 }
 
@@ -603,6 +672,7 @@ function buildPreviewBody() {
     if (r.denomField) body[r.denomField] = denomOf(r);
   });
   if (c.hasClauses) body.clauses = state.clauses.map(x => x.trim()).filter(Boolean);
+  if (c.hasHeirs) body.heirs = nonEmptyHeirs();
   return body;
 }
 
@@ -693,6 +763,83 @@ function moveClause(i, dir) {
   if (j < 0 || j >= state.clauses.length) return;
   [state.clauses[i], state.clauses[j]] = [state.clauses[j], state.clauses[i]];
   renderClauses();
+  schedulePreview();
+}
+
+// ===== Step 4: Dynamic heir editor (Determinación de Herederos) =====
+
+const HEIR_FIELDS = [
+  { key: 'first_name', placeholder: 'Nombre(s)' },
+  { key: 'last_name', placeholder: 'Apellido(s)' },
+  { key: 'nationality', placeholder: 'Nacionalidad' },
+  { key: 'marital_status', placeholder: 'Estado civil' },
+  { key: 'occupation', placeholder: 'Ocupación' },
+  { key: 'id_number', placeholder: 'Cédula' },
+  { key: 'birth_date', placeholder: 'Fecha de nacimiento' },
+  { key: 'birth_record', placeholder: 'Acta de nacimiento' }
+];
+
+function emptyHeir() {
+  const h = { address: '' };
+  HEIR_FIELDS.forEach(f => { h[f.key] = ''; });
+  return h;
+}
+
+// Heirs with no name entered are dropped before they reach the server/preview.
+function nonEmptyHeirs() {
+  return state.heirs.filter(h => (h.first_name || '').trim() || (h.last_name || '').trim());
+}
+
+function renderHeirPanel() {
+  const panel = document.getElementById('heir-panel');
+  if (!cfg().hasHeirs) { panel.classList.add('hidden'); return; }
+  panel.classList.remove('hidden');
+  renderHeirs();
+}
+
+// Rebuilds the heir list HTML from state. Called on structural changes only
+// (add/remove) so typing in an input doesn't lose focus.
+function renderHeirs() {
+  const list = document.getElementById('heir-list');
+  document.getElementById('heir-count').textContent = String(state.heirs.length);
+  if (!state.heirs.length) {
+    list.innerHTML = '<p class="font-label-sm text-secondary text-[11px] italic py-sm">Aún no hay herederos. Agrega el primero.</p>';
+    return;
+  }
+  const inputCls = 'py-xs px-sm border border-outline-variant bg-surface focus:border-primary focus:ring-0 text-body-md text-[12px]';
+  list.innerHTML = state.heirs.map((h, i) => `
+    <div class="border border-outline-variant rounded-lg p-sm space-y-xs">
+      <div class="flex items-center justify-between">
+        <span class="font-label-sm text-[11px] font-bold text-primary">${i + 1}</span>
+        <button type="button" title="Eliminar" onclick="removeHeir(${i})" class="text-secondary hover:text-error">
+          <span class="material-symbols-outlined text-[16px]">delete</span></button>
+      </div>
+      <div class="grid grid-cols-2 gap-xs">
+        ${HEIR_FIELDS.map(f => `
+          <input placeholder="${escAttr(f.placeholder)}" value="${escAttr(h[f.key])}"
+            oninput="updateHeirField(${i}, '${f.key}', this.value)" class="${inputCls}"/>`).join('')}
+        <input placeholder="Domicilio" value="${escAttr(h.address)}"
+          oninput="updateHeirField(${i}, 'address', this.value)" class="col-span-2 ${inputCls}"/>
+      </div>
+    </div>`).join('');
+}
+
+function addHeir() {
+  state.heirs.push(emptyHeir());
+  renderHeirs();
+  const inputs = document.querySelectorAll('#heir-list input');
+  if (inputs.length) inputs[inputs.length - HEIR_FIELDS.length - 1].focus();
+  schedulePreview();
+}
+
+function updateHeirField(i, field, val) {
+  state.heirs[i][field] = val;
+  schedulePreview();
+}
+
+function removeHeir(i) {
+  state.heirs.splice(i, 1);
+  renderHeirs();
   schedulePreview();
 }
 
@@ -933,6 +1080,7 @@ function buildDocRequest() {
   });
   req.signers_list = computeSignersList(allParties);
   if (c.hasClauses) req.clauses = state.clauses.map(x => x.trim()).filter(Boolean);
+  if (c.hasHeirs) req.heirs = nonEmptyHeirs();
   for (const { label, key } of c.extraFields) req[key] = f(label);
   for (const { label, key } of COMMON_FIELDS) req[key] = f(label);
   return req;

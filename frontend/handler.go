@@ -286,6 +286,114 @@ func (h *Handler) DeclaracionJuradaPreview(w http.ResponseWriter, r *http.Reques
 	}
 }
 
+func (h *Handler) ActoNotoriedadPreview(w http.ResponseWriter, r *http.Request) {
+	var req declaracionPreviewRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	data := pages.ActoNotoriedadPreviewData{
+		Declarants:            toParties(req.Declarants),
+		Witnesses:             toParties(req.Witnesses),
+		DeclarantDenomination: req.DeclarantDenomination,
+		Clauses:               req.Clauses,
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if err := pages.ActoNotoriedadPreview(data).Render(r.Context(), w); err != nil {
+		log.Printf("Error rendering acto notoriedad preview: %v", err)
+	}
+}
+
+type heirPreviewInput struct {
+	FirstName     string `json:"first_name"`
+	LastName      string `json:"last_name"`
+	IDNumber      string `json:"id_number"`
+	Nationality   string `json:"nationality"`
+	MaritalStatus string `json:"marital_status"`
+	Occupation    string `json:"occupation"`
+	Address       string `json:"address"`
+	BirthDate     string `json:"birth_date"`
+	BirthRecord   string `json:"birth_record"`
+}
+
+func toHeirs(in []heirPreviewInput) []pages.HeirPreview {
+	out := make([]pages.HeirPreview, len(in))
+	for i, h := range in {
+		out[i] = pages.HeirPreview{
+			FirstName:     h.FirstName,
+			LastName:      h.LastName,
+			IDNumber:      h.IDNumber,
+			Nationality:   h.Nationality,
+			MaritalStatus: h.MaritalStatus,
+			Occupation:    h.Occupation,
+			Address:       h.Address,
+			BirthDate:     h.BirthDate,
+			BirthRecord:   h.BirthRecord,
+		}
+	}
+	return out
+}
+
+type herederosPreviewRequest struct {
+	Declarants            []previewParty     `json:"declarants"`
+	Witnesses             []previewParty     `json:"witnesses"`
+	DeclarantDenomination string             `json:"declarant_denomination"`
+	Heirs                 []heirPreviewInput `json:"heirs"`
+	Clauses               []string           `json:"clauses"`
+}
+
+func (h *Handler) DeterminacionHerederosPreview(w http.ResponseWriter, r *http.Request) {
+	var req herederosPreviewRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	data := pages.DeterminacionHerederosPreviewData{
+		Declarants:            toParties(req.Declarants),
+		Witnesses:             toParties(req.Witnesses),
+		DeclarantDenomination: req.DeclarantDenomination,
+		Heirs:                 toHeirs(req.Heirs),
+		Clauses:               req.Clauses,
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if err := pages.DeterminacionHerederosPreview(data).Render(r.Context(), w); err != nil {
+		log.Printf("Error rendering determinacion herederos preview: %v", err)
+	}
+}
+
+type viajeMenorPreviewRequest struct {
+	Authorizers            []previewParty `json:"authorizers"`
+	Acceptors              []previewParty `json:"acceptors"`
+	Witnesses              []previewParty `json:"witnesses"`
+	AuthorizerDenomination string         `json:"authorizer_denomination"`
+	AcceptorDenomination   string         `json:"acceptor_denomination"`
+}
+
+func (h *Handler) AutorizacionViajeMenorPreview(w http.ResponseWriter, r *http.Request) {
+	var req viajeMenorPreviewRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	data := pages.AutorizacionViajeMenorPreviewData{
+		Authorizers:            toParties(req.Authorizers),
+		Acceptors:              toParties(req.Acceptors),
+		Witnesses:              toParties(req.Witnesses),
+		AuthorizerDenomination: req.AuthorizerDenomination,
+		AcceptorDenomination:   req.AcceptorDenomination,
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if err := pages.AutorizacionViajeMenorPreview(data).Render(r.Context(), w); err != nil {
+		log.Printf("Error rendering autorizacion viaje menor preview: %v", err)
+	}
+}
+
 func (h *Handler) CustomerListJSON(w http.ResponseWriter, r *http.Request) {
 	customers, err := h.Queries.ListCustomers(r.Context())
 	if err != nil {

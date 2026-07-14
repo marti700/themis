@@ -1,6 +1,9 @@
 package pages
 
-import "strings"
+import (
+	"strconv"
+	"strings"
+)
 
 // actPartyBlock renders the comparecientes/poderdantes generals inside an acto
 // auténtico, with @ph fallbacks for any party field missing from the customer record,
@@ -68,15 +71,61 @@ templ witnessBlock(witnesses []PartyPreview) {
 
 // clauseList renders the dynamic numbered clauses (PRIMERO, SEGUNDO, …) of the act.
 templ clauseList(clauses []string) {
+	@clauseListFrom(clauses, 0)
+}
+
+// clauseListFrom renders the dynamic clauses starting at a given ordinal index —
+// used when the template hardcodes leading clauses (e.g. Determinación de
+// Herederos fixes PRIMERO/SEGUNDO and the dynamic list continues at TERCERO).
+templ clauseListFrom(clauses []string, start int) {
 	if len(clauses) > 0 {
 		for i, cl := range clauses {
 			<div>
-				<p class="font-bold uppercase mt-md mb-xs">{ ordinalWord(i) }:</p>
+				<p class="font-bold uppercase mt-md mb-xs">{ ordinalWord(start+i) }:</p>
 				<p class="text-justify leading-relaxed">{ cl }</p>
 			</div>
 		}
 	} else {
 		<p class="text-secondary italic text-[12px]">[Agrega cláusulas en el panel de la izquierda]</p>
+	}
+}
+
+// heirList renders the enumerated ("1-", "2-", …) heirs of a Determinación de
+// Herederos, each with generals and filiation, matching inject_heirs() in the
+// Python backend.
+templ heirList(heirs []HeirPreview) {
+	if len(heirs) > 0 {
+		for i, h := range heirs {
+			<p class="text-justify leading-relaxed">
+				<strong>{ strconv.Itoa(i+1) + "- " }</strong>
+				<strong class="text-primary">{ strings.ToUpper(h.FirstName + " " + h.LastName) }</strong>
+				if h.Nationality != "" {
+					{ ", " + h.Nationality }
+				}
+				{ ", mayor de edad" }
+				if h.MaritalStatus != "" {
+					{ ", " + h.MaritalStatus }
+				}
+				if h.Occupation != "" {
+					{ ", " + h.Occupation }
+				}
+				if h.IDNumber != "" {
+					{ ", portador(a) de la cédula de identidad y electoral No. " + h.IDNumber }
+				}
+				if h.Address != "" {
+					{ ", domiciliado(a) y residente en " + h.Address }
+				}
+				if h.BirthDate != "" {
+					{ ", nacido(a) en fecha " + h.BirthDate }
+				}
+				if h.BirthRecord != "" {
+					{ ", según " + h.BirthRecord }
+				}
+				{ ";" }
+			</p>
+		}
+	} else {
+		<p class="text-secondary italic text-[12px]">[Agrega herederos en el panel de la izquierda]</p>
 	}
 }
 

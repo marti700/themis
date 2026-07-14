@@ -30,6 +30,7 @@ def list_templates():
     return [f.stem for f in sorted(TEMPLATES_DIR.glob("*.docx"))]
 _SIG_SENTINEL = "__SIGNATURES__"
 _CLAUSES_SENTINEL = "__CLAUSES__"
+_HEIRS_SENTINEL = "__HEREDEROS__"
 
 # Spanish ordinal words for auto-numbering notarial-act clauses (PRIMERO, SEGUNDO, …).
 _ORDINALS = [
@@ -155,12 +156,66 @@ class PoderEspecialRequest(NotaryActBase):
     power_object: str
 
 
-class DeclaracionJuradaRequest(NotaryActBase):
+class ClauseActRequest(NotaryActBase):
+    """Shared shape for acts where N declarants testify and the body is a dynamic,
+    auto-numbered list of clauses (Declaración Jurada, Acto de Notoriedad)."""
+
     declarants: list[CustomerInfo]
     declarant_denomination: str = "EL COMPARECIENTE"
+    clauses: list[str] = []
+
+
+class DeclaracionJuradaRequest(ClauseActRequest):
     act_number: str = ""
     time: str = ""
+
+
+class ActoNotoriedadRequest(ClauseActRequest):
+    pass
+
+
+class HeirInfo(BaseModel):
+    """One heir enumerated in a Determinación de Herederos — richer than
+    CustomerInfo because the act must state each heir's filiation (birth data)."""
+
+    first_name: str
+    last_name: str
+    id_number: str = ""
+    nationality: str = ""
+    marital_status: str = ""
+    occupation: str = ""
+    address: str = ""
+    birth_date: str = ""
+    birth_record: str = ""
+
+
+class DeterminacionHerederosRequest(NotaryActBase):
+    declarants: list[CustomerInfo]
+    declarant_denomination: str = "LOS DECLARANTES"
+    deceased_name: str
+    deceased_nationality: str = ""
+    deceased_marital_status: str = ""
+    deceased_occupation: str = ""
+    deceased_id_number: str = ""
+    deceased_birth_date: str = ""
+    deceased_death_date: str = ""
+    deceased_death_record: str = ""
+    deceased_origin_place: str = ""
+    deceased_spouse_name: str = ""
+    heirs: list[HeirInfo] = []
     clauses: list[str] = []
+
+
+class AutorizacionViajeMenorRequest(NotaryActBase):
+    authorizers: list[CustomerInfo]
+    authorizer_denomination: str = "EL AUTORIZANTE"
+    minor_name: str
+    minor_birth_date: str = ""
+    minor_birth_record: str = ""
+    minor_passport: str = ""
+    destination_country: str
+    acceptors: list[CustomerInfo] = []
+    acceptor_denomination: str = "EL ACEPTANTE"
 
 
 def _set_table_borders_invisible(table):
@@ -213,9 +268,12 @@ def inject_signatures(doc: Document, parties: list[tuple[str, str]]):
         table._tbl.addnext(spacer._p)
 
 
-def inject_clauses(doc: Document, clauses: list[str]):
+def inject_clauses(doc: Document, clauses: list[str], start_index: int = 0):
     """Replace the __CLAUSES__ sentinel paragraph with one justified paragraph per
-    clause, each opening with a bold auto-numbered ordinal (PRIMERO:, SEGUNDO:, …)."""
+    clause, each opening with a bold auto-numbered ordinal (PRIMERO:, SEGUNDO:, …).
+    `start_index` continues the numbering after any clauses the template hardcodes
+    (e.g. Determinación de Herederos fixes PRIMERO/SEGUNDO and starts dynamic
+    clauses at TERCERO, index 2)."""
     target_paragraph = None
     for paragraph in doc.paragraphs:
         if _CLAUSES_SENTINEL in paragraph.text:
@@ -228,12 +286,54 @@ def inject_clauses(doc: Document, clauses: list[str]):
 
     items = [c.strip() for c in clauses if c and c.strip()]
     # Insert in reverse so addnext() preserves PRIMERO → último order.
-    for index in reversed(range(len(items))):
+    for local_index in reversed(range(len(items))):
         para = doc.add_paragraph()
         para.alignment = WD_PARAGRAPH_ALIGNMENT.JUSTIFY
-        ordinal_run = para.add_run(f"{ordinal_word(index)}: ")
+        ordinal_run = para.add_run(f"{ordinal_word(start_index + local_index)}: ")
         ordinal_run.bold = True
-        para.add_run(items[index])
+        para.add_run(items[local_index])
+        target_paragraph._p.addnext(para._p)
+
+
+def inject_heirs(doc: Document, heirs: list[HeirInfo]):
+    """Replace the __HEREDEROS__ sentinel paragraph with one justified, numbered
+    ("1-", "2-", …) paragraph per heir, stating their generals and filiation."""
+    target_paragraph = None
+    for paragraph in doc.paragraphs:
+        if _HEIRS_SENTINEL in paragraph.text:
+            target_paragraph = paragraph
+            paragraph.text = ""
+            break
+
+    if target_paragraph is None:
+        return
+
+    for index in reversed(range(len(heirs))):
+        h = heirs[index]
+        para = doc.add_paragraph()
+        para.alignment = WD_PARAGRAPH_ALIGNMENT.JUSTIFY
+        prefix_run = para.add_run(f"{index + 1}- ")
+        prefix_run.bold = True
+        name_run = para.add_run(f"{h.first_name} {h.last_name}".upper())
+        name_run.bold = True
+        details = ""
+        if h.nationality:
+            details += f", {h.nationality}"
+        details += ", mayor de edad"
+        if h.marital_status:
+            details += f", {h.marital_status}"
+        if h.occupation:
+            details += f", {h.occupation}"
+        if h.id_number:
+            details += f", portador(a) de la cédula de identidad y electoral No. {h.id_number}"
+        if h.address:
+            details += f", domiciliado(a) y residente en {h.address}"
+        if h.birth_date:
+            details += f", nacido(a) en fecha {h.birth_date}"
+        if h.birth_record:
+            details += f", según {h.birth_record}"
+        details += ";"
+        para.add_run(details)
         target_paragraph._p.addnext(para._p)
 
 
@@ -285,6 +385,21 @@ def _notary_context(req: NotaryActBase) -> dict:
         "CANTIDAD_ORIGINALES": req.originals_count,
         "FIRMANTES_LISTA": req.signers_list,
         "SIGNATURES": _SIG_SENTINEL,
+    }
+
+
+def _clause_act_context(req: ClauseActRequest) -> dict:
+    """Placeholders shared by Declaración Jurada and Acto de Notoriedad: the
+    declarant/compareciente party block and the dynamic-clauses sentinel."""
+    return {
+        "COMPARECIENTE_NOMBRE": _bold_upper(_party_names(req.declarants)),
+        "COMPARECIENTE_NACIONALIDAD": _join(d.nationality for d in req.declarants),
+        "COMPARECIENTE_ESTADO_CIVIL": _join(d.marital_status for d in req.declarants),
+        "COMPARECIENTE_OCUPACION": _join(d.occupation for d in req.declarants),
+        "COMPARECIENTE_CEDULA": _join(d.id_number for d in req.declarants),
+        "COMPARECIENTE_DOMICILIO": _join(d.address for d in req.declarants),
+        "DENOMINACION_COMPARECIENTE": req.declarant_denomination,
+        "CLAUSULAS": _CLAUSES_SENTINEL,
     }
 
 
@@ -502,21 +617,8 @@ def generate_declaracion_jurada(req: DeclaracionJuradaRequest):
         raise HTTPException(status_code=404, detail="Template not found")
 
     tpl = DocxTemplate(template_path)
-    context = _notary_context(req)
-    context.update(
-        {
-            "ACTO_NUMERO": req.act_number,
-            "HORA": req.time,
-            "COMPARECIENTE_NOMBRE": _bold_upper(_party_names(req.declarants)),
-            "COMPARECIENTE_NACIONALIDAD": _join(d.nationality for d in req.declarants),
-            "COMPARECIENTE_ESTADO_CIVIL": _join(d.marital_status for d in req.declarants),
-            "COMPARECIENTE_OCUPACION": _join(d.occupation for d in req.declarants),
-            "COMPARECIENTE_CEDULA": _join(d.id_number for d in req.declarants),
-            "COMPARECIENTE_DOMICILIO": _join(d.address for d in req.declarants),
-            "DENOMINACION_COMPARECIENTE": req.declarant_denomination,
-            "CLAUSULAS": _CLAUSES_SENTINEL,
-        }
-    )
+    context = _notary_context(req) | _clause_act_context(req)
+    context.update({"ACTO_NUMERO": req.act_number, "HORA": req.time})
     tpl.render(context)
     intermediate = BytesIO()
     tpl.save(intermediate)
@@ -532,6 +634,130 @@ def generate_declaracion_jurada(req: DeclaracionJuradaRequest):
     inject_signatures(doc, parties)
 
     return _act_response(doc, "declaracion_jurada.docx")
+
+
+@app.post("/documents/acto_notoriedad")
+def generate_acto_notoriedad(req: ActoNotoriedadRequest):
+    template_path = TEMPLATES_DIR / "acto_notoriedad.docx"
+    if not template_path.exists():
+        raise HTTPException(status_code=404, detail="Template not found")
+
+    tpl = DocxTemplate(template_path)
+    context = _notary_context(req) | _clause_act_context(req)
+    tpl.render(context)
+    intermediate = BytesIO()
+    tpl.save(intermediate)
+    intermediate.seek(0)
+
+    doc = Document(intermediate)
+    inject_clauses(doc, req.clauses)
+    parties = (
+        [(f"{d.first_name} {d.last_name}".upper(), "Compareciente") for d in req.declarants]
+        + [(f"{w.first_name} {w.last_name}".upper(), "Testigo Instrumental") for w in req.witnesses]
+        + [(req.notary_title_name.upper(), "Notario Público")]
+    )
+    inject_signatures(doc, parties)
+
+    return _act_response(doc, "acto_notoriedad.docx")
+
+
+@app.post("/documents/determinacion_herederos")
+def generate_determinacion_herederos(req: DeterminacionHerederosRequest):
+    template_path = TEMPLATES_DIR / "determinacion_herederos.docx"
+    if not template_path.exists():
+        raise HTTPException(status_code=404, detail="Template not found")
+
+    tpl = DocxTemplate(template_path)
+    context = _notary_context(req)
+    context.update(
+        {
+            "COMPARECIENTE_NOMBRE": _bold_upper(_party_names(req.declarants)),
+            "COMPARECIENTE_NACIONALIDAD": _join(d.nationality for d in req.declarants),
+            "COMPARECIENTE_ESTADO_CIVIL": _join(d.marital_status for d in req.declarants),
+            "COMPARECIENTE_OCUPACION": _join(d.occupation for d in req.declarants),
+            "COMPARECIENTE_CEDULA": _join(d.id_number for d in req.declarants),
+            "COMPARECIENTE_DOMICILIO": _join(d.address for d in req.declarants),
+            "DENOMINACION_COMPARECIENTE": req.declarant_denomination,
+            "DIFUNTO_NOMBRE": _bold_upper(req.deceased_name),
+            "DIFUNTO_NACIONALIDAD": req.deceased_nationality,
+            "DIFUNTO_ESTADO_CIVIL": req.deceased_marital_status,
+            "DIFUNTO_OCUPACION": req.deceased_occupation,
+            "DIFUNTO_CEDULA": req.deceased_id_number,
+            "DIFUNTO_FECHA_NACIMIENTO": req.deceased_birth_date,
+            "DIFUNTO_FECHA_DEFUNCION": req.deceased_death_date,
+            "DIFUNTO_ACTA_DEFUNCION": req.deceased_death_record,
+            "DIFUNTO_LUGAR_ORIGEN": req.deceased_origin_place,
+            "DIFUNTO_CONYUGE": req.deceased_spouse_name,
+            "HEREDEROS": _HEIRS_SENTINEL,
+            "CLAUSULAS": _CLAUSES_SENTINEL,
+        }
+    )
+    tpl.render(context)
+    intermediate = BytesIO()
+    tpl.save(intermediate)
+    intermediate.seek(0)
+
+    doc = Document(intermediate)
+    inject_heirs(doc, req.heirs)
+    # PRIMERO (deceased facts) and SEGUNDO (heirs enumeration) are fixed in the
+    # template; dynamic clauses continue numbering from TERCERO (index 2).
+    inject_clauses(doc, req.clauses, start_index=2)
+    parties = (
+        [(f"{d.first_name} {d.last_name}".upper(), "Compareciente") for d in req.declarants]
+        + [(f"{w.first_name} {w.last_name}".upper(), "Testigo Instrumental") for w in req.witnesses]
+        + [(req.notary_title_name.upper(), "Notario Público")]
+    )
+    inject_signatures(doc, parties)
+
+    return _act_response(doc, "determinacion_herederos.docx")
+
+
+@app.post("/documents/autorizacion_viaje_menor")
+def generate_autorizacion_viaje_menor(req: AutorizacionViajeMenorRequest):
+    template_path = TEMPLATES_DIR / "autorizacion_viaje_menor.docx"
+    if not template_path.exists():
+        raise HTTPException(status_code=404, detail="Template not found")
+
+    tpl = DocxTemplate(template_path)
+    context = _notary_context(req)
+    context.update(
+        {
+            "AUTORIZADOR_NOMBRE": _bold_upper(_party_names(req.authorizers)),
+            "AUTORIZADOR_NACIONALIDAD": _join(a.nationality for a in req.authorizers),
+            "AUTORIZADOR_ESTADO_CIVIL": _join(a.marital_status for a in req.authorizers),
+            "AUTORIZADOR_OCUPACION": _join(a.occupation for a in req.authorizers),
+            "AUTORIZADOR_CEDULA": _join(a.id_number for a in req.authorizers),
+            "AUTORIZADOR_DOMICILIO": _join(a.address for a in req.authorizers),
+            "DENOMINACION_AUTORIZADOR": req.authorizer_denomination,
+            "MENOR_NOMBRE": _bold_upper(req.minor_name),
+            "MENOR_FECHA_NACIMIENTO": req.minor_birth_date,
+            "MENOR_ACTA_NACIMIENTO": req.minor_birth_record,
+            "MENOR_PASAPORTE": req.minor_passport,
+            "PAIS_DESTINO": req.destination_country,
+            "ACEPTANTE_NOMBRE": _bold_upper(_party_names(req.acceptors)),
+            "ACEPTANTE_NACIONALIDAD": _join(a.nationality for a in req.acceptors),
+            "ACEPTANTE_ESTADO_CIVIL": _join(a.marital_status for a in req.acceptors),
+            "ACEPTANTE_OCUPACION": _join(a.occupation for a in req.acceptors),
+            "ACEPTANTE_CEDULA": _join(a.id_number for a in req.acceptors),
+            "ACEPTANTE_DOMICILIO": _join(a.address for a in req.acceptors),
+            "DENOMINACION_ACEPTANTE": req.acceptor_denomination,
+        }
+    )
+    tpl.render(context)
+    intermediate = BytesIO()
+    tpl.save(intermediate)
+    intermediate.seek(0)
+
+    doc = Document(intermediate)
+    parties = (
+        [(f"{a.first_name} {a.last_name}".upper(), "Autorizador") for a in req.authorizers]
+        + [(f"{a.first_name} {a.last_name}".upper(), "Aceptante") for a in req.acceptors]
+        + [(f"{w.first_name} {w.last_name}".upper(), "Testigo Instrumental") for w in req.witnesses]
+        + [(req.notary_title_name.upper(), "Notario Público")]
+    )
+    inject_signatures(doc, parties)
+
+    return _act_response(doc, "autorizacion_viaje_menor.docx")
 
 
 # Static files last so API routes take precedence

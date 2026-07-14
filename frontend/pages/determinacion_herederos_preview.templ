@@ -1,0 +1,92 @@
+package pages
+
+templ DeterminacionHerederosPreview(d DeterminacionHerederosPreviewData) {
+	<div class="font-serif text-on-background text-[14px] space-y-md">
+		<!-- Firm / Notary Header -->
+		<div class="text-center space-y-xs border-b border-outline-variant pb-lg mb-lg">
+			<p class="font-bold text-[15px] uppercase tracking-widest">@ph("NOMBRE DEL BUFETE")</p>
+			<p class="text-secondary italic text-[13px]">@ph("SERVICIO DEL BUFETE")</p>
+			<p class="mt-sm">
+				@ph("NOTARIO TÍTULO Y NOMBRE") · TEL.
+				@ph("TELÉFONO")
+			</p>
+			<p class="text-secondary text-[13px]">@ph("MUNICIPIO")</p>
+		</div>
+		<!-- Title -->
+		<div class="text-center mb-lg">
+			<h3 class="font-bold uppercase tracking-widest text-[15px] border-b-2 border-primary inline-block pb-xs">
+				Acta de Determinación de Herederos
+			</h3>
+		</div>
+		<!-- Body intro -->
+		<p class="text-justify leading-relaxed">
+			República Dominicana. En la Ciudad y Municipio de
+			@ph("MUNICIPIO"), Provincia
+			@ph("PROVINCIA"), a los
+			@ph("DÍA EN LETRAS"),
+			@ph("DÍA")
+			días del mes de
+			@ph("MES")
+			del año
+			@ph("AÑO EN LETRAS"),
+			@ph("AÑO"){ ". " }Por ante mí, <strong>@ph("NOTARIO TÍTULO Y NOMBRE")</strong>,
+			Notario Público de los del número de este Municipio de
+			@ph("MUNICIPIO"), miembro activo del Colegio Dominicano de Notarios con matrícula No.
+			@ph("MATRÍCULA"),
+			@ph("NOTARIO NACIONALIDAD"), mayor de edad,
+			@ph("NOTARIO ESTADO CIVIL"), portador(a) de la cédula de identidad y electoral No.
+			@ph("NOTARIO CÉDULA"), con mi estudio profesional abierto en
+			@ph("NOTARIO ESTUDIO"),
+			@witnessBlock(d.Witnesses)
+			han Comparecido Libre y Voluntariamente los señores
+			if len(d.Declarants) > 0 {
+				@actPartyBlock(d.Declarants, d.DeclarantDenomination)
+			} else {
+				<span class="text-secondary italic text-[12px]">[Sin declarantes asignados]</span>
+			}
+			me han declarado los comparecientes, Bajo la Fe del Juramento, lo siguiente:
+		</p>
+		<!-- Clause 1: deceased facts (fixed) -->
+		<div>
+			<p class="font-bold uppercase mt-md mb-xs">Primero:</p>
+			<p class="text-justify leading-relaxed">
+				Que en vida conocieron al hoy finado, <strong>@ph("DIFUNTO NOMBRE")</strong>, de nacionalidad
+				@ph("DIFUNTO NACIONALIDAD"), mayor de edad,
+				@ph("DIFUNTO ESTADO CIVIL"),
+				@ph("DIFUNTO OCUPACIÓN"), quien nació en fecha
+				@ph("DIFUNTO FECHA NACIMIENTO"), y falleció en fecha
+				@ph("DIFUNTO FECHA DEFUNCIÓN"), según
+				@ph("DIFUNTO ACTA DEFUNCIÓN"), portador(a) de la cédula de identidad y electoral No.
+				@ph("DIFUNTO CÉDULA"), quien era oriundo(a) de
+				@ph("DIFUNTO LUGAR DE ORIGEN"){ "." }
+			</p>
+		</div>
+		<!-- Clause 2: heirs enumeration (fixed intro + injected list) -->
+		<div>
+			<p class="font-bold uppercase mt-md mb-xs">Segundo:</p>
+			<p class="text-justify leading-relaxed">
+				Que al momento de su fallecimiento, <strong>@ph("DIFUNTO NOMBRE")</strong> había procreado con
+				@ph("DIFUNTO CÓNYUGE")
+				los siguientes herederos:
+			</p>
+			@heirList(d.Heirs)
+		</div>
+		<!-- Dynamic clauses continue at TERCERO -->
+		@clauseListFrom(d.Clauses, 2)
+		<!-- Closing -->
+		<p class="text-justify leading-relaxed mt-md">
+			Los comparecientes hacen constar que sus declaraciones están apegadas a la verdad, por lo que
+			Yo, Notario Público, he procedido a levantar el presente acto, dándole lectura al mismo en voz
+			alta en presencia de los comparecientes y los testigos, quienes se mostraron conformes con el
+			mismo y en señal de aprobación lo firmaron ante mí y junto conmigo, Notario Público que
+			CERTIFICO Y DOY FE.
+		</p>
+		<!-- Signatures -->
+		@signatureBlock(d.Signatures())
+		<!-- Notary signature -->
+		<div class="mt-3xl pt-lg border-t border-outline-variant space-y-sm">
+			<p class="text-center font-bold uppercase text-[13px]">@ph("NOTARIO TÍTULO Y NOMBRE")</p>
+			<p class="text-center text-secondary text-[12px]">Notario Público</p>
+		</div>
+	</div>
+}

@@ -107,6 +107,9 @@ func main() {
 	r.HandleFunc("/preview/rent_contract", webHandler.RentContractPreview).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/preview/poder_especial", webHandler.PoderEspecialPreview).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/preview/declaracion_jurada", webHandler.DeclaracionJuradaPreview).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/preview/acto_notoriedad", webHandler.ActoNotoriedadPreview).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/preview/determinacion_herederos", webHandler.DeterminacionHerederosPreview).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/preview/autorizacion_viaje_menor", webHandler.AutorizacionViajeMenorPreview).Methods(http.MethodPost, http.MethodOptions)
 
 	// otelhttp.NewHandler wraps the entire router and automatically emits
 	// http_server_request_duration_seconds for every request — count, duration,
